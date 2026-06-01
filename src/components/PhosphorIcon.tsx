@@ -18,17 +18,23 @@ const PATHS: Record<string, string> = {
     "M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z",
   "arrow-ccw":
     "M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,1,0,1.68,114.17,8,8,0,1,1,11.21,11.41A95.63,95.63,0,0,1,128,224h-1.32A96,96,0,1,1,195.31,60.69L216,80V48a8,8,0,0,1,16,0Z",
+  "caret-left":
+    "M168.49,199.51a12,12,0,0,1-17,17l-80-80a12,12,0,0,1,0-17l80-80a12,12,0,0,1,17,17L97,128Z",
+  "arrow-left-bold":
+    "M228,128a12,12,0,0,1-12,12H99.8l58.1,58.07a12,12,0,1,1-16.97,16.97l-79.96-80a12,12,0,0,1,0-16.97l79.96-80a12,12,0,1,1,16.97,16.97L99.8,116H216A12,12,0,0,1,228,128Z",
 };
 
-export function PhosphorIcon(props: { name: string; fontSize?: number }) {
-  const size = () => props.fontSize ?? 20;
+export function PhosphorIcon(props: { name: string; fontSize?: number | string }) {
+  const size = () => {
+    const f = props.fontSize ?? 20;
+    return typeof f === "number" ? `${f}px` : f;
+  };
   const path = () => PATHS[props.name] ?? "";
 
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width={size()}
-      height={size()}
+      style={{ width: size(), height: size(), "flex-shrink": "0" }}
       viewBox="0 0 256 256"
       fill="currentColor"
       aria-hidden="true"

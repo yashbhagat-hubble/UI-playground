@@ -5,9 +5,12 @@
 import { createMemo, createSignal, For, JSX, onMount, Show } from "solid-js";
 import { Portal } from "solid-js/web";
 import { PhosphorIcon } from "./components/PhosphorIcon";
+import { SdkAppbar } from "./components/SdkAppbar";
 import { SdkCategoryCard } from "./components/SdkCategoryCard";
 import { brandThemes, designVariantOverrides } from "./data/brand_themes_registry";
+import { appbarThemes } from "./data/appbar_themes_registry";
 import { EXTRACTION_PROMPT } from "./data/extraction_prompt";
+import { APPBAR_EXTRACTION_PROMPT } from "./data/appbar_extraction_prompt";
 import { MOCK_CATEGORIES, categoryIconMap, categoryEmoji, type MockCategory } from "./utils/categories";
 import { formatDiscountPercent } from "./utils/number";
 
@@ -55,6 +58,40 @@ const defaultSdkCssVariables: Record<string, string> = {
   "--sdk-category-card-icon-container-size": "32px",
   "--sdk-category-card-icon-container-radius": "9999px",
   "--sdk-category-card-icon-color": "var(--text-normal-primary)",
+};
+
+// ─── Appbar title type scale ──────────────────────────────────────────────────
+
+type TitleSizeKey = "t3" | "t4" | "t5" | "t6" | "p1" | "p2";
+type TitleWeightKey = "regular" | "medium" | "semibold";
+
+const TITLE_SIZES: Record<TitleSizeKey, { label: string; size: number; lineHeight: number; tracking: number }> = {
+  t3:  { label: "T3", size: 18, lineHeight: 24, tracking: -0.18 },
+  t4:  { label: "T4", size: 16, lineHeight: 22, tracking: -0.16 },
+  t5:  { label: "T5", size: 15, lineHeight: 20, tracking: -0.15 },
+  t6:  { label: "T6", size: 14, lineHeight: 20, tracking: -0.14 },
+  p1:  { label: "P1", size: 14, lineHeight: 20, tracking:  0 },
+  p2:  { label: "P2", size: 12, lineHeight: 16, tracking:  0 },
+};
+
+const TITLE_WEIGHTS: Record<TitleWeightKey, { label: string; weight: number }> = {
+  regular:  { label: "Regular",  weight: 400 },
+  medium:   { label: "Medium",   weight: 500 },
+  semibold: { label: "Semibold", weight: 600 },
+};
+
+// ─── Default appbar SDK vars ──────────────────────────────────────────────────
+
+const defaultAppbarCssVariables: Record<string, string> = {
+  "--sdk-appbar-bg": "var(--background-normal-primary)",
+  "--sdk-appbar-bottom-border": "var(--stroke-1)",
+  "--sdk-appbar-title-color": "var(--text-normal-primary)",
+  "--sdk-appbar-icon-color": "var(--text-normal-primary)",
+  "--sdk-appbar-icon-bg": "transparent",
+  "--sdk-appbar-icon-border": "transparent",
+  "--sdk-appbar-icon-size": "32px",
+  "--sdk-appbar-icon-radius": "9999px",
+  "--sdk-appbar-height": "44px",
 };
 
 // ─── Theme tabs ───────────────────────────────────────────────────────────────
@@ -474,6 +511,113 @@ function createCardBuilderState() {
 
 type CardBuilderState = ReturnType<typeof createCardBuilderState>;
 
+// ─── Appbar builder state ─────────────────────────────────────────────────────
+
+function createAppbarBuilderState() {
+  // — Appbar shell —
+  const [appbarBg, setAppbarBg] = createSignal("var(--background-normal-primary)");
+  const [appbarBorderOn, setAppbarBorderOn] = createSignal(true);
+  const [appbarBorderColor, setAppbarBorderColor] = createSignal("var(--stroke-1)");
+  const [appbarHeight, setAppbarHeight] = createSignal(44);
+  // — Title —
+  const [titleSizeKey, setTitleSizeKey] = createSignal<TitleSizeKey>("t6");
+  const [titleWeightKey, setTitleWeightKey] = createSignal<TitleWeightKey>("medium");
+  const [titleAlign, setTitleAlign] = createSignal<"left" | "center">("left");
+  // — Icon —
+  const [iconGap, setIconGap] = createSignal(12);
+  const [backIconKey, setBackIconKey] = createSignal<"arrow" | "caret">("arrow");
+  const backIconName = createMemo(() => backIconKey());
+  const [iconSizePx, setIconSizePx] = createSignal(20);
+  const [iconContainerOn, setIconContainerOn] = createSignal(false);
+  const [iconContainerBg, setIconContainerBg] = createSignal("transparent");
+  const [iconContainerBorderOn, setIconContainerBorderOn] = createSignal(false);
+  const [iconContainerBorderColor, setIconContainerBorderColor] = createSignal("var(--stroke-2)");
+  const [iconContainerSize, setIconContainerSize] = createSignal(32);
+  const [iconContainerRadius, setIconContainerRadius] = createSignal(50);
+  // — Context (background + text) —
+  const [ctxBgPrimary,     setCtxBgPrimary]     = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
+  const [ctxBgSecondary,   setCtxBgSecondary]   = createSignal(LIGHT_CTX_DEFAULTS.bgSecondary);
+  const [ctxTextPrimary,   setCtxTextPrimary]   = createSignal(LIGHT_CTX_DEFAULTS.textPrimary);
+  const [ctxTextSecondary, setCtxTextSecondary] = createSignal(LIGHT_CTX_DEFAULTS.textSecondary);
+  const [ctxTextTertiary,  setCtxTextTertiary]  = createSignal(LIGHT_CTX_DEFAULTS.textTertiary);
+
+  const contextVars = createMemo((): JSX.CSSProperties => ({
+    "--background-normal-primary":   ctxBgPrimary(),
+    "--background-normal-secondary": ctxBgSecondary(),
+    "--text-normal-primary":   ctxTextPrimary(),
+    "--text-normal-secondary": ctxTextSecondary(),
+    "--text-normal-tertiary":  ctxTextTertiary(),
+  }));
+
+  const appbarCssVars = createMemo((): JSX.CSSProperties => {
+    const hasVisibleContainer =
+      iconContainerOn() && (iconContainerBg() !== "transparent" || iconContainerBorderOn());
+    return {
+      "--sdk-appbar-bg": appbarBg(),
+      "--sdk-appbar-bottom-border": appbarBorderOn() ? appbarBorderColor() : "transparent",
+      "--sdk-appbar-height": `${appbarHeight()}px`,
+      "--sdk-appbar-title-size": `${TITLE_SIZES[titleSizeKey()].size}px`,
+      "--sdk-appbar-title-line-height": `${TITLE_SIZES[titleSizeKey()].lineHeight}px`,
+      "--sdk-appbar-title-weight": `${TITLE_WEIGHTS[titleWeightKey()].weight}`,
+      "--sdk-appbar-title-tracking": `${TITLE_SIZES[titleSizeKey()].tracking}px`,
+      "--sdk-appbar-icon-gap": `${iconGap()}px`,
+      "--sdk-appbar-icon-inner-size": `${iconSizePx()}px`,
+      "--sdk-appbar-icon-bg": iconContainerOn() ? iconContainerBg() : "transparent",
+      "--sdk-appbar-icon-border":
+        iconContainerOn() && iconContainerBorderOn() ? iconContainerBorderColor() : "transparent",
+      "--sdk-appbar-icon-size": hasVisibleContainer ? `${iconContainerSize()}px` : "32px",
+      "--sdk-appbar-icon-radius": hasVisibleContainer ? `${iconContainerRadius()}px` : "9999px",
+    };
+  });
+
+  function resetAppbar() {
+    setAppbarBg("var(--background-normal-primary)");
+    setAppbarBorderOn(true);
+    setAppbarBorderColor("var(--stroke-1)");
+    setAppbarHeight(44);
+    setTitleSizeKey("t6");
+    setTitleWeightKey("medium");
+    setTitleAlign("left");
+    setIconGap(12);
+    setBackIconKey("arrow");
+    setIconSizePx(20);
+    setIconContainerOn(false);
+    setIconContainerBg("transparent");
+    setIconContainerBorderOn(false);
+    setIconContainerBorderColor("var(--stroke-2)");
+    setIconContainerSize(32);
+    setIconContainerRadius(50);
+  }
+
+  function resetCtxToMode(dark: boolean) {
+    const d = dark ? DARK_CTX_DEFAULTS : LIGHT_CTX_DEFAULTS;
+    setCtxBgPrimary(d.bgPrimary);
+    setCtxBgSecondary(d.bgSecondary);
+    setCtxTextPrimary(d.textPrimary);
+    setCtxTextSecondary(d.textSecondary);
+    setCtxTextTertiary(d.textTertiary);
+  }
+
+  return {
+    appbarBg, setAppbarBg, appbarBorderOn, setAppbarBorderOn,
+    appbarBorderColor, setAppbarBorderColor,
+    appbarHeight, setAppbarHeight,
+    titleSizeKey, setTitleSizeKey, titleWeightKey, setTitleWeightKey, titleAlign, setTitleAlign,
+    iconGap, setIconGap, backIconKey, setBackIconKey, backIconName,
+    iconSizePx, setIconSizePx, iconContainerOn, setIconContainerOn,
+    iconContainerBg, setIconContainerBg, iconContainerBorderOn, setIconContainerBorderOn,
+    iconContainerBorderColor, setIconContainerBorderColor,
+    iconContainerSize, setIconContainerSize, iconContainerRadius, setIconContainerRadius,
+    ctxBgPrimary, setCtxBgPrimary, ctxBgSecondary, setCtxBgSecondary,
+    ctxTextPrimary, setCtxTextPrimary, ctxTextSecondary, setCtxTextSecondary,
+    ctxTextTertiary, setCtxTextTertiary,
+    contextVars, appbarCssVars,
+    resetAppbar, resetCtxToMode,
+  };
+}
+
+type AppbarBuilderState = ReturnType<typeof createAppbarBuilderState>;
+
 // ─── Card builder section ─────────────────────────────────────────────────────
 
 function CardBuilderSection(props: { state: CardBuilderState; categories: MockCategory[] }) {
@@ -566,7 +710,7 @@ function CardBuilderSection(props: { state: CardBuilderState; categories: MockCa
         </Portal>
       </Show>
 
-      <Section title="Card Builder" action={configAction}>
+      <Section title="Categories Builder" action={configAction}>
         <div class="flex flex-col gap-4">
 
           {/* ── Card preview row ── */}
@@ -686,6 +830,419 @@ function CardBuilderSection(props: { state: CardBuilderState; categories: MockCa
         </div>
       </Section>
     </>
+  );
+}
+
+// ─── Phone preview shell ──────────────────────────────────────────────────────
+
+/** Wraps content in a phone-shaped preview container with a status bar */
+function PhonePreview(props: { children: JSX.Element }) {
+  return (
+    <div
+      class="w-[375px] shrink-0 overflow-hidden rounded-2xl border border-stroke-1"
+      style={{
+        height: "200px",
+        background: "var(--background-normal-primary)",
+      }}
+    >
+      {/* Status bar */}
+      <div class="flex items-center justify-between px-5 pb-1 pt-3">
+        <span class="text-[11px] font-semibold tabular-nums text-text-normal-tertiary">9:41</span>
+        <div class="flex items-center gap-1.5 text-text-normal-tertiary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+            <path d="M228,128a100,100,0,1,1-100-100A100.11,100.11,0,0,1,228,128Zm-100-84a84,84,0,1,0,84,84A84.09,84.09,0,0,0,128,44ZM76,128a52,52,0,1,1,52,52A52.06,52.06,0,0,1,76,128Z" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+            <path d="M228.92,49.69a8,8,0,0,0-6.86-1.45L160.93,63.52,99,49.24a8.07,8.07,0,0,0-3.83,0L29.14,64.2A8,8,0,0,0,23,72V200a8,8,0,0,0,9.94,7.76l61.13-15.28,61.94,14.28A8.07,8.07,0,0,0,159,207l66.86-14.95A8,8,0,0,0,232,184V56A8,8,0,0,0,228.92,49.69Z" />
+          </svg>
+          <div class="flex items-center gap-0.5">
+            <div class="h-2.5 w-1 rounded-sm" style={{ background: "var(--text-normal-tertiary)" }} />
+            <div class="h-3 w-1 rounded-sm" style={{ background: "var(--text-normal-tertiary)" }} />
+            <div class="h-3.5 w-1 rounded-sm" style={{ background: "var(--text-normal-secondary)" }} />
+            <div class="h-4 w-1 rounded-sm" style={{ background: "var(--text-normal-primary)" }} />
+          </div>
+        </div>
+      </div>
+      {props.children}
+    </div>
+  );
+}
+
+/** Skeleton content blocks to give the appbar preview context */
+function PageContentSkeleton() {
+  return (
+    <div class="flex flex-col gap-3 px-4 pb-6 pt-4">
+      <div class="h-32 rounded-xl" style={{ background: "var(--background-normal-secondary)" }} />
+      <div class="grid grid-cols-3 gap-2">
+        <div class="h-20 rounded-xl" style={{ background: "var(--background-normal-secondary)" }} />
+        <div class="h-20 rounded-xl" style={{ background: "var(--background-normal-secondary)" }} />
+        <div class="h-20 rounded-xl" style={{ background: "var(--background-normal-secondary)" }} />
+      </div>
+      <div class="h-4 w-2/3 rounded-lg" style={{ background: "var(--background-normal-secondary)" }} />
+      <div class="h-4 w-full rounded-lg" style={{ background: "var(--background-normal-secondary)" }} />
+      <div class="h-4 w-4/5 rounded-lg" style={{ background: "var(--background-normal-secondary)" }} />
+    </div>
+  );
+}
+
+// ─── Appbar builder section ───────────────────────────────────────────────────
+
+function AppbarBuilderSection(props: { state: AppbarBuilderState }) {
+  const {
+    appbarBg, setAppbarBg, appbarBorderOn, setAppbarBorderOn,
+    appbarBorderColor, setAppbarBorderColor,
+    appbarHeight, setAppbarHeight,
+    titleSizeKey, setTitleSizeKey, titleWeightKey, setTitleWeightKey, titleAlign, setTitleAlign,
+    iconGap, setIconGap, backIconKey, setBackIconKey, backIconName,
+    iconSizePx, setIconSizePx, iconContainerOn, setIconContainerOn,
+    iconContainerBg, setIconContainerBg, iconContainerBorderOn, setIconContainerBorderOn,
+    iconContainerBorderColor, setIconContainerBorderColor,
+    iconContainerSize, setIconContainerSize, iconContainerRadius, setIconContainerRadius,
+    ctxBgPrimary, setCtxBgPrimary, ctxBgSecondary, setCtxBgSecondary,
+    ctxTextPrimary, setCtxTextPrimary, ctxTextSecondary, setCtxTextSecondary,
+    ctxTextTertiary, setCtxTextTertiary,
+  } = props.state;
+
+  const TITLE_SIZE_OPTIONS = (Object.keys(TITLE_SIZES) as TitleSizeKey[]).map((k) => ({
+    label: TITLE_SIZES[k].label,
+    value: k,
+  }));
+  const TITLE_WEIGHT_OPTIONS = (Object.keys(TITLE_WEIGHTS) as TitleWeightKey[]).map((k) => ({
+    label: TITLE_WEIGHTS[k].label,
+    value: k,
+  }));
+
+  const [configOpen, setConfigOpen] = createSignal(false);
+  const [popupPos, setPopupPos] = createSignal({ top: 0, right: 0 });
+  let configBtnRef: HTMLButtonElement | undefined;
+
+  const openConfig = () => {
+    if (configBtnRef) {
+      const rect = configBtnRef.getBoundingClientRect();
+      setPopupPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+    }
+    setConfigOpen((v) => !v);
+  };
+
+  const cssVarRows = createMemo(() =>
+    Object.entries(props.state.appbarCssVars()).map(([name, value]) => ({ name, value: String(value) }))
+  );
+
+  const getAppbarJson = () => JSON.stringify({
+    appbarCssVariables: Object.fromEntries(
+      Object.entries(props.state.appbarCssVars()).map(([k, v]) => [k, String(v)])
+    ),
+    appbarConfig: {
+      backIcon: backIconKey(),
+      titleAlign: titleAlign(),
+    },
+  }, null, 2);
+
+  const configAction = (
+    <div class="flex items-center gap-1">
+      <CopyButton getText={getAppbarJson} label="Copy JSON" />
+      <button
+        class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+        onClick={() => props.state.resetAppbar()}
+        title="Reset to defaults"
+      >
+        <PhosphorIcon name="arrow-ccw" fontSize={13} />
+        <span>Reset</span>
+      </button>
+      <button
+        ref={(el) => (configBtnRef = el)}
+        class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-secondary"
+        classList={{ "bg-background-normal-secondary text-text-normal-primary": configOpen() }}
+        onClick={openConfig}
+        title="CSS Variables"
+      >
+        <PhosphorIcon name="sliders" fontSize={16} />
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      <Show when={configOpen()}>
+        <Portal>
+          <div class="fixed inset-0 z-[300]" onClick={() => setConfigOpen(false)} />
+          <div
+            class="fixed z-[301] min-w-[300px] overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
+            style={{ top: `${popupPos().top}px`, right: `${popupPos().right}px` }}
+          >
+            <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
+              <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">
+                CSS Variable Output
+              </p>
+              <CopyButton
+                getText={() =>
+                  JSON.stringify(
+                    Object.fromEntries(cssVarRows().map((r) => [r.name, r.value])),
+                    null,
+                    2
+                  )
+                }
+                label="Copy JSON"
+              />
+            </div>
+            <div class="p-3">
+              <For each={cssVarRows()}>
+                {(row) => (
+                  <div class="flex items-start justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                    <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{row.name}</span>
+                    <span class="max-w-[160px] break-all text-right font-mono text-[11px] text-text-normal-primary">{row.value}</span>
+                  </div>
+                )}
+              </For>
+            </div>
+          </div>
+        </Portal>
+      </Show>
+
+      <Section title="Appbar Builder" action={configAction}>
+        <div class="flex flex-col gap-4">
+
+          {/* ── Phone preview ── */}
+          <div
+            class="flex justify-center"
+            style={{
+              ...props.state.contextVars(),
+              ...props.state.appbarCssVars(),
+            }}
+          >
+            <PhonePreview>
+              <SdkAppbar title="Gift Cards" backIcon={backIconName()} titleAlign={titleAlign()} />
+              <PageContentSkeleton />
+            </PhonePreview>
+          </div>
+
+          {/* ── 2-column controls ── */}
+          <div class="grid grid-cols-2 gap-x-6 border-t border-stroke-1 pt-4">
+
+            {/* Left column */}
+            <div class="flex flex-col gap-4">
+
+            <CtrlGroup title="Appbar">
+              <CtrlRow label="Background">
+                <SwatchRow value={appbarBg()} onChange={setAppbarBg} options={CARD_BG_OPTIONS} />
+              </CtrlRow>
+              <CtrlRow label="Height">
+                <SliderInput min={40} max={80} value={appbarHeight()} onChange={setAppbarHeight} unit="px" />
+              </CtrlRow>
+              <CtrlRow label="Border">
+                <ToggleSwitch value={appbarBorderOn()} onChange={setAppbarBorderOn} />
+                <Show when={appbarBorderOn()}>
+                  <SwatchRow value={appbarBorderColor()} onChange={setAppbarBorderColor} options={BORDER_COLOR_OPTIONS} />
+                </Show>
+              </CtrlRow>
+            </CtrlGroup>
+
+            <CtrlGroup title="Background & Text">
+              <CtrlRow label="Bg Primary">
+                <ColorPickerCtrl value={ctxBgPrimary()} onChange={setCtxBgPrimary} />
+              </CtrlRow>
+              <CtrlRow label="Bg Secondary">
+                <ColorPickerCtrl value={ctxBgSecondary()} onChange={setCtxBgSecondary} />
+              </CtrlRow>
+              <CtrlRow label="Text Primary">
+                <ColorPickerCtrl value={ctxTextPrimary()} onChange={setCtxTextPrimary} />
+              </CtrlRow>
+              <CtrlRow label="Text Sec">
+                <ColorPickerCtrl value={ctxTextSecondary()} onChange={setCtxTextSecondary} />
+              </CtrlRow>
+              <CtrlRow label="Text Ter">
+                <ColorPickerCtrl value={ctxTextTertiary()} onChange={setCtxTextTertiary} />
+              </CtrlRow>
+            </CtrlGroup>
+
+            </div>{/* end left column */}
+
+            {/* Right column */}
+            <div class="flex flex-col gap-4">
+
+            <CtrlGroup title="Title & Icon">
+              <CtrlRow label="Title style">
+                <Segment value={titleSizeKey()} onChange={setTitleSizeKey} options={TITLE_SIZE_OPTIONS} />
+              </CtrlRow>
+              <CtrlRow label="Weight">
+                <Segment value={titleWeightKey()} onChange={setTitleWeightKey} options={TITLE_WEIGHT_OPTIONS} />
+              </CtrlRow>
+              <CtrlRow label="Alignment">
+                <Segment
+                  value={titleAlign()} onChange={setTitleAlign}
+                  options={[
+                    { label: "Left", value: "left" as const },
+                    { label: "Center", value: "center" as const },
+                  ]}
+                />
+              </CtrlRow>
+              <CtrlRow label="Icon type">
+                <Segment
+                  value={backIconKey()} onChange={setBackIconKey}
+                  options={[
+                    { label: "Arrow", value: "arrow" as const },
+                    { label: "Caret", value: "caret" as const },
+                  ]}
+                />
+              </CtrlRow>
+              <CtrlRow label="Icon gap">
+                <SliderInput min={0} max={32} value={iconGap()} onChange={setIconGap} unit="px" />
+              </CtrlRow>
+              <CtrlRow label="Icon size">
+                <SliderInput min={12} max={32} value={iconSizePx()} onChange={setIconSizePx} unit="px" />
+              </CtrlRow>
+              <CtrlRow label="Icon container">
+                <ToggleSwitch value={iconContainerOn()} onChange={setIconContainerOn} />
+              </CtrlRow>
+              <Show when={iconContainerOn()}>
+                <CtrlRow label="Fill">
+                  <SwatchRow value={iconContainerBg()} onChange={setIconContainerBg} options={FILL_OPTIONS} />
+                </CtrlRow>
+                <CtrlRow label="Border">
+                  <ToggleSwitch value={iconContainerBorderOn()} onChange={setIconContainerBorderOn} />
+                  <Show when={iconContainerBorderOn()}>
+                    <SwatchRow value={iconContainerBorderColor()} onChange={setIconContainerBorderColor} options={BORDER_COLOR_OPTIONS} />
+                  </Show>
+                </CtrlRow>
+                <Show when={iconContainerBg() !== "transparent" || iconContainerBorderOn()}>
+                  <CtrlRow label="Size">
+                    <SliderInput min={24} max={56} value={iconContainerSize()} onChange={setIconContainerSize} unit="px" />
+                  </CtrlRow>
+                  <CtrlRow label="Radius">
+                    <SliderInput min={0} max={50} value={iconContainerRadius()} onChange={setIconContainerRadius} unit="px" />
+                  </CtrlRow>
+                </Show>
+              </Show>
+            </CtrlGroup>
+
+            </div>{/* end right column */}
+
+          </div>{/* end 2-col grid */}
+        </div>{/* end flex-col gap-4 */}
+      </Section>
+    </>
+  );
+}
+
+// ─── Appbar brand card ────────────────────────────────────────────────────────
+
+function AppbarBrandCard(props: {
+  theme: typeof appbarThemes[number];
+  darkMode: () => boolean;
+}) {
+  const [configOpen, setConfigOpen] = createSignal(false);
+  const [popupPos, setPopupPos] = createSignal({ top: 0, right: 0 });
+  let configBtnRef: HTMLButtonElement | undefined;
+
+  const openConfig = () => {
+    if (configBtnRef) {
+      const rect = configBtnRef.getBoundingClientRect();
+      setPopupPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+    }
+    setConfigOpen((v) => !v);
+  };
+
+  const cssVarRows = () =>
+    Object.entries(props.theme.appbarCssVariables ?? {}).map(([name, value]) => ({ name, value }));
+
+  const getJson = () => JSON.stringify({
+    appbarCssVariables: props.theme.appbarCssVariables ?? {},
+    appbarConfig: props.theme.appbarConfig ?? {},
+  }, null, 2);
+
+  return (
+    <div class="flex flex-col gap-1.5">
+      <Show when={configOpen()}>
+        <Portal>
+          <div class="fixed inset-0 z-[300]" onClick={() => setConfigOpen(false)} />
+          <div
+            class="fixed z-[301] min-w-[300px] overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
+            style={{ top: `${popupPos().top}px`, right: `${popupPos().right}px` }}
+          >
+            <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
+              <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">
+                {props.theme.label}
+              </p>
+              <CopyButton getText={getJson} label="Copy JSON" />
+            </div>
+            <div class="p-3">
+              <For each={cssVarRows()}>
+                {(row) => (
+                  <div class="flex items-start justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                    <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{row.name}</span>
+                    <span class="max-w-[160px] break-all text-right font-mono text-[11px] text-text-normal-primary">{row.value}</span>
+                  </div>
+                )}
+              </For>
+              <Show when={props.theme.appbarConfig}>
+                <div class="mt-1 border-t border-stroke-1 pt-1">
+                  <For each={Object.entries(props.theme.appbarConfig ?? {})}>
+                    {([k, v]) => (
+                      <div class="flex items-start justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                        <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{k}</span>
+                        <span class="font-mono text-[11px] text-text-normal-primary">{v as string}</span>
+                      </div>
+                    )}
+                  </For>
+                </div>
+              </Show>
+            </div>
+          </div>
+        </Portal>
+      </Show>
+
+      <div class="flex items-center justify-between">
+        <p class="text-label-semi-bold text-text-normal-primary">{props.theme.label}</p>
+        <div class="flex items-center gap-1">
+          <button
+            ref={(el) => (configBtnRef = el)}
+            class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+            classList={{ "bg-background-normal-secondary text-text-normal-primary": configOpen() }}
+            onClick={openConfig}
+          >
+            <PhosphorIcon name="code" fontSize={13} />
+            <span>Config</span>
+          </button>
+          <CopyButton getText={getJson} label="Copy JSON" />
+        </div>
+      </div>
+
+      <div
+        class="flex justify-center"
+        style={{
+          ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
+          ...(props.theme.appbarCssVariables as JSX.CSSProperties | undefined),
+        }}
+      >
+        <PhonePreview>
+          <SdkAppbar
+            title="Gift Cards"
+            backIcon={props.theme.appbarConfig?.backIcon ?? "arrow"}
+            titleAlign={props.theme.appbarConfig?.titleAlign ?? "left"}
+          />
+          <PageContentSkeleton />
+        </PhonePreview>
+      </div>
+    </div>
+  );
+}
+
+// ─── Appbar brands section ────────────────────────────────────────────────────
+
+function AppbarBrandsSection(props: {
+  darkMode: () => boolean;
+  appbarCssVars: () => JSX.CSSProperties;
+}) {
+  return (
+    <Show when={appbarThemes.length > 0}>
+      <Section title="Brands">
+        <div class="flex flex-col gap-6">
+          <For each={appbarThemes}>
+            {(theme) => <AppbarBrandCard theme={theme} darkMode={props.darkMode} />}
+          </For>
+        </div>
+      </Section>
+    </Show>
   );
 }
 
@@ -985,6 +1542,19 @@ function BrandsSection(props: {
             <PhosphorIcon name="code" fontSize={13} />
             <span>Config</span>
           </button>
+          <CopyButton
+            getText={() => {
+              const obj: Record<string, unknown> = { key: brand.key, label: brand.label };
+              if (brand.defaultIconStyle) obj.defaultIconStyle = brand.defaultIconStyle;
+              if (brand.fontImportUrl) obj.fontImportUrl = brand.fontImportUrl;
+              if (brand.telescopeCssVariables && Object.keys(brand.telescopeCssVariables).length)
+                obj.telescopeCssVariables = brand.telescopeCssVariables;
+              if (brand.sdkCssVariables && Object.keys(brand.sdkCssVariables).length)
+                obj.sdkCssVariables = brand.sdkCssVariables;
+              return JSON.stringify(obj, null, 2);
+            }}
+            label="Copy JSON"
+          />
           <button
             class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
             title="Delete"
@@ -1108,14 +1678,171 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
 
 type PlaygroundTab = "categories" | "appbar";
 
-// ─── Appbar playground (stub — to be built) ───────────────────────────────────
+// ─── Appbar playground ────────────────────────────────────────────────────────
 
-function AppbarPlayground() {
+// ─── Appbar custom section ────────────────────────────────────────────────────
+
+type AppbarCustomBrand = {
+  key: string;
+  label: string;
+  appbarCssVariables: Record<string, string>;
+  appbarConfig: { backIcon: "arrow" | "caret"; titleAlign: "left" | "center" };
+};
+
+const APPBAR_CUSTOMS_KEY = "hcp-appbar-customs";
+
+function loadAppbarCustoms(): AppbarCustomBrand[] {
+  try { const s = localStorage.getItem(APPBAR_CUSTOMS_KEY); return s ? JSON.parse(s) : []; }
+  catch { return []; }
+}
+function saveAppbarCustoms(list: AppbarCustomBrand[]) {
+  localStorage.setItem(APPBAR_CUSTOMS_KEY, JSON.stringify(list));
+}
+
+const APPBAR_JSON_PLACEHOLDER = `{
+  "appbarCssVariables": {
+    "--sdk-appbar-bg": "var(--background-normal-primary)",
+    "--sdk-appbar-bottom-border": "var(--stroke-1)",
+    "--sdk-appbar-height": "44px",
+    "--sdk-appbar-title-color": "var(--text-normal-primary)",
+    "--sdk-appbar-title-size": "14px",
+    "--sdk-appbar-title-weight": "500",
+    "--sdk-appbar-icon-color": "var(--text-normal-primary)",
+    "--sdk-appbar-icon-inner-size": "20px"
+  },
+  "appbarConfig": {
+    "backIcon": "arrow",
+    "titleAlign": "left"
+  }
+}`;
+
+function AppbarCustomSection(props: { darkMode: () => boolean }) {
+  const [customs, setCustoms] = createSignal<AppbarCustomBrand[]>([]);
+  const [jsonInput, setJsonInput] = createSignal("");
+  const [nameInput, setNameInput] = createSignal("");
+  const [parseError, setParseError] = createSignal<string | null>(null);
+
+  onMount(() => setCustoms(loadAppbarCustoms()));
+
+  const addCustom = () => {
+    const name = nameInput().trim();
+    if (!name) { setParseError("Enter a name"); return; }
+    const raw = jsonInput().trim();
+    if (!raw) { setParseError("Paste a JSON config first"); return; }
+    try {
+      const p = JSON.parse(raw) as Record<string, unknown>;
+      const entry: AppbarCustomBrand = {
+        key: `appbar-${Date.now()}`,
+        label: name,
+        appbarCssVariables: (p["appbarCssVariables"] as Record<string, string>) ?? {},
+        appbarConfig: {
+          backIcon: ((p["appbarConfig"] as Record<string, string>)?.["backIcon"] as "arrow" | "caret") ?? "arrow",
+          titleAlign: ((p["appbarConfig"] as Record<string, string>)?.["titleAlign"] as "left" | "center") ?? "left",
+        },
+      };
+      const updated = [...customs(), entry];
+      setCustoms(updated); saveAppbarCustoms(updated);
+      setJsonInput(""); setNameInput(""); setParseError(null);
+    } catch (e) {
+      setParseError(`JSON parse error: ${(e as Error).message}`);
+    }
+  };
+
+  const deleteCustom = (key: string) => {
+    const updated = customs().filter((c) => c.key !== key);
+    setCustoms(updated); saveAppbarCustoms(updated);
+  };
+
+  return (
+    <>
+      <Section title="Custom Appbar" action={<CopyButton getText={() => APPBAR_EXTRACTION_PROMPT} label="Copy Prompt" />}>
+        <div class="flex flex-col gap-2.5">
+          <textarea
+            class="h-40 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
+            placeholder={APPBAR_JSON_PLACEHOLDER}
+            value={jsonInput()}
+            onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
+          />
+          <Show when={parseError()}>
+            <p class="text-[11px] text-red-400">{parseError()}</p>
+          </Show>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              class="min-w-0 flex-1 rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 text-label-regular text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
+              placeholder="Config name…"
+              value={nameInput()}
+              onInput={(e) => setNameInput(e.currentTarget.value)}
+              onKeyDown={(e) => e.key === "Enter" && addCustom()}
+            />
+            <button
+              class="shrink-0 rounded-lg bg-feature-base px-4 py-2 text-label-semi-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+              disabled={!jsonInput().trim() || !nameInput().trim()}
+              onClick={addCustom}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </Section>
+
+      <Show when={customs().length > 0}>
+        <Section title="Saved Configs">
+          <div class="flex flex-col gap-6">
+            <For each={customs()}>
+              {(c) => (
+                <div class="flex flex-col gap-1.5">
+                  <div class="flex items-center justify-between">
+                    <p class="text-label-semi-bold text-text-normal-primary">{c.label}</p>
+                    <div class="flex items-center gap-1">
+                      <CopyButton
+                        getText={() => JSON.stringify({ appbarCssVariables: c.appbarCssVariables, appbarConfig: c.appbarConfig }, null, 2)}
+                        label="Copy JSON"
+                      />
+                      <button
+                        class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
+                        title="Delete"
+                        onClick={() => deleteCustom(c.key)}
+                      >
+                        <PhosphorIcon name="trash" fontSize={14} />
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    class="flex justify-center"
+                    style={{
+                      ...(c.appbarCssVariables as JSX.CSSProperties),
+                      ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
+                    }}
+                  >
+                    <PhonePreview>
+                      <SdkAppbar
+                        title="Gift Cards"
+                        backIcon={c.appbarConfig.backIcon}
+                        titleAlign={c.appbarConfig.titleAlign}
+                      />
+                      <PageContentSkeleton />
+                    </PhonePreview>
+                  </div>
+                </div>
+              )}
+            </For>
+          </div>
+        </Section>
+      </Show>
+    </>
+  );
+}
+
+// ─── Appbar playground ────────────────────────────────────────────────────────
+
+function AppbarPlayground(props: { darkMode: () => boolean }) {
+  const state = createAppbarBuilderState();
   return (
     <div class="flex flex-col gap-16 p-4 pb-20">
-      <div class="flex h-40 items-center justify-center rounded-2xl border border-dashed border-stroke-2">
-        <p class="text-label-regular text-text-normal-tertiary">Appbar builder — coming soon</p>
-      </div>
+      <AppbarBuilderSection state={state} />
+      <AppbarCustomSection darkMode={props.darkMode} />
+      <AppbarBrandsSection darkMode={props.darkMode} appbarCssVars={state.appbarCssVars} />
     </div>
   );
 }
@@ -1123,10 +1850,16 @@ function AppbarPlayground() {
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const savedTab = localStorage.getItem("hcp-tab") as PlaygroundTab | null;
   const [darkMode, setDarkMode] = createSignal(false);
-  const [tab, setTab] = createSignal<PlaygroundTab>("categories");
+  const [tab, setTab] = createSignal<PlaygroundTab>(savedTab ?? "categories");
 
   onMount(() => document.documentElement.classList.toggle("dark", false));
+
+  function switchTab(t: PlaygroundTab) {
+    setTab(t);
+    localStorage.setItem("hcp-tab", t);
+  }
 
   const outerStyle = createMemo(
     (): JSX.CSSProperties => (darkMode() ? DARK_TELESCOPE_VARS : {})
@@ -1142,9 +1875,9 @@ export default function App() {
         {/* Title row */}
         <div class="mx-auto flex max-w-[900px] items-center justify-between px-4 py-3">
           <div class="flex flex-col gap-0.5">
-            <p class="text-title-5-semi-bold text-text-normal-primary">Design Playground</p>
+            <p class="text-title-5-semi-bold text-text-normal-primary">UI Playground</p>
             <p class="text-label-regular text-text-normal-tertiary">
-              Card design system · CSS variable explorer
+              CSS variable explorer
             </p>
           </div>
           <Segment
@@ -1175,7 +1908,7 @@ export default function App() {
                     "text-text-normal-primary": tab() === t.key,
                     "text-text-normal-tertiary hover:text-text-normal-secondary": tab() !== t.key,
                   }}
-                  onClick={() => setTab(t.key)}
+                  onClick={() => switchTab(t.key)}
                 >
                   {t.label}
                   {/* Active indicator */}
@@ -1195,7 +1928,7 @@ export default function App() {
           <PlaygroundGrid darkMode={darkMode} />
         </Show>
         <Show when={tab() === "appbar"}>
-          <AppbarPlayground />
+          <AppbarPlayground darkMode={darkMode} />
         </Show>
       </div>
     </div>

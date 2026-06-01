@@ -1,0 +1,23 @@
+{
+  "key": "linkedin",
+  "label": "LinkedIn",
+  "appbarCssVariables": {
+    "--sdk-appbar-bg": "var(--background-normal-primary)",
+    "--sdk-appbar-bottom-border": "#ebebeb",
+    "--sdk-appbar-height": "52px",
+    "--sdk-appbar-title-size": "18px",
+    "--sdk-appbar-title-line-height": "24px",
+    "--sdk-appbar-title-weight": "600",
+    "--sdk-appbar-title-tracking": "-0.18px",
+    "--sdk-appbar-icon-gap": "16px",
+    "--sdk-appbar-icon-inner-size": "24px",
+    "--sdk-appbar-icon-bg": "transparent",
+    "--sdk-appbar-icon-border": "transparent",
+    "--sdk-appbar-icon-size": "24px",
+    "--sdk-appbar-icon-radius": "0px"
+  },
+  "appbarConfig": {
+    "backIcon": "arrow",
+    "titleAlign": "center"
+  }
+}
