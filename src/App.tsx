@@ -103,7 +103,7 @@ function Section(props: {
   return (
     <div class={`flex flex-col overflow-hidden rounded-2xl border border-stroke-1 bg-background-normal-primary ${props.class ?? ""}`}>
       <div class="flex items-center justify-between border-b border-stroke-1 px-4 py-3">
-        <p class="text-label-semi-bold uppercase tracking-widest text-text-normal-tertiary">
+        <p class="text-[15px] font-bold text-text-normal-primary">
           {props.title}
         </p>
         <Show when={props.action}>{props.action}</Show>
@@ -966,15 +966,87 @@ function BrandsSection(props: {
     setBrands(updated); saveBrands(updated);
   };
 
-  const headerAction = (
-    <CopyButton getText={() => EXTRACTION_PROMPT} label="Copy Prompt" />
+  const BrandCard = (brand: Brand) => (
+    <div class="flex flex-col gap-1.5">
+      <div class="flex items-center justify-between">
+        <p class="text-label-semi-bold text-text-normal-primary">{brand.label}</p>
+        <div class="flex items-center gap-1">
+          <button
+            class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+            onClick={() => props.onOpenConfig({
+              key: brand.key,
+              label: brand.label,
+              defaultIconStyle: brand.defaultIconStyle,
+              fontImportUrl: brand.fontImportUrl,
+              telescopeCssVariables: brand.telescopeCssVariables,
+              sdkCssVariables: brand.sdkCssVariables,
+            })}
+          >
+            <PhosphorIcon name="code" fontSize={13} />
+            <span>Config</span>
+          </button>
+          <button
+            class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
+            title="Delete"
+            onClick={() => deleteBrand(brand.key)}
+          >
+            <PhosphorIcon name="trash" fontSize={14} />
+          </button>
+        </div>
+      </div>
+      <div
+        class="rounded-xl"
+        style={{
+          ...(brand.key !== "default" ? props.cardCssVars() : {}),
+          ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
+          ...(brand.telescopeCssVariables as JSX.CSSProperties | undefined),
+          ...(brand.sdkCssVariables as JSX.CSSProperties | undefined),
+          ...collapseInvisibleContainer(brand.sdkCssVariables),
+          background: "var(--background-normal-primary)",
+          "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+          padding: "40px",
+        }}
+      >
+        <div class="flex flex-wrap gap-2">
+          <For each={props.categories.slice(0, 5)}>
+            {(cat) => {
+              const IconComponent = categoryIconMap[cat.categoryName];
+              const useEmoji = brand.defaultIconStyle === "emoji";
+              return (
+                <SdkCategoryCard
+                  class="w-[120px]"
+                  title={cat.categoryTitle ?? cat.categoryName}
+                  maxDiscountPercent={cat.maxDiscountPercent}
+                  icon={
+                    useEmoji
+                      ? <span style={{ "font-size": "24px", "line-height": "1" }}>{categoryEmoji(cat.categoryName)}</span>
+                      : IconComponent ? <IconComponent class="size-6 stroke-current" /> : undefined
+                  }
+                />
+              );
+            }}
+          </For>
+        </div>
+      </div>
+    </div>
   );
 
   return (
-    <Section title="Brands" action={headerAction}>
-      <div class="flex flex-col gap-4">
+    <>
+      {/* ── Brands list ── */}
+      <Show when={brands().length > 0}>
+        <Section title="Brands">
+          <div class="flex flex-col gap-4">
+            <For each={brands()}>{(brand) => BrandCard(brand)}</For>
+          </div>
+        </Section>
+      </Show>
 
-        {/* Add form */}
+      {/* ── Add custom brand ── */}
+      <Section
+        title="Custom Brand"
+        action={<CopyButton getText={() => EXTRACTION_PROMPT} label="Copy Prompt" />}
+      >
         <div class="flex flex-col gap-2.5">
           <textarea
             class="h-24 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
@@ -1003,82 +1075,8 @@ function BrandsSection(props: {
             </button>
           </div>
         </div>
-
-        {/* Brand list */}
-        <Show when={brands().length > 0}>
-          <div class="flex flex-col gap-4 border-t border-stroke-1 pt-4">
-            <For each={brands()}>
-              {(brand) => (
-                <div class="flex flex-col gap-1.5">
-                  <div class="flex items-center justify-between">
-                    <p class="text-label-semi-bold text-text-normal-primary">{brand.label}</p>
-                    <div class="flex items-center gap-1">
-                      <button
-                        class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
-                        onClick={() => props.onOpenConfig({
-                          key: brand.key,
-                          label: brand.label,
-                          defaultIconStyle: brand.defaultIconStyle,
-                          fontImportUrl: brand.fontImportUrl,
-                          telescopeCssVariables: brand.telescopeCssVariables,
-                          sdkCssVariables: brand.sdkCssVariables,
-                        })}
-                      >
-                        <PhosphorIcon name="code" fontSize={13} />
-                        <span>Config</span>
-                      </button>
-                      <button
-                        class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
-                        title="Delete"
-                        onClick={() => deleteBrand(brand.key)}
-                      >
-                        <PhosphorIcon name="trash" fontSize={14} />
-                      </button>
-                    </div>
-                  </div>
-                  <div
-                    class="rounded-xl"
-                    style={{
-                      // Default brand is a fixed reference — skip builder vars so it never moves
-                      ...(brand.key !== "default" ? props.cardCssVars() : {}),
-                      ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
-                      ...(brand.telescopeCssVariables as JSX.CSSProperties | undefined),
-                      ...(brand.sdkCssVariables as JSX.CSSProperties | undefined),
-                      ...collapseInvisibleContainer(brand.sdkCssVariables),
-                      background: "var(--background-normal-primary)",
-                      "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
-                      padding: "40px",
-                    }}
-                  >
-                    <div class="flex flex-wrap gap-2">
-                      <For each={props.categories.slice(0, 5)}>
-                        {(cat) => {
-                          const IconComponent = categoryIconMap[cat.categoryName];
-                          const useEmoji = brand.defaultIconStyle === "emoji";
-                          return (
-                            <SdkCategoryCard
-                              class="w-[120px]"
-                              title={cat.categoryTitle ?? cat.categoryName}
-                              maxDiscountPercent={cat.maxDiscountPercent}
-                              icon={
-                                useEmoji
-                                  ? <span style={{ "font-size": "24px", "line-height": "1" }}>{categoryEmoji(cat.categoryName)}</span>
-                                  : IconComponent ? <IconComponent class="size-6 stroke-current" /> : undefined
-                              }
-                            />
-                          );
-                        }}
-                      </For>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </For>
-          </div>
-        </Show>
-
-      </div>
-    </Section>
+      </Section>
+    </>
   );
 }
 
