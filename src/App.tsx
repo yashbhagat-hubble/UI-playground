@@ -62,13 +62,6 @@ const defaultSdkCssVariables: Record<string, string> = {
 type ThemeKey = "default" | string;
 
 const SHOWCASE_KEYS = ["phonepe", "googlepay", "cred", "instamart", "blinkit", "uber"];
-const THEME_TABS: { key: ThemeKey; label: string }[] = [
-  { key: "default", label: "Default" },
-  ...SHOWCASE_KEYS.map((key) => {
-    const theme = brandThemes.find((t) => t.key === key);
-    return { key, label: theme?.label ?? key };
-  }),
-];
 
 // ─── Config modal constants ───────────────────────────────────────────────────
 
@@ -809,147 +802,89 @@ function collapseInvisibleContainer(sdkVars: Record<string, string> | undefined)
   return { "--sdk-category-card-icon-container-size": "24px" } as JSX.CSSProperties;
 }
 
-// ─── Theme showcase ───────────────────────────────────────────────────────────
+// ─── Unified brands section ───────────────────────────────────────────────────
+// Built-in showcase themes are seeded into localStorage on first visit so they
+// appear in the same list as custom-added brands and can be deleted like any other.
 
-function ThemeShowcaseSection(props: {
-  darkMode: () => boolean;
-  cardCssVars: () => JSX.CSSProperties;
-  onOpenConfig: (data: ConfigModalData) => void;
-  categories: MockCategory[];
-}) {
-  onMount(() => {
-    THEME_TABS.forEach((theme) => {
-      if (theme.key === "default") return;
-      const url = designVariantOverrides[theme.key]?.fontImportUrl;
-      if (!url || document.querySelector(`link[href="${url}"]`)) return;
-      const link = document.createElement("link");
-      link.rel = "stylesheet"; link.href = url;
-      document.head.appendChild(link);
-    });
-  });
+const BRANDS_KEY = "hcp-brands";
+const BRANDS_INIT_KEY = "hcp-brands-init";
 
-  return (
-    <Section title="Themes">
-      <div class="flex flex-col gap-4">
-        <For each={THEME_TABS}>
-          {(theme) => {
-            const override = theme.key !== "default" ? designVariantOverrides[theme.key] : undefined;
-            return (
-              <div class="flex flex-col gap-1.5">
-                <div class="flex items-center justify-between">
-                  <p class="text-label-semi-bold text-text-normal-primary">{theme.label}</p>
-                  <button
-                    class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
-                    onClick={() => props.onOpenConfig({
-                      label: theme.label,
-                      defaultIconStyle: override?.defaultIconStyle,
-                      telescopeCssVariables: override?.telescopeCssVariables,
-                      sdkCssVariables: override?.sdkCssVariables,
-                    })}
-                  >
-                    <PhosphorIcon name="code" fontSize={13} />
-                    <span>Config</span>
-                  </button>
-                </div>
-                <div
-                  class="rounded-xl"
-                  style={{
-                    ...props.cardCssVars(),
-                    ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
-                    ...(override?.telescopeCssVariables as JSX.CSSProperties | undefined),
-                    ...(override?.sdkCssVariables as JSX.CSSProperties | undefined),
-                    ...collapseInvisibleContainer(override?.sdkCssVariables),
-                    background: "var(--background-normal-primary)",
-                    "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
-                    padding: "40px",
-                  }}
-                >
-                  <div class="flex flex-wrap gap-2">
-                    <For each={props.categories.slice(0, 5)}>
-                      {(cat) => {
-                        const IconComponent = categoryIconMap[cat.categoryName];
-                        const useEmoji = override?.defaultIconStyle === "emoji";
-                        return (
-                          <SdkCategoryCard
-                            class="w-[120px]"
-                            title={cat.categoryTitle ?? cat.categoryName}
-                            maxDiscountPercent={cat.maxDiscountPercent}
-                            icon={
-                              useEmoji
-                                ? <span style={{ "font-size": "24px", "line-height": "1" }}>{categoryEmoji(cat.categoryName)}</span>
-                                : IconComponent ? <IconComponent class="size-6 stroke-current" /> : undefined
-                            }
-                          />
-                        );
-                      }}
-                    </For>
-                  </div>
-                </div>
-              </div>
-            );
-          }}
-        </For>
-      </div>
-    </Section>
-  );
-}
-
-// ─── Custom brands ────────────────────────────────────────────────────────────
-
-const CUSTOM_BRANDS_STORAGE_KEY = "hubble-playground-custom-brands";
-
-type CustomBrand = {
-  key: string; label: string;
+type Brand = {
+  key: string;
+  label: string;
   defaultIconStyle?: "icon" | "emoji";
   fontImportUrl?: string;
   telescopeCssVariables?: Record<string, string>;
   sdkCssVariables?: Record<string, string>;
 };
 
-function loadCustomBrandsFromStorage(): CustomBrand[] {
+/** Built-in showcase brands — seeded on first load */
+const SEED_BRANDS: Brand[] = SHOWCASE_KEYS
+  .map((k) => brandThemes.find((t) => t.key === k))
+  .filter(Boolean) as Brand[];
+
+function loadBrands(): Brand[] {
   try {
-    const stored = localStorage.getItem(CUSTOM_BRANDS_STORAGE_KEY);
-    return stored ? (JSON.parse(stored) as CustomBrand[]) : [];
+    const s = localStorage.getItem(BRANDS_KEY);
+    return s ? (JSON.parse(s) as Brand[]) : [];
   } catch { return []; }
 }
-
-function persistCustomBrands(brands: CustomBrand[]) {
-  localStorage.setItem(CUSTOM_BRANDS_STORAGE_KEY, JSON.stringify(brands));
+function saveBrands(b: Brand[]) {
+  localStorage.setItem(BRANDS_KEY, JSON.stringify(b));
+}
+function loadFont(url: string) {
+  if (!url || document.querySelector(`link[href="${url}"]`)) return;
+  const l = document.createElement("link");
+  l.rel = "stylesheet"; l.href = url;
+  document.head.appendChild(l);
 }
 
-function CustomBrandsSection(props: {
+function BrandsSection(props: {
   darkMode: () => boolean;
   cardCssVars: () => JSX.CSSProperties;
   onOpenConfig: (data: ConfigModalData) => void;
   categories: MockCategory[];
 }) {
-  const [customBrands, setCustomBrands] = createSignal<CustomBrand[]>([]);
+  const [brands, setBrands] = createSignal<Brand[]>([]);
   const [jsonInput, setJsonInput] = createSignal("");
   const [nameInput, setNameInput] = createSignal("");
   const [parseError, setParseError] = createSignal<string | null>(null);
 
-  onMount(() => setCustomBrands(loadCustomBrandsFromStorage()));
+  onMount(() => {
+    const initialized = localStorage.getItem(BRANDS_INIT_KEY);
+    let list: Brand[];
+    if (!initialized) {
+      list = SEED_BRANDS;
+      saveBrands(list);
+      localStorage.setItem(BRANDS_INIT_KEY, "1");
+    } else {
+      list = loadBrands();
+    }
+    setBrands(list);
+    list.forEach((b) => b.fontImportUrl && loadFont(b.fontImportUrl));
+  });
 
-  const saveBrand = () => {
+  const addBrand = () => {
     const name = nameInput().trim();
-    if (!name) { setParseError("Enter a brand name before saving"); return; }
+    if (!name) { setParseError("Enter a brand name"); return; }
     const raw = jsonInput().trim();
     if (!raw) { setParseError("Paste a JSON config first"); return; }
     try {
-      const parsed = JSON.parse(raw) as Record<string, unknown>;
-      if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      const p = JSON.parse(raw) as Record<string, unknown>;
+      if (typeof p !== "object" || p === null || Array.isArray(p)) {
         setParseError("Invalid JSON: expected an object"); return;
       }
-      const brand: CustomBrand = {
-        key: `custom-${Date.now()}`, label: name,
-        defaultIconStyle: parsed["defaultIconStyle"] as "icon" | "emoji" | undefined,
-        fontImportUrl: parsed["fontImportUrl"] as string | undefined,
-        telescopeCssVariables: parsed["telescopeCssVariables"] as Record<string, string> | undefined,
-        sdkCssVariables: parsed["sdkCssVariables"] as Record<string, string> | undefined,
+      const brand: Brand = {
+        key: `custom-${Date.now()}`,
+        label: name,
+        defaultIconStyle: p["defaultIconStyle"] as "icon" | "emoji" | undefined,
+        fontImportUrl: p["fontImportUrl"] as string | undefined,
+        telescopeCssVariables: p["telescopeCssVariables"] as Record<string, string> | undefined,
+        sdkCssVariables: p["sdkCssVariables"] as Record<string, string> | undefined,
       };
-      const updated = [...customBrands(), brand];
-      setCustomBrands(updated);
-      persistCustomBrands(updated);
+      if (brand.fontImportUrl) loadFont(brand.fontImportUrl);
+      const updated = [...brands(), brand];
+      setBrands(updated); saveBrands(updated);
       setJsonInput(""); setNameInput(""); setParseError(null);
     } catch (e) {
       setParseError(`JSON parse error: ${(e as Error).message}`);
@@ -957,20 +892,22 @@ function CustomBrandsSection(props: {
   };
 
   const deleteBrand = (key: string) => {
-    const updated = customBrands().filter((b) => b.key !== key);
-    setCustomBrands(updated); persistCustomBrands(updated);
+    const updated = brands().filter((b) => b.key !== key);
+    setBrands(updated); saveBrands(updated);
   };
 
-  const copyPromptAction = (
+  const headerAction = (
     <CopyButton getText={() => EXTRACTION_PROMPT} label="Copy Prompt" />
   );
 
   return (
-    <Section title="Custom Brands" action={copyPromptAction}>
+    <Section title="Brands" action={headerAction}>
       <div class="flex flex-col gap-4">
+
+        {/* Add form */}
         <div class="flex flex-col gap-2.5">
           <textarea
-            class="h-28 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
+            class="h-24 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
             placeholder={`Paste brand JSON here…\n{\n  "telescopeCssVariables": { "--background-normal-primary": "#..." },\n  "sdkCssVariables": { "--sdk-category-card-bg": "..." },\n  "defaultIconStyle": "icon"\n}`}
             value={jsonInput()}
             onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
@@ -985,21 +922,22 @@ function CustomBrandsSection(props: {
               placeholder="Brand name…"
               value={nameInput()}
               onInput={(e) => setNameInput(e.currentTarget.value)}
-              onKeyDown={(e) => e.key === "Enter" && saveBrand()}
+              onKeyDown={(e) => e.key === "Enter" && addBrand()}
             />
             <button
               class="shrink-0 rounded-lg bg-feature-base px-4 py-2 text-label-semi-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
               disabled={!jsonInput().trim() || !nameInput().trim()}
-              onClick={saveBrand}
+              onClick={addBrand}
             >
-              Save
+              Add
             </button>
           </div>
         </div>
 
-        <Show when={customBrands().length > 0}>
+        {/* Brand list */}
+        <Show when={brands().length > 0}>
           <div class="flex flex-col gap-4 border-t border-stroke-1 pt-4">
-            <For each={customBrands()}>
+            <For each={brands()}>
               {(brand) => (
                 <div class="flex flex-col gap-1.5">
                   <div class="flex items-center justify-between">
@@ -1019,7 +957,7 @@ function CustomBrandsSection(props: {
                       </button>
                       <button
                         class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
-                        title="Delete brand"
+                        title="Delete"
                         onClick={() => deleteBrand(brand.key)}
                       >
                         <PhosphorIcon name="trash" fontSize={14} />
@@ -1065,6 +1003,7 @@ function CustomBrandsSection(props: {
             </For>
           </div>
         </Show>
+
       </div>
     </Section>
   );
@@ -1083,13 +1022,7 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
       </Show>
       <div class="flex flex-col gap-3 p-4 pb-16">
         <CardBuilderSection state={state} categories={MOCK_CATEGORIES} />
-        <CustomBrandsSection
-          darkMode={props.darkMode}
-          cardCssVars={state.cardCssVars}
-          onOpenConfig={setConfigModalData}
-          categories={MOCK_CATEGORIES}
-        />
-        <ThemeShowcaseSection
+        <BrandsSection
           darkMode={props.darkMode}
           cardCssVars={state.cardCssVars}
           onOpenConfig={setConfigModalData}
