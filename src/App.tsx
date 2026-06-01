@@ -101,14 +101,14 @@ function Section(props: {
   action?: JSX.Element;
 }) {
   return (
-    <div class={`flex flex-col overflow-hidden rounded-2xl border border-stroke-1 bg-background-normal-primary ${props.class ?? ""}`}>
-      <div class="flex items-center justify-between border-b border-stroke-1 px-4 py-3">
+    <div class={`flex flex-col ${props.class ?? ""}`}>
+      <div class="flex items-center justify-between pb-3">
         <p class="text-[15px] font-semibold text-text-normal-primary">
           {props.title}
         </p>
         <Show when={props.action}>{props.action}</Show>
       </div>
-      <div class="p-4">{props.children}</div>
+      <div>{props.children}</div>
     </div>
   );
 }
@@ -1091,7 +1091,7 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
       <Show when={configModalData()}>
         {(data) => <ConfigModal data={data()} onClose={() => setConfigModalData(null)} />}
       </Show>
-      <div class="flex flex-col gap-3 p-4 pb-16">
+      <div class="flex flex-col gap-10 p-4 pb-16">
         <CardBuilderSection state={state} categories={MOCK_CATEGORIES} />
         <BrandsSection
           darkMode={props.darkMode}
