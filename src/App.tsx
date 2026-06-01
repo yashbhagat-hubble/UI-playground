@@ -1,20 +1,8 @@
 /**
  * Card Design System Playground — standalone build
- *
- * Explore the full category card variable system:
- *  - Theme switcher  → telescopeCssVariables + sdkCssVariables palette
- *  - Card style switcher → live CSS variable editor
- *  - Custom brand manager → paste JSON config, save to localStorage
  */
 
-import {
-  createMemo,
-  createSignal,
-  For,
-  JSX,
-  onMount,
-  Show,
-} from "solid-js";
+import { createMemo, createSignal, For, JSX, onMount, Show } from "solid-js";
 import { Portal } from "solid-js/web";
 import { PhosphorIcon } from "./components/PhosphorIcon";
 import { SdkCategoryCard } from "./components/SdkCategoryCard";
@@ -22,7 +10,7 @@ import { brandThemes, designVariantOverrides } from "./data/brand_themes_registr
 import { MOCK_CATEGORIES, categoryIconMap, categoryEmoji, type MockCategory } from "./utils/categories";
 import { formatDiscountPercent } from "./utils/number";
 
-// ─── Dark mode vars (applied inline when dark mode is on) ─────────────────────
+// ─── Dark / light defaults ────────────────────────────────────────────────────
 
 const DARK_TELESCOPE_VARS: JSX.CSSProperties = {
   "--text-normal-primary": "#F3F4F6",
@@ -39,7 +27,22 @@ const DARK_TELESCOPE_VARS: JSX.CSSProperties = {
   "--stroke-solid": "#9CA3AF",
 };
 
-// ─── Default SDK CSS variable values ─────────────────────────────────────────
+const LIGHT_CTX_DEFAULTS = {
+  bgPrimary:    "#ffffff",
+  bgSecondary:  "#f9fafb",
+  textPrimary:  "#111827",
+  textSecondary:"#6b7280",
+  textTertiary: "#9ca3af",
+};
+const DARK_CTX_DEFAULTS = {
+  bgPrimary:    "#0a0a0a",
+  bgSecondary:  "#141414",
+  textPrimary:  "#f3f4f6",
+  textSecondary:"#9ca3af",
+  textTertiary: "#6b7280",
+};
+
+// ─── Default SDK vars ─────────────────────────────────────────────────────────
 
 const defaultSdkCssVariables: Record<string, string> = {
   "--sdk-roundness-card": "12px",
@@ -58,7 +61,6 @@ const defaultSdkCssVariables: Record<string, string> = {
 type ThemeKey = "default" | string;
 
 const SHOWCASE_KEYS = ["phonepe", "googlepay", "cred", "instamart", "blinkit"];
-
 const THEME_TABS: { key: ThemeKey; label: string }[] = [
   { key: "default", label: "Default" },
   ...SHOWCASE_KEYS.map((key) => {
@@ -94,7 +96,7 @@ type ConfigModalData = {
   sdkCssVariables?: Record<string, string>;
 };
 
-// ─── Shared layout ────────────────────────────────────────────────────────────
+// ─── Layout primitive ─────────────────────────────────────────────────────────
 
 function Section(props: {
   title: string;
@@ -103,9 +105,7 @@ function Section(props: {
   action?: JSX.Element;
 }) {
   return (
-    <div
-      class={`flex flex-col overflow-hidden rounded-2xl border border-stroke-1 bg-background-normal-primary ${props.class ?? ""}`}
-    >
+    <div class={`flex flex-col overflow-hidden rounded-2xl border border-stroke-1 bg-background-normal-primary ${props.class ?? ""}`}>
       <div class="flex items-center justify-between border-b border-stroke-1 px-4 py-3">
         <p class="text-label-semi-bold uppercase tracking-widest text-text-normal-tertiary">
           {props.title}
@@ -150,13 +150,21 @@ const ICON_COLOR_OPTIONS: ColorOption[] = [
   { label: "Brand", value: "var(--brand-tbd-base)" },
 ];
 
+/** Swatch row with colour presets + a native colour-picker for custom values */
 function SwatchRow(props: {
   value: string;
   onChange: (v: string) => void;
   options: ColorOption[];
 }) {
+  // Is the current value a custom hex not in the preset list?
+  const customHex = () => {
+    const v = props.value;
+    if (!/^#[0-9a-fA-F]{3,8}$/.test(v)) return null;
+    return props.options.some((o) => o.value === v) ? null : v;
+  };
+
   return (
-    <div class="flex flex-wrap gap-1">
+    <div class="flex flex-wrap items-center gap-1">
       <For each={props.options}>
         {(opt) => (
           <button
@@ -178,7 +186,51 @@ function SwatchRow(props: {
           />
         )}
       </For>
+
+      {/* Custom colour picker — shown as a "+" dot or the selected custom hex */}
+      <label
+        class="relative flex size-5 cursor-pointer items-center justify-center rounded-full transition-all"
+        style={{
+          background: customHex() ?? "transparent",
+          outline: customHex()
+            ? "2px solid var(--feature-base)"
+            : "1px dashed var(--stroke-2)",
+          "outline-offset": customHex() ? "2px" : "0",
+        }}
+        title="Custom colour"
+      >
+        <input
+          type="color"
+          class="absolute h-0 w-0 opacity-0"
+          value={customHex() ?? "#6366f1"}
+          onInput={(e) => props.onChange(e.currentTarget.value)}
+        />
+        <Show when={!customHex()}>
+          <span class="select-none text-[9px] font-bold leading-none text-text-normal-tertiary">
+            +
+          </span>
+        </Show>
+      </label>
     </div>
+  );
+}
+
+/** Standalone colour picker swatch — for background & text overrides */
+function ColorPickerCtrl(props: { value: string; onChange: (v: string) => void }) {
+  return (
+    <label class="relative flex cursor-pointer items-center gap-1.5">
+      <span
+        class="inline-block size-5 shrink-0 rounded-full border border-stroke-1"
+        style={{ background: props.value }}
+      />
+      <span class="font-mono text-[11px] text-text-normal-secondary">{props.value}</span>
+      <input
+        type="color"
+        class="absolute h-0 w-0 opacity-0"
+        value={props.value}
+        onInput={(e) => props.onChange(e.currentTarget.value)}
+      />
+    </label>
   );
 }
 
@@ -200,34 +252,26 @@ function ToggleSwitch(props: { value: boolean; onChange: (v: boolean) => void })
 }
 
 function SliderInput(props: {
-  min: number;
-  max: number;
-  value: number;
-  onChange: (v: number) => void;
-  unit?: string;
+  min: number; max: number; value: number;
+  onChange: (v: number) => void; unit?: string;
 }) {
   return (
     <div class="flex items-center gap-2">
       <input
-        type="range"
-        min={props.min}
-        max={props.max}
-        value={props.value}
-        class="h-1 w-28 cursor-pointer"
+        type="range" min={props.min} max={props.max} value={props.value}
+        class="h-1 w-24 cursor-pointer"
         style={{ "accent-color": "var(--feature-base)" }}
         onInput={(e) => props.onChange(+e.currentTarget.value)}
       />
       <span class="w-9 text-right font-mono text-[11px] tabular-nums text-text-normal-tertiary">
-        {props.value}
-        {props.unit ?? ""}
+        {props.value}{props.unit ?? ""}
       </span>
     </div>
   );
 }
 
 function Segment<T extends string>(props: {
-  value: T;
-  onChange: (v: T) => void;
+  value: T; onChange: (v: T) => void;
   options: { label: string; value: T }[];
 }) {
   return (
@@ -252,9 +296,9 @@ function Segment<T extends string>(props: {
 
 function CtrlRow(props: { label: string; children: JSX.Element }) {
   return (
-    <div class="flex min-h-7 items-center justify-between gap-3">
-      <span class="min-w-[72px] text-label-regular text-text-normal-secondary">{props.label}</span>
-      <div class="flex flex-wrap items-center justify-end gap-1.5">{props.children}</div>
+    <div class="flex min-h-7 items-center justify-between gap-2">
+      <span class="shrink-0 text-label-regular text-text-normal-secondary">{props.label}</span>
+      <div class="flex flex-wrap items-center justify-end gap-1">{props.children}</div>
     </div>
   );
 }
@@ -273,19 +317,36 @@ function CtrlGroup(props: { title: string; children: JSX.Element }) {
 // ─── Card builder state ───────────────────────────────────────────────────────
 
 function createCardBuilderState() {
+  // — Card —
   const [cardBg, setCardBg] = createSignal("var(--background-normal-secondary)");
   const [cardRadius, setCardRadius] = createSignal(12);
   const [cardBorderOn, setCardBorderOn] = createSignal(false);
   const [cardBorderColor, setCardBorderColor] = createSignal("var(--stroke-1)");
+  // — Icon —
   const [iconStyle, setIconStyle] = createSignal<"icon" | "emoji">("icon");
   const [iconSizePx, setIconSizePx] = createSignal(24);
   const [iconColor, setIconColor] = createSignal("var(--text-normal-primary)");
+  // — Icon container —
   const [containerOn, setContainerOn] = createSignal(false);
   const [containerSizePx, setContainerSizePx] = createSignal(32);
   const [containerRadiusPx, setContainerRadiusPx] = createSignal(50);
   const [containerBorderOn, setContainerBorderOn] = createSignal(false);
   const [containerBorderColor, setContainerBorderColor] = createSignal("var(--stroke-1)");
   const [containerFill, setContainerFill] = createSignal("transparent");
+  // — Context (background + text) —
+  const [ctxBgPrimary,    setCtxBgPrimary]    = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
+  const [ctxBgSecondary,  setCtxBgSecondary]  = createSignal(LIGHT_CTX_DEFAULTS.bgSecondary);
+  const [ctxTextPrimary,  setCtxTextPrimary]  = createSignal(LIGHT_CTX_DEFAULTS.textPrimary);
+  const [ctxTextSecondary,setCtxTextSecondary]= createSignal(LIGHT_CTX_DEFAULTS.textSecondary);
+  const [ctxTextTertiary, setCtxTextTertiary] = createSignal(LIGHT_CTX_DEFAULTS.textTertiary);
+
+  const contextVars = createMemo((): JSX.CSSProperties => ({
+    "--background-normal-primary":   ctxBgPrimary(),
+    "--background-normal-secondary": ctxBgSecondary(),
+    "--text-normal-primary":   ctxTextPrimary(),
+    "--text-normal-secondary": ctxTextSecondary(),
+    "--text-normal-tertiary":  ctxTextTertiary(),
+  }));
 
   const cardCssVars = createMemo((): JSX.CSSProperties => {
     const hasVisibleContainer =
@@ -309,11 +370,22 @@ function createCardBuilderState() {
 
   const [activeThemeKey, setActiveThemeKey] = createSignal<ThemeKey>("default");
 
-  const activeTelescopeVars = createMemo((): JSX.CSSProperties => {
-    const key = activeThemeKey();
-    if (key === "default") return {};
-    return (designVariantOverrides[key]?.telescopeCssVariables as JSX.CSSProperties) ?? {};
-  });
+  function applyCtxFromTelescope(t: Record<string, string>) {
+    if (t["--background-normal-primary"])   setCtxBgPrimary(t["--background-normal-primary"]);
+    if (t["--background-normal-secondary"]) setCtxBgSecondary(t["--background-normal-secondary"]);
+    if (t["--text-normal-primary"])   setCtxTextPrimary(t["--text-normal-primary"]);
+    if (t["--text-normal-secondary"]) setCtxTextSecondary(t["--text-normal-secondary"]);
+    if (t["--text-normal-tertiary"])  setCtxTextTertiary(t["--text-normal-tertiary"]);
+  }
+
+  function resetCtxToMode(dark: boolean) {
+    const d = dark ? DARK_CTX_DEFAULTS : LIGHT_CTX_DEFAULTS;
+    setCtxBgPrimary(d.bgPrimary);
+    setCtxBgSecondary(d.bgSecondary);
+    setCtxTextPrimary(d.textPrimary);
+    setCtxTextSecondary(d.textSecondary);
+    setCtxTextTertiary(d.textTertiary);
+  }
 
   function loadTheme(key: ThemeKey) {
     const override = key !== "default" ? designVariantOverrides[key] : undefined;
@@ -323,12 +395,8 @@ function createCardBuilderState() {
     setCardBg(sdk["--sdk-category-card-bg"] || "var(--background-normal-secondary)");
 
     const border = sdk["--sdk-category-card-border"];
-    if (border && border !== "transparent") {
-      setCardBorderOn(true);
-      setCardBorderColor(border);
-    } else {
-      setCardBorderOn(false);
-    }
+    if (border && border !== "transparent") { setCardBorderOn(true); setCardBorderColor(border); }
+    else { setCardBorderOn(false); }
 
     setIconColor(sdk["--sdk-category-card-icon-color"] || "var(--text-normal-primary)");
     setIconStyle(override?.defaultIconStyle ?? "icon");
@@ -340,16 +408,15 @@ function createCardBuilderState() {
 
     const iconBorder = sdk["--sdk-category-card-icon-border"];
     if (iconBorder && iconBorder !== "transparent") {
-      setContainerBorderOn(true);
-      setContainerBorderColor(iconBorder);
-    } else {
-      setContainerBorderOn(false);
-    }
+      setContainerBorderOn(true); setContainerBorderColor(iconBorder);
+    } else { setContainerBorderOn(false); }
 
     setContainerSizePx(parseInt(sdk["--sdk-category-card-icon-container-size"]) || 32);
     setContainerRadiusPx(
       Math.min(50, parseInt(sdk["--sdk-category-card-icon-container-radius"]) || 50)
     );
+
+    if (override?.telescopeCssVariables) applyCtxFromTelescope(override.telescopeCssVariables);
     setActiveThemeKey(key);
   }
 
@@ -360,8 +427,11 @@ function createCardBuilderState() {
     containerOn, setContainerOn, containerSizePx, setContainerSizePx,
     containerRadiusPx, setContainerRadiusPx, containerBorderOn, setContainerBorderOn,
     containerBorderColor, setContainerBorderColor, containerFill, setContainerFill,
-    cardCssVars,
-    activeThemeKey, activeTelescopeVars, loadTheme,
+    ctxBgPrimary, setCtxBgPrimary, ctxBgSecondary, setCtxBgSecondary,
+    ctxTextPrimary, setCtxTextPrimary, ctxTextSecondary, setCtxTextSecondary,
+    ctxTextTertiary, setCtxTextTertiary,
+    contextVars, cardCssVars,
+    activeThemeKey, loadTheme, resetCtxToMode,
   };
 }
 
@@ -369,10 +439,7 @@ type CardBuilderState = ReturnType<typeof createCardBuilderState>;
 
 // ─── Card builder section ─────────────────────────────────────────────────────
 
-function CardBuilderSection(props: {
-  state: CardBuilderState;
-  categories: MockCategory[];
-}) {
+function CardBuilderSection(props: { state: CardBuilderState; categories: MockCategory[] }) {
   const {
     cardBg, setCardBg, cardRadius, setCardRadius,
     cardBorderOn, setCardBorderOn, cardBorderColor, setCardBorderColor,
@@ -380,8 +447,12 @@ function CardBuilderSection(props: {
     containerOn, setContainerOn, containerSizePx, setContainerSizePx,
     containerRadiusPx, setContainerRadiusPx, containerBorderOn, setContainerBorderOn,
     containerBorderColor, setContainerBorderColor, containerFill, setContainerFill,
+    ctxBgPrimary, setCtxBgPrimary, ctxBgSecondary, setCtxBgSecondary,
+    ctxTextPrimary, setCtxTextPrimary, ctxTextSecondary, setCtxTextSecondary,
+    ctxTextTertiary, setCtxTextTertiary,
   } = props.state;
 
+  // — Config popup —
   const [configOpen, setConfigOpen] = createSignal(false);
   const [popupPos, setPopupPos] = createSignal({ top: 0, right: 0 });
   let configBtnRef: HTMLButtonElement | undefined;
@@ -395,10 +466,7 @@ function CardBuilderSection(props: {
   };
 
   const cssVarRows = createMemo(() =>
-    Object.entries(props.state.cardCssVars()).map(([name, value]) => ({
-      name,
-      value: String(value),
-    }))
+    Object.entries(props.state.cardCssVars()).map(([name, value]) => ({ name, value: String(value) }))
   );
 
   const configAction = (
@@ -419,7 +487,7 @@ function CardBuilderSection(props: {
         <Portal>
           <div class="fixed inset-0 z-[300]" onClick={() => setConfigOpen(false)} />
           <div
-            class="fixed z-[301] flex min-w-[300px] flex-col gap-0.5 overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
+            class="fixed z-[301] min-w-[300px] overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
             style={{ top: `${popupPos().top}px`, right: `${popupPos().right}px` }}
           >
             <p class="border-b border-stroke-1 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">
@@ -429,12 +497,8 @@ function CardBuilderSection(props: {
               <For each={cssVarRows()}>
                 {(row) => (
                   <div class="flex items-start justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
-                    <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">
-                      {row.name}
-                    </span>
-                    <span class="max-w-[160px] break-all text-right font-mono text-[11px] text-text-normal-primary">
-                      {row.value}
-                    </span>
+                    <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{row.name}</span>
+                    <span class="max-w-[160px] break-all text-right font-mono text-[11px] text-text-normal-primary">{row.value}</span>
                   </div>
                 )}
               </For>
@@ -444,138 +508,67 @@ function CardBuilderSection(props: {
       </Show>
 
       <Section title="Card Builder" action={configAction}>
-        <div class="flex gap-5">
-          {/* Live preview */}
+        <div class="flex flex-col gap-4">
+
+          {/* ── Card preview row ── */}
           <div
-            class="flex w-[130px] shrink-0 flex-col gap-2 overflow-hidden rounded-xl p-2"
+            class="overflow-x-auto rounded-xl px-6 py-8"
             style={{
-              ...props.state.activeTelescopeVars(),
+              ...props.state.contextVars(),
               ...props.state.cardCssVars(),
-              background: "var(--background-normal-primary)",
+              background: ctxBgPrimary(),
               "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
             }}
           >
-            <For each={props.categories.slice(0, 3)}>
-              {(cat) => {
-                const IconComp = categoryIconMap[cat.categoryName];
-                return (
-                  <button
-                    class="flex w-full flex-col items-center justify-center gap-2 px-2 pb-3 pt-4"
-                    style={{
-                      "border-radius": `${cardRadius()}px`,
-                      "background-color": cardBg(),
-                      "box-shadow": cardBorderOn()
-                        ? `inset 0 0 0 1px ${cardBorderColor()}`
-                        : "none",
-                    }}
-                  >
-                    <Show
-                      when={containerOn()}
-                      fallback={
-                        <div
-                          class="flex shrink-0 items-center justify-center"
-                          style={{
-                            width: `${iconSizePx()}px`,
-                            height: `${iconSizePx()}px`,
-                            color: "var(--sdk-category-card-icon-color)",
-                          }}
-                        >
-                          <Show
-                            when={iconStyle() === "emoji"}
-                            fallback={
-                              IconComp ? <IconComp class="size-full stroke-current" /> : null
-                            }
-                          >
-                            <span style={{ "font-size": `${iconSizePx()}px`, "line-height": "1" }}>
-                              {categoryEmoji(cat.categoryName)}
-                            </span>
-                          </Show>
-                        </div>
+            <div class="flex gap-2">
+              <For each={props.categories}>
+                {(cat) => {
+                  const IconComp = categoryIconMap[cat.categoryName];
+                  return (
+                    <SdkCategoryCard
+                      class="w-[110px] shrink-0"
+                      title={cat.categoryTitle}
+                      maxDiscountPercent={cat.maxDiscountPercent}
+                      icon={
+                        iconStyle() === "emoji"
+                          ? <span style={{ "font-size": `${iconSizePx()}px`, "line-height": "1" }}>{categoryEmoji(cat.categoryName)}</span>
+                          : IconComp
+                          ? <div style={{ width: `${iconSizePx()}px`, height: `${iconSizePx()}px` }}><IconComp class="size-full stroke-current" /></div>
+                          : undefined
                       }
-                    >
-                      <div
-                        class="flex shrink-0 items-center justify-center"
-                        style={{
-                          width: `${containerSizePx()}px`,
-                          height: `${containerSizePx()}px`,
-                          "border-radius": `${containerRadiusPx()}px`,
-                          background: containerFill(),
-                          "box-shadow": containerBorderOn()
-                            ? `inset 0 0 0 1px ${containerBorderColor()}`
-                            : "none",
-                        }}
-                      >
-                        <div
-                          class="flex shrink-0 items-center justify-center"
-                          style={{
-                            width: `${iconSizePx()}px`,
-                            height: `${iconSizePx()}px`,
-                            color: "var(--sdk-category-card-icon-color)",
-                          }}
-                        >
-                          <Show
-                            when={iconStyle() === "emoji"}
-                            fallback={
-                              IconComp ? <IconComp class="size-full stroke-current" /> : null
-                            }
-                          >
-                            <span
-                              style={{ "font-size": `${iconSizePx()}px`, "line-height": "1" }}
-                            >
-                              {categoryEmoji(cat.categoryName)}
-                            </span>
-                          </Show>
-                        </div>
-                      </div>
-                    </Show>
-                    <div class="flex w-full flex-col items-center">
-                      <span class="line-clamp-1 w-full overflow-hidden text-center text-title-6-semi-bold text-text-normal-primary">
-                        {cat.categoryTitle ?? cat.categoryName}
-                      </span>
-                      <Show when={(cat.maxDiscountPercent ?? 0) > 0}>
-                        <div class="flex items-center gap-0.5 text-label-regular text-text-normal-secondary">
-                          <span>Up to</span>
-                          <span class="text-label-semi-bold">
-                            {formatDiscountPercent(cat.maxDiscountPercent)}%
-                          </span>
-                        </div>
-                      </Show>
-                    </div>
-                  </button>
-                );
-              }}
-            </For>
+                    />
+                  );
+                }}
+              </For>
+            </div>
           </div>
 
-          {/* Controls */}
-          <div class="flex flex-1 flex-col divide-y divide-stroke-1">
-            <div class="pb-4">
-              <CtrlGroup title="Card">
-                <CtrlRow label="Background">
-                  <SwatchRow value={cardBg()} onChange={setCardBg} options={CARD_BG_OPTIONS} />
-                </CtrlRow>
-                <CtrlRow label="Radius">
-                  <SliderInput min={0} max={32} value={cardRadius()} onChange={setCardRadius} unit="px" />
-                </CtrlRow>
-                <CtrlRow label="Border">
-                  <ToggleSwitch value={cardBorderOn()} onChange={setCardBorderOn} />
-                  <Show when={cardBorderOn()}>
-                    <SwatchRow value={cardBorderColor()} onChange={setCardBorderColor} options={BORDER_COLOR_OPTIONS} />
-                  </Show>
-                </CtrlRow>
-              </CtrlGroup>
-            </div>
+          {/* ── 3-column controls ── */}
+          <div class="grid grid-cols-3 gap-4 border-t border-stroke-1 pt-4">
 
-            <div class="py-4">
+            {/* Column 1: Card */}
+            <CtrlGroup title="Card">
+              <CtrlRow label="Background">
+                <SwatchRow value={cardBg()} onChange={setCardBg} options={CARD_BG_OPTIONS} />
+              </CtrlRow>
+              <CtrlRow label="Radius">
+                <SliderInput min={0} max={32} value={cardRadius()} onChange={setCardRadius} unit="px" />
+              </CtrlRow>
+              <CtrlRow label="Border">
+                <ToggleSwitch value={cardBorderOn()} onChange={setCardBorderOn} />
+                <Show when={cardBorderOn()}>
+                  <SwatchRow value={cardBorderColor()} onChange={setCardBorderColor} options={BORDER_COLOR_OPTIONS} />
+                </Show>
+              </CtrlRow>
+            </CtrlGroup>
+
+            {/* Column 2: Icon + Icon Container */}
+            <div class="flex flex-col gap-4">
               <CtrlGroup title="Icon">
                 <CtrlRow label="Style">
                   <Segment
-                    value={iconStyle()}
-                    onChange={setIconStyle}
-                    options={[
-                      { label: "Icon", value: "icon" as const },
-                      { label: "Emoji", value: "emoji" as const },
-                    ]}
+                    value={iconStyle()} onChange={setIconStyle}
+                    options={[{ label: "Icon", value: "icon" as const }, { label: "Emoji", value: "emoji" as const }]}
                   />
                 </CtrlRow>
                 <CtrlRow label="Size">
@@ -585,9 +578,7 @@ function CardBuilderSection(props: {
                   <SwatchRow value={iconColor()} onChange={setIconColor} options={ICON_COLOR_OPTIONS} />
                 </CtrlRow>
               </CtrlGroup>
-            </div>
 
-            <div class="pt-4">
               <CtrlGroup title="Icon Container">
                 <CtrlRow label="Show">
                   <ToggleSwitch value={containerOn()} onChange={setContainerOn} />
@@ -604,7 +595,7 @@ function CardBuilderSection(props: {
                   </CtrlRow>
                   <Show when={containerFill() !== "transparent" || containerBorderOn()}>
                     <CtrlRow label="Size">
-                      <SliderInput min={20} max={56} value={containerSizePx()} onChange={setContainerSizePx} unit="px" />
+                      <SliderInput min={20} max={72} value={containerSizePx()} onChange={setContainerSizePx} unit="px" />
                     </CtrlRow>
                     <CtrlRow label="Radius">
                       <SliderInput min={0} max={50} value={containerRadiusPx()} onChange={setContainerRadiusPx} unit="px" />
@@ -613,6 +604,26 @@ function CardBuilderSection(props: {
                 </Show>
               </CtrlGroup>
             </div>
+
+            {/* Column 3: Background & Text */}
+            <CtrlGroup title="Background & Text">
+              <CtrlRow label="Bg Primary">
+                <ColorPickerCtrl value={ctxBgPrimary()} onChange={setCtxBgPrimary} />
+              </CtrlRow>
+              <CtrlRow label="Bg Secondary">
+                <ColorPickerCtrl value={ctxBgSecondary()} onChange={setCtxBgSecondary} />
+              </CtrlRow>
+              <CtrlRow label="Text Primary">
+                <ColorPickerCtrl value={ctxTextPrimary()} onChange={setCtxTextPrimary} />
+              </CtrlRow>
+              <CtrlRow label="Text Sec">
+                <ColorPickerCtrl value={ctxTextSecondary()} onChange={setCtxTextSecondary} />
+              </CtrlRow>
+              <CtrlRow label="Text Ter">
+                <ColorPickerCtrl value={ctxTextTertiary()} onChange={setCtxTextTertiary} />
+              </CtrlRow>
+            </CtrlGroup>
+
           </div>
         </div>
       </Section>
@@ -642,10 +653,7 @@ function CfgKVRow(props: { label: string; value: string }) {
       <span class="text-[11px] text-text-normal-tertiary">{props.label}</span>
       <span class="flex items-center gap-1.5 font-mono text-[11px] text-text-normal-primary">
         <Show when={isHex()}>
-          <span
-            class="inline-block size-3 shrink-0 rounded-sm border border-stroke-1"
-            style={{ background: props.value }}
-          />
+          <span class="inline-block size-3 shrink-0 rounded-sm border border-stroke-1" style={{ background: props.value }} />
         </Show>
         {props.value}
       </span>
@@ -661,10 +669,7 @@ function CfgToggleRow(props: { label: string; on: boolean; value?: string }) {
       <div class="flex items-center gap-1.5">
         <Show when={props.on && props.value}>
           <Show when={isHex()}>
-            <span
-              class="inline-block size-3 shrink-0 rounded-sm border border-stroke-1"
-              style={{ background: props.value }}
-            />
+            <span class="inline-block size-3 shrink-0 rounded-sm border border-stroke-1" style={{ background: props.value }} />
           </Show>
           <span class="font-mono text-[11px] text-text-normal-primary">{props.value}</span>
         </Show>
@@ -685,14 +690,12 @@ function CfgToggleRow(props: { label: string; on: boolean; value?: string }) {
 function ConfigModal(props: { data: ConfigModalData; onClose: () => void }) {
   const tele = () => props.data.telescopeCssVariables ?? {};
   const sdk = () => props.data.sdkCssVariables ?? {};
-
   const cardBorder = () => sdk()["--sdk-category-card-border"] ?? "transparent";
   const cardBorderOn = () => cardBorder() !== "transparent";
   const containerBg = () => sdk()["--sdk-category-card-icon-bg"] ?? "transparent";
   const containerBorder = () => sdk()["--sdk-category-card-icon-border"] ?? "transparent";
   const containerOn = () => containerBg() !== "transparent" || containerBorder() !== "transparent";
   const containerBorderOn = () => containerBorder() !== "transparent";
-
   const hasBgText = () => TELESCOPE_COLOR_KEYS.some((k) => tele()[k] !== undefined);
   const hasSdk = () => Object.keys(sdk()).length > 0 || !!props.data.defaultIconStyle;
 
@@ -707,24 +710,20 @@ function ConfigModal(props: { data: ConfigModalData; onClose: () => void }) {
               <p class="text-[11px] text-text-normal-tertiary">Theme config</p>
             </div>
             <button
-              class="flex size-7 items-center justify-center rounded-lg text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+              class="flex size-7 items-center justify-center rounded-lg text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary"
               onClick={props.onClose}
             >
               <PhosphorIcon name="x" fontSize={16} />
             </button>
           </div>
-
           <div class="flex flex-col gap-4 overflow-y-auto p-4">
             <Show when={hasBgText()}>
               <CfgSection title="Background & Text">
                 <For each={TELESCOPE_COLOR_KEYS.filter((k) => tele()[k] !== undefined)}>
-                  {(k) => (
-                    <CfgKVRow label={k.replace(/^--/, "").replace(/-/g, " ")} value={tele()[k]} />
-                  )}
+                  {(k) => <CfgKVRow label={k.replace(/^--/, "").replace(/-/g, " ")} value={tele()[k]} />}
                 </For>
               </CfgSection>
             </Show>
-
             <Show when={hasSdk()}>
               <CfgSection title="Card">
                 <Show when={sdk()["--sdk-category-card-bg"] !== undefined}>
@@ -735,14 +734,12 @@ function ConfigModal(props: { data: ConfigModalData; onClose: () => void }) {
                 </Show>
                 <CfgToggleRow label="Border" on={cardBorderOn()} value={cardBorderOn() ? cardBorder() : undefined} />
               </CfgSection>
-
               <CfgSection title="Icon">
                 <CfgKVRow label="Style" value={props.data.defaultIconStyle ?? "icon"} />
                 <Show when={sdk()["--sdk-category-card-icon-color"] !== undefined}>
                   <CfgKVRow label="Color" value={sdk()["--sdk-category-card-icon-color"]!} />
                 </Show>
               </CfgSection>
-
               <CfgSection title="Icon Container">
                 <CfgToggleRow label="Visible" on={containerOn()} />
                 <Show when={containerOn()}>
@@ -766,7 +763,7 @@ function ConfigModal(props: { data: ConfigModalData; onClose: () => void }) {
   );
 }
 
-// ─── Invisible container collapse helper ─────────────────────────────────────
+// ─── Invisible container collapse ────────────────────────────────────────────
 
 function collapseInvisibleContainer(sdkVars: Record<string, string> | undefined): JSX.CSSProperties {
   if (!sdkVars) return {};
@@ -790,8 +787,7 @@ function ThemeShowcaseSection(props: {
       const url = designVariantOverrides[theme.key]?.fontImportUrl;
       if (!url || document.querySelector(`link[href="${url}"]`)) return;
       const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = url;
+      link.rel = "stylesheet"; link.href = url;
       document.head.appendChild(link);
     });
   });
@@ -801,29 +797,24 @@ function ThemeShowcaseSection(props: {
       <div class="flex flex-col gap-4">
         <For each={THEME_TABS}>
           {(theme) => {
-            const override =
-              theme.key !== "default" ? designVariantOverrides[theme.key] : undefined;
-
+            const override = theme.key !== "default" ? designVariantOverrides[theme.key] : undefined;
             return (
               <div class="flex flex-col gap-1.5">
                 <div class="flex items-center justify-between">
                   <p class="text-label-semi-bold text-text-normal-primary">{theme.label}</p>
                   <button
                     class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
-                    onClick={() =>
-                      props.onOpenConfig({
-                        label: theme.label,
-                        defaultIconStyle: override?.defaultIconStyle,
-                        telescopeCssVariables: override?.telescopeCssVariables,
-                        sdkCssVariables: override?.sdkCssVariables,
-                      })
-                    }
+                    onClick={() => props.onOpenConfig({
+                      label: theme.label,
+                      defaultIconStyle: override?.defaultIconStyle,
+                      telescopeCssVariables: override?.telescopeCssVariables,
+                      sdkCssVariables: override?.sdkCssVariables,
+                    })}
                   >
                     <PhosphorIcon name="code" fontSize={13} />
                     <span>Config</span>
                   </button>
                 </div>
-
                 <div
                   class="rounded-xl"
                   style={{
@@ -848,13 +839,9 @@ function ThemeShowcaseSection(props: {
                             title={cat.categoryTitle ?? cat.categoryName}
                             maxDiscountPercent={cat.maxDiscountPercent}
                             icon={
-                              useEmoji ? (
-                                <span style={{ "font-size": "24px", "line-height": "1" }}>
-                                  {categoryEmoji(cat.categoryName)}
-                                </span>
-                              ) : IconComponent ? (
-                                <IconComponent class="size-6 stroke-current" />
-                              ) : undefined
+                              useEmoji
+                                ? <span style={{ "font-size": "24px", "line-height": "1" }}>{categoryEmoji(cat.categoryName)}</span>
+                                : IconComponent ? <IconComponent class="size-6 stroke-current" /> : undefined
                             }
                           />
                         );
@@ -876,8 +863,7 @@ function ThemeShowcaseSection(props: {
 const CUSTOM_BRANDS_STORAGE_KEY = "hubble-playground-custom-brands";
 
 type CustomBrand = {
-  key: string;
-  label: string;
+  key: string; label: string;
   defaultIconStyle?: "icon" | "emoji";
   fontImportUrl?: string;
   telescopeCssVariables?: Record<string, string>;
@@ -888,9 +874,7 @@ function loadCustomBrandsFromStorage(): CustomBrand[] {
   try {
     const stored = localStorage.getItem(CUSTOM_BRANDS_STORAGE_KEY);
     return stored ? (JSON.parse(stored) as CustomBrand[]) : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 function persistCustomBrands(brands: CustomBrand[]) {
@@ -921,8 +905,7 @@ function CustomBrandsSection(props: {
         setParseError("Invalid JSON: expected an object"); return;
       }
       const brand: CustomBrand = {
-        key: `custom-${Date.now()}`,
-        label: name,
+        key: `custom-${Date.now()}`, label: name,
         defaultIconStyle: parsed["defaultIconStyle"] as "icon" | "emoji" | undefined,
         fontImportUrl: parsed["fontImportUrl"] as string | undefined,
         telescopeCssVariables: parsed["telescopeCssVariables"] as Record<string, string> | undefined,
@@ -931,9 +914,7 @@ function CustomBrandsSection(props: {
       const updated = [...customBrands(), brand];
       setCustomBrands(updated);
       persistCustomBrands(updated);
-      setJsonInput("");
-      setNameInput("");
-      setParseError(null);
+      setJsonInput(""); setNameInput(""); setParseError(null);
     } catch (e) {
       setParseError(`JSON parse error: ${(e as Error).message}`);
     }
@@ -941,8 +922,7 @@ function CustomBrandsSection(props: {
 
   const deleteBrand = (key: string) => {
     const updated = customBrands().filter((b) => b.key !== key);
-    setCustomBrands(updated);
-    persistCustomBrands(updated);
+    setCustomBrands(updated); persistCustomBrands(updated);
   };
 
   return (
@@ -951,7 +931,7 @@ function CustomBrandsSection(props: {
         <div class="flex flex-col gap-2.5">
           <textarea
             class="h-28 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
-            placeholder={`Paste brand JSON here, e.g.\n{\n  "telescopeCssVariables": { "--background-normal-primary": "#..." },\n  "sdkCssVariables": { "--sdk-category-card-bg": "..." },\n  "defaultIconStyle": "icon"\n}`}
+            placeholder={`Paste brand JSON here…\n{\n  "telescopeCssVariables": { "--background-normal-primary": "#..." },\n  "sdkCssVariables": { "--sdk-category-card-bg": "..." },\n  "defaultIconStyle": "icon"\n}`}
             value={jsonInput()}
             onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
           />
@@ -987,14 +967,12 @@ function CustomBrandsSection(props: {
                     <div class="flex items-center gap-1">
                       <button
                         class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
-                        onClick={() =>
-                          props.onOpenConfig({
-                            label: brand.label,
-                            defaultIconStyle: brand.defaultIconStyle,
-                            telescopeCssVariables: brand.telescopeCssVariables,
-                            sdkCssVariables: brand.sdkCssVariables,
-                          })
-                        }
+                        onClick={() => props.onOpenConfig({
+                          label: brand.label,
+                          defaultIconStyle: brand.defaultIconStyle,
+                          telescopeCssVariables: brand.telescopeCssVariables,
+                          sdkCssVariables: brand.sdkCssVariables,
+                        })}
                       >
                         <PhosphorIcon name="code" fontSize={13} />
                         <span>Config</span>
@@ -1008,7 +986,6 @@ function CustomBrandsSection(props: {
                       </button>
                     </div>
                   </div>
-
                   <div
                     class="rounded-xl"
                     style={{
@@ -1033,13 +1010,9 @@ function CustomBrandsSection(props: {
                               title={cat.categoryTitle ?? cat.categoryName}
                               maxDiscountPercent={cat.maxDiscountPercent}
                               icon={
-                                useEmoji ? (
-                                  <span style={{ "font-size": "24px", "line-height": "1" }}>
-                                    {categoryEmoji(cat.categoryName)}
-                                  </span>
-                                ) : IconComponent ? (
-                                  <IconComponent class="size-6 stroke-current" />
-                                ) : undefined
+                                useEmoji
+                                  ? <span style={{ "font-size": "24px", "line-height": "1" }}>{categoryEmoji(cat.categoryName)}</span>
+                                  : IconComponent ? <IconComponent class="size-6 stroke-current" /> : undefined
                               }
                             />
                           );
@@ -1092,12 +1065,7 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
 export default function App() {
   const [darkMode, setDarkMode] = createSignal(false);
 
-  // Sync .dark class on <html> so CSS :root variables update
-  const updateHtmlClass = (dark: boolean) => {
-    document.documentElement.classList.toggle("dark", dark);
-  };
-
-  onMount(() => updateHtmlClass(darkMode()));
+  onMount(() => document.documentElement.classList.toggle("dark", false));
 
   const outerStyle = createMemo(
     (): JSX.CSSProperties => (darkMode() ? DARK_TELESCOPE_VARS : {})
@@ -1108,32 +1076,27 @@ export default function App() {
       class="flex min-h-dvh w-full justify-center bg-background-normal-primary"
       style={outerStyle()}
     >
-      <div class="w-full max-w-[800px]">
-        {/* Header */}
-        <div class="sticky top-0 z-[200] flex flex-col gap-2 border-b border-stroke-1 bg-background-normal-primary px-5 py-3">
-          <div class="flex items-center justify-between">
-            <div class="flex flex-col gap-0.5">
-              <p class="text-title-5-semi-bold text-text-normal-primary">Design Playground</p>
-              <p class="text-label-regular text-text-normal-tertiary">
-                Card design system · CSS variable explorer
-              </p>
-            </div>
-            <Segment
-              value={darkMode() ? "dark" : "light"}
-              onChange={(v) => {
-                const dark = v === "dark";
-                setDarkMode(dark);
-                updateHtmlClass(dark);
-              }}
-              options={[
-                { label: "☀︎ Light", value: "light" as const },
-                { label: "☽ Dark", value: "dark" as const },
-              ]}
-            />
+      <div class="w-full max-w-[900px]">
+        <div class="sticky top-0 z-[200] flex items-center justify-between border-b border-stroke-1 bg-background-normal-primary px-5 py-3">
+          <div class="flex flex-col gap-0.5">
+            <p class="text-title-5-semi-bold text-text-normal-primary">Design Playground</p>
+            <p class="text-label-regular text-text-normal-tertiary">
+              Card design system · CSS variable explorer
+            </p>
           </div>
+          <Segment
+            value={darkMode() ? "dark" : "light"}
+            onChange={(v) => {
+              const dark = v === "dark";
+              setDarkMode(dark);
+              document.documentElement.classList.toggle("dark", dark);
+            }}
+            options={[
+              { label: "☀︎ Light", value: "light" as const },
+              { label: "☽ Dark", value: "dark" as const },
+            ]}
+          />
         </div>
-
-        {/* Content */}
         <PlaygroundGrid darkMode={darkMode} />
       </div>
     </div>
