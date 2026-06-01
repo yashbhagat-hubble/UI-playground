@@ -9,7 +9,6 @@ export type MockCategory = {
 export const MOCK_CATEGORIES: MockCategory[] = [
   { categoryName: "grocery", categoryTitle: "Grocery", maxDiscountPercent: 20 },
   { categoryName: "electronics", categoryTitle: "Electronics", maxDiscountPercent: 15 },
-  { categoryName: "travel", categoryTitle: "Travel & Stay", maxDiscountPercent: 30 },
   { categoryName: "fashion", categoryTitle: "Fashion", maxDiscountPercent: 25 },
   { categoryName: "food", categoryTitle: "Food & Dining", maxDiscountPercent: 18 },
   { categoryName: "health", categoryTitle: "Health", maxDiscountPercent: 12 },
@@ -32,14 +31,6 @@ function PhoneIcon(p: { class?: string }) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class={p.class}>
       <rect width="14" height="20" x="5" y="2" rx="2" ry="2" />
       <path d="M12 18h.01" />
-    </svg>
-  );
-}
-
-function PlaneIcon(p: { class?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class={p.class}>
-      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21 4 19 2c-2-2-4-2-5.5-.5L10 5 1.8 6.2a.5.5 0 0 0-.3.8l.6.6 6.1 3.7-2.1 2.1a.5.5 0 0 0 .1.8l2.4 1.2 1.2 2.4a.5.5 0 0 0 .8.1l2.1-2.1 3.7 6.1.6.6a.5.5 0 0 0 .8-.3Z" />
     </svg>
   );
 }
@@ -78,7 +69,6 @@ type IconComponent = (p: { class?: string }) => JSX.Element;
 export const categoryIconMap: Record<string, IconComponent> = {
   grocery: CartIcon,
   electronics: PhoneIcon,
-  travel: PlaneIcon,
   fashion: ShirtIcon,
   food: PizzaIcon,
   health: HeartPulseIcon,
@@ -87,7 +77,6 @@ export const categoryIconMap: Record<string, IconComponent> = {
 export const CATEGORY_EMOJI_MAP: Record<string, string> = {
   grocery: "🛒",
   electronics: "📱",
-  travel: "✈️",
   fashion: "👗",
   food: "🍕",
   health: "💊",
