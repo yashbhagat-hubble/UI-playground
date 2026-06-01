@@ -1091,7 +1091,7 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
       <Show when={configModalData()}>
         {(data) => <ConfigModal data={data()} onClose={() => setConfigModalData(null)} />}
       </Show>
-      <div class="flex flex-col gap-10 p-4 pb-16">
+      <div class="flex flex-col gap-16 p-4 pb-20">
         <CardBuilderSection state={state} categories={MOCK_CATEGORIES} />
         <BrandsSection
           darkMode={props.darkMode}
@@ -1117,11 +1117,12 @@ export default function App() {
 
   return (
     <div
-      class="flex min-h-dvh w-full justify-center bg-background-normal-primary"
+      class="flex min-h-dvh w-full flex-col bg-background-normal-primary"
       style={outerStyle()}
     >
-      <div class="w-full max-w-[900px]">
-        <div class="sticky top-0 z-[200] flex items-center justify-between border-b border-stroke-1 bg-background-normal-primary px-5 py-3">
+      {/* Full-width sticky header */}
+      <div class="sticky top-0 z-[200] w-full border-b border-stroke-1 bg-background-normal-primary">
+        <div class="mx-auto flex max-w-[900px] items-center justify-between px-5 py-3">
           <div class="flex flex-col gap-0.5">
             <p class="text-title-5-semi-bold text-text-normal-primary">Design Playground</p>
             <p class="text-label-regular text-text-normal-tertiary">
@@ -1141,6 +1142,10 @@ export default function App() {
             ]}
           />
         </div>
+      </div>
+
+      {/* Content */}
+      <div class="mx-auto w-full max-w-[900px]">
         <PlaygroundGrid darkMode={darkMode} />
       </div>
     </div>
