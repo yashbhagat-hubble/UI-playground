@@ -160,7 +160,7 @@ function SwatchRow(props: {
   };
 
   return (
-    <div class="flex flex-wrap items-center gap-1">
+    <div class="flex flex-wrap items-center gap-2">
       <For each={props.options}>
         {(opt) => (
           <button
