@@ -84,8 +84,10 @@ const SDK_CARD_CONFIG_KEYS = [
 ];
 
 type ConfigModalData = {
+  key?: string;
   label: string;
   defaultIconStyle?: "icon" | "emoji";
+  fontImportUrl?: string;
   telescopeCssVariables?: Record<string, string>;
   sdkCssVariables?: Record<string, string>;
 };
@@ -738,12 +740,30 @@ function ConfigModal(props: { data: ConfigModalData; onClose: () => void }) {
               <p class="text-label-semi-bold text-text-normal-primary">{props.data.label}</p>
               <p class="text-[11px] text-text-normal-tertiary">Theme config</p>
             </div>
-            <button
-              class="flex size-7 items-center justify-center rounded-lg text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary"
-              onClick={props.onClose}
-            >
-              <PhosphorIcon name="x" fontSize={16} />
-            </button>
+            <div class="flex items-center gap-1">
+              <CopyButton
+                getText={() => {
+                  const obj: Record<string, unknown> = {
+                    key: props.data.key ?? "custom",
+                    label: props.data.label,
+                  };
+                  if (props.data.defaultIconStyle) obj.defaultIconStyle = props.data.defaultIconStyle;
+                  if (props.data.fontImportUrl) obj.fontImportUrl = props.data.fontImportUrl;
+                  if (props.data.telescopeCssVariables && Object.keys(props.data.telescopeCssVariables).length)
+                    obj.telescopeCssVariables = props.data.telescopeCssVariables;
+                  if (props.data.sdkCssVariables && Object.keys(props.data.sdkCssVariables).length)
+                    obj.sdkCssVariables = props.data.sdkCssVariables;
+                  return JSON.stringify(obj, null, 2);
+                }}
+                label="Copy JSON"
+              />
+              <button
+                class="flex size-7 items-center justify-center rounded-lg text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary"
+                onClick={props.onClose}
+              >
+                <PhosphorIcon name="x" fontSize={16} />
+              </button>
+            </div>
           </div>
           <div class="flex flex-col gap-4 overflow-y-auto p-4">
             <Show when={hasBgText()}>
@@ -946,8 +966,10 @@ function BrandsSection(props: {
                       <button
                         class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
                         onClick={() => props.onOpenConfig({
+                          key: brand.key,
                           label: brand.label,
                           defaultIconStyle: brand.defaultIconStyle,
+                          fontImportUrl: brand.fontImportUrl,
                           telescopeCssVariables: brand.telescopeCssVariables,
                           sdkCssVariables: brand.sdkCssVariables,
                         })}
