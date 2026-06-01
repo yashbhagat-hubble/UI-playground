@@ -686,13 +686,13 @@ function CardBuilderSection(props: { state: CardBuilderState; categories: MockCa
                 CSS Variable Output
               </p>
               <CopyButton
-                getText={() =>
-                  JSON.stringify(
-                    Object.fromEntries(cssVarRows().map((r) => [r.name, r.value])),
-                    null,
-                    2
-                  )
-                }
+                getText={() => JSON.stringify({
+                  defaultIconStyle: iconStyle(),
+                  telescopeCssVariables: Object.fromEntries(
+                    Object.entries(props.state.contextVars()).map(([k, v]) => [k, String(v)])
+                  ),
+                  sdkCssVariables: Object.fromEntries(cssVarRows().map((r) => [r.name, r.value])),
+                }, null, 2)}
                 label="Copy JSON"
               />
             </div>
@@ -930,7 +930,10 @@ function AppbarBuilderSection(props: { state: AppbarBuilderState }) {
 
   const getAppbarJson = () => JSON.stringify({
     appbarCssVariables: Object.fromEntries(
-      Object.entries(props.state.appbarCssVars()).map(([k, v]) => [k, String(v)])
+      [
+        ...Object.entries(props.state.contextVars()),
+        ...Object.entries(props.state.appbarCssVars()),
+      ].map(([k, v]) => [k, String(v)])
     ),
     appbarConfig: {
       backIcon: backIconKey(),
@@ -940,7 +943,6 @@ function AppbarBuilderSection(props: { state: AppbarBuilderState }) {
 
   const configAction = (
     <div class="flex items-center gap-1">
-      <CopyButton getText={getAppbarJson} label="Copy JSON" />
       <button
         class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
         onClick={() => props.state.resetAppbar()}
@@ -974,16 +976,7 @@ function AppbarBuilderSection(props: { state: AppbarBuilderState }) {
               <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">
                 CSS Variable Output
               </p>
-              <CopyButton
-                getText={() =>
-                  JSON.stringify(
-                    Object.fromEntries(cssVarRows().map((r) => [r.name, r.value])),
-                    null,
-                    2
-                  )
-                }
-                label="Copy JSON"
-              />
+              <CopyButton getText={getAppbarJson} label="Copy JSON" />
             </div>
             <div class="p-3">
               <For each={cssVarRows()}>
@@ -1203,7 +1196,6 @@ function AppbarBrandCard(props: {
             <PhosphorIcon name="code" fontSize={13} />
             <span>Config</span>
           </button>
-          <CopyButton getText={getJson} label="Copy JSON" />
         </div>
       </div>
 
@@ -1542,19 +1534,6 @@ function BrandsSection(props: {
             <PhosphorIcon name="code" fontSize={13} />
             <span>Config</span>
           </button>
-          <CopyButton
-            getText={() => {
-              const obj: Record<string, unknown> = { key: brand.key, label: brand.label };
-              if (brand.defaultIconStyle) obj.defaultIconStyle = brand.defaultIconStyle;
-              if (brand.fontImportUrl) obj.fontImportUrl = brand.fontImportUrl;
-              if (brand.telescopeCssVariables && Object.keys(brand.telescopeCssVariables).length)
-                obj.telescopeCssVariables = brand.telescopeCssVariables;
-              if (brand.sdkCssVariables && Object.keys(brand.sdkCssVariables).length)
-                obj.sdkCssVariables = brand.sdkCssVariables;
-              return JSON.stringify(obj, null, 2);
-            }}
-            label="Copy JSON"
-          />
           <button
             class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
             title="Delete"
