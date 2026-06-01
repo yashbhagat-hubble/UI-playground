@@ -1,0 +1,43 @@
+{
+  "key": "googlepay",
+  "label": "Google Pay",
+  "fontImportUrl": "https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600;6..12,700&display=swap",
+  "telescopeCssVariables": {
+    "--brand-tbd-base": "#1B59F5",
+    "--brand-tbd-dark": "#1244CC",
+    "--brand-tbd-light": "rgba(27, 89, 245, 0.18)",
+    "--brand-tbd-lighter": "rgba(27, 89, 245, 0.08)",
+    "--feature-base": "#1B59F5",
+    "--feature-light": "rgba(27, 89, 245, 0.22)",
+    "--feature-lighter": "rgba(27, 89, 245, 0.10)",
+    "--brand-button-primary-text": "#FFFFFF",
+    "--text-normal-primary": "#FFFFFF",
+    "--text-normal-secondary": "#B0B8CC",
+    "--text-normal-tertiary": "#6B7280",
+    "--text-inverted-primary": "#0A0A0A",
+    "--background-normal-primary": "#0A0A0A",
+    "--background-normal-secondary": "#141414",
+    "--background-normal-tertiary": "#1E1E1E",
+    "--background-inverted-primary": "#FFFFFF",
+    "--stroke-1": "#1E1E1E",
+    "--stroke-2": "#2D2D2D",
+    "--stroke-3": "#404040",
+    "--stroke-solid": "#1B59F5"
+  },
+  "sdkCssVariables": {
+    "--font-family": "'Nunito Sans', system-ui, sans-serif",
+    "--sdk-roundness-alpha": "9999px",
+    "--sdk-roundness-card": "12px",
+    "--sdk-category-card-bg": "transparent",
+    "--sdk-category-card-border": "transparent",
+    "--sdk-category-card-icon-bg": "var(--feature-base)",
+    "--sdk-category-card-icon-border": "transparent",
+    "--sdk-category-card-icon-container-size": "60px",
+    "--sdk-category-card-icon-container-radius": "9999px",
+    "--sdk-category-card-icon-color": "#FFFFFF",
+    "--text-listing": "#1B59F5",
+    "--text-listing-dark": "#1244CC",
+    "--search-bg": "#141414",
+    "--sdk-search-radius": "9999px"
+  }
+}

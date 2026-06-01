@@ -1,0 +1,37 @@
+{
+  "key": "indiasportshub",
+  "label": "IndiaSportsHub",
+  "fontImportUrl": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+  "telescopeCssVariables": {
+    "--brand-tbd-base": "#2563eb",
+    "--brand-tbd-dark": "#1d4ed8",
+    "--brand-tbd-light": "rgba(37, 99, 235, 0.15)",
+    "--brand-tbd-lighter": "rgba(37, 99, 235, 0.08)",
+    "--brand-button-primary-text": "#FFFFFF",
+    "--feature-base": "#f59e0b",
+    "--feature-light": "rgba(245, 158, 11, 0.24)",
+    "--feature-lighter": "rgba(245, 158, 11, 0.15)",
+    "--text-normal-primary": "#f8fafc",
+    "--text-normal-secondary": "#94a3b8",
+    "--text-normal-tertiary": "#64748b",
+    "--text-inverted-primary": "#0f172a",
+    "--background-normal-primary": "#05080d",
+    "--background-normal-secondary": "#0b0e14",
+    "--background-normal-tertiary": "#111827",
+    "--background-inverted-primary": "#f8fafc",
+    "--background-mapping-elevation-1": "#1e2740",
+    "--stroke-1": "#94a3b81f",
+    "--stroke-2": "#94a3b840",
+    "--stroke-3": "#94a3b880",
+    "--stroke-solid": "#94a3b8"
+  },
+  "sdkCssVariables": {
+    "--font-family": "'Inter', system-ui, sans-serif",
+    "--sdk-roundness-alpha": "9999px",
+    "--sdk-roundness-card": "12px",
+    "--sdk-category-card-icon-color": "var(--feature-base)",
+    "--text-listing": "#f59e0b",
+    "--text-listing-dark": "#f59e0b",
+    "--search-bg": "#202832"
+  }
+}

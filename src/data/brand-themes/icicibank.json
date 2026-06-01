@@ -1,0 +1,36 @@
+{
+  "key": "icicibank",
+  "label": "ICICI Bank",
+  "fontImportUrl": "https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800&display=swap",
+  "telescopeCssVariables": {
+    "--brand-tbd-base": "#FF8133",
+    "--brand-tbd-dark": "#D56116",
+    "--brand-tbd-light": "rgba(255, 129, 51, 0.12)",
+    "--brand-tbd-lighter": "rgba(255, 129, 51, 0.06)",
+    "--feature-base": "#F0792E",
+    "--feature-light": "rgba(240, 121, 46, 0.24)",
+    "--feature-lighter": "#FCEEE7",
+    "--brand-button-primary-text": "#FFFFFF",
+    "--text-normal-primary": "#101319",
+    "--text-normal-secondary": "#393939",
+    "--text-normal-tertiary": "#92A0B9",
+    "--text-inverted-primary": "#FFFFFF",
+    "--background-normal-primary": "#FFFFFF",
+    "--background-normal-secondary": "#F6F7F9",
+    "--background-normal-tertiary": "#F3F5F7",
+    "--background-inverted-primary": "#161616",
+    "--stroke-1": "#E0E5EB",
+    "--stroke-2": "#D4D9DE",
+    "--stroke-3": "#B2B5B8",
+    "--stroke-solid": "#FF8133"
+  },
+  "sdkCssVariables": {
+    "--font-family": "'Mulish', -apple-system, sans-serif",
+    "--sdk-roundness-alpha": "20px",
+    "--sdk-roundness-card": "20px",
+    "--sdk-category-card-icon-color": "var(--feature-base)",
+    "--text-listing": "#F0792E",
+    "--text-listing-dark": "#D56116",
+    "--search-bg": "#FFFFFF"
+  }
+}

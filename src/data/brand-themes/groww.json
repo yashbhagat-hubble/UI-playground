@@ -1,0 +1,36 @@
+{
+  "key": "groww",
+  "label": "Groww",
+  "fontImportUrl": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+  "telescopeCssVariables": {
+    "--brand-tbd-base": "#00B386",
+    "--brand-tbd-dark": "#00946f",
+    "--brand-tbd-light": "rgba(0, 179, 134, 0.08)",
+    "--brand-tbd-lighter": "rgba(0, 179, 134, 0.04)",
+    "--feature-base": "#00B386",
+    "--feature-light": "rgba(0, 179, 134, 0.24)",
+    "--feature-lighter": "#E8F7F4",
+    "--brand-button-primary-text": "#FFFFFF",
+    "--text-normal-primary": "#1A1A1A",
+    "--text-normal-secondary": "#5A5A5A",
+    "--text-normal-tertiary": "#9E9E9E",
+    "--text-inverted-primary": "#FFFFFF",
+    "--background-normal-primary": "#FFFFFF",
+    "--background-normal-secondary": "#F5F5F5",
+    "--background-normal-tertiary": "#EEEEEE",
+    "--background-inverted-primary": "#1A1A1A",
+    "--stroke-1": "#E0E0E0",
+    "--stroke-2": "#BDBDBD",
+    "--stroke-3": "#9E9E9E",
+    "--stroke-solid": "#1A1A1A"
+  },
+  "sdkCssVariables": {
+    "--font-family": "'Inter', -apple-system, sans-serif",
+    "--sdk-roundness-alpha": "8px",
+    "--sdk-roundness-card": "8px",
+    "--sdk-category-card-icon-color": "var(--feature-base)",
+    "--text-listing": "#00B386",
+    "--text-listing-dark": "#00946f",
+    "--search-bg": "#FFFFFF"
+  }
+}

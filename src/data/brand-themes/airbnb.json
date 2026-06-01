@@ -1,0 +1,37 @@
+{
+  "key": "airbnb",
+  "label": "Airbnb",
+  "fontImportUrl": "https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap",
+  "telescopeCssVariables": {
+    "--brand-tbd-base": "#FF385C",
+    "--brand-tbd-dark": "#E00B41",
+    "--brand-tbd-light": "rgba(255, 56, 92, 0.08)",
+    "--brand-tbd-lighter": "rgba(255, 56, 92, 0.04)",
+    "--feature-base": "#FF385C",
+    "--feature-light": "rgba(255, 56, 92, 0.24)",
+    "--feature-lighter": "#FFF5F6",
+    "--brand-button-primary-text": "#FFFFFF",
+    "--text-normal-primary": "#222222",
+    "--text-normal-secondary": "#6A6A6A",
+    "--text-normal-tertiary": "#8C8C8C",
+    "--text-inverted-primary": "#FFFFFF",
+    "--background-normal-primary": "#FFFFFF",
+    "--background-normal-secondary": "#F7F7F7",
+    "--background-normal-tertiary": "#F2F2F2",
+    "--background-inverted-primary": "#222222",
+    "--stroke-1": "#DDDDDD",
+    "--stroke-2": "#B0B0B0",
+    "--stroke-3": "#8C8C8C",
+    "--stroke-solid": "#222222"
+  },
+  "sdkCssVariables": {
+    "--font-family": "'Nunito', 'Airbnb Cereal VF', Circular, -apple-system, sans-serif",
+    "--sdk-roundness-alpha": "9999px",
+    "--sdk-roundness-card": "16px",
+    "--sdk-category-card-icon-color": "var(--feature-base)",
+    "--text-listing": "#FF385C",
+    "--text-listing-dark": "#E00B41",
+    "--search-bg": "#FFFFFF",
+    "--sdk-search-radius": "9999px"
+  }
+}

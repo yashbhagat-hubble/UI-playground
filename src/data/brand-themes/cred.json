@@ -1,0 +1,43 @@
+{
+  "key": "cred",
+  "label": "CRED",
+  "fontImportUrl": "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap",
+  "telescopeCssVariables": {
+    "--brand-tbd-base": "#0D0D0D",
+    "--brand-tbd-dark": "#000000",
+    "--brand-tbd-light": "rgba(13, 13, 13, 0.08)",
+    "--brand-tbd-lighter": "rgba(13, 13, 13, 0.04)",
+    "--feature-base": "#0D0D0D",
+    "--feature-light": "rgba(13, 13, 13, 0.08)",
+    "--feature-lighter": "rgba(13, 13, 13, 0.04)",
+    "--brand-button-primary-text": "#FFFFFF",
+    "--text-normal-primary": "#0D0D0D",
+    "--text-normal-secondary": "#6B6B6B",
+    "--text-normal-tertiary": "#ADADAD",
+    "--text-inverted-primary": "#FFFFFF",
+    "--background-normal-primary": "#FFFFFF",
+    "--background-normal-secondary": "#F7F7F7",
+    "--background-normal-tertiary": "#F0F0F0",
+    "--background-inverted-primary": "#0D0D0D",
+    "--stroke-1": "#E8E8E8",
+    "--stroke-2": "#D0D0D0",
+    "--stroke-3": "#ADADAD",
+    "--stroke-solid": "#0D0D0D"
+  },
+  "sdkCssVariables": {
+    "--font-family": "'Plus Jakarta Sans', system-ui, sans-serif",
+    "--sdk-roundness-alpha": "9999px",
+    "--sdk-roundness-card": "12px",
+    "--sdk-category-card-bg": "transparent",
+    "--sdk-category-card-border": "transparent",
+    "--sdk-category-card-icon-bg": "transparent",
+    "--sdk-category-card-icon-border": "var(--stroke-1)",
+    "--sdk-category-card-icon-container-size": "56px",
+    "--sdk-category-card-icon-container-radius": "9999px",
+    "--sdk-category-card-icon-color": "var(--text-normal-primary)",
+    "--text-listing": "#0D0D0D",
+    "--text-listing-dark": "#000000",
+    "--search-bg": "#F7F7F7",
+    "--sdk-search-radius": "9999px"
+  }
+}

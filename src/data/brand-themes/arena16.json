@@ -1,0 +1,39 @@
+{
+  "key": "arena16",
+  "label": "16Arena",
+  "fontImportUrl": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+  "telescopeCssVariables": {
+    "--brand-tbd-base": "#FF5722",
+    "--brand-tbd-dark": "#E64A19",
+    "--brand-tbd-light": "rgba(255, 87, 34, 0.15)",
+    "--brand-tbd-lighter": "rgba(255, 87, 34, 0.08)",
+    "--feature-base": "#FF5722",
+    "--feature-light": "rgba(255, 87, 34, 0.35)",
+    "--feature-lighter": "#2A1914",
+    "--brand-button-primary-text": "#FFFFFF",
+    "--text-normal-primary": "#F3F4F6",
+    "--text-normal-secondary": "#9CA3AF",
+    "--text-normal-tertiary": "#6B7280",
+    "--text-inverted-primary": "#111827",
+    "--background-normal-primary": "#050505",
+    "--background-normal-secondary": "#121212",
+    "--background-normal-tertiary": "#111827",
+    "--background-inverted-primary": "#F3F4F6",
+    "--background-mapping-elevation-1": "#1C1C1C",
+    "--stroke-1": "#1F2430",
+    "--stroke-2": "#374151",
+    "--stroke-3": "#4B5563",
+    "--stroke-solid": "#FF5722"
+  },
+  "sdkCssVariables": {
+    "--font-family": "'Inter', system-ui, sans-serif",
+    "--sdk-roundness-alpha": "8px",
+    "--sdk-roundness-card": "8px",
+    "--sdk-category-card-bg": "var(--background-normal-secondary)",
+    "--sdk-category-card-border": "var(--stroke-1)",
+    "--sdk-category-card-icon-color": "var(--feature-base)",
+    "--text-listing": "#FF5722",
+    "--text-listing-dark": "#E64A19",
+    "--search-bg": "#121212"
+  }
+}
