@@ -1140,7 +1140,7 @@ export default function App() {
       {/* Full-width sticky header + tabs */}
       <div class="sticky top-0 z-[200] w-full bg-background-normal-primary">
         {/* Title row */}
-        <div class="mx-auto flex max-w-[900px] items-center justify-between px-5 py-3">
+        <div class="mx-auto flex max-w-[900px] items-center justify-between px-4 py-3">
           <div class="flex flex-col gap-0.5">
             <p class="text-title-5-semi-bold text-text-normal-primary">Design Playground</p>
             <p class="text-label-regular text-text-normal-tertiary">
