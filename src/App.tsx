@@ -7,6 +7,7 @@ import { Portal } from "solid-js/web";
 import { PhosphorIcon } from "./components/PhosphorIcon";
 import { SdkCategoryCard } from "./components/SdkCategoryCard";
 import { brandThemes, designVariantOverrides } from "./data/brand_themes_registry";
+import { EXTRACTION_PROMPT } from "./data/extraction_prompt";
 import { MOCK_CATEGORIES, categoryIconMap, categoryEmoji, type MockCategory } from "./utils/categories";
 import { formatDiscountPercent } from "./utils/number";
 
@@ -60,7 +61,7 @@ const defaultSdkCssVariables: Record<string, string> = {
 
 type ThemeKey = "default" | string;
 
-const SHOWCASE_KEYS = ["phonepe", "googlepay", "cred", "instamart", "blinkit"];
+const SHOWCASE_KEYS = ["phonepe", "googlepay", "cred", "instamart", "blinkit", "uber"];
 const THEME_TABS: { key: ThemeKey; label: string }[] = [
   { key: "default", label: "Default" },
   ...SHOWCASE_KEYS.map((key) => {
@@ -314,6 +315,30 @@ function CtrlGroup(props: { title: string; children: JSX.Element }) {
   );
 }
 
+/** One-click copy with a 2-second "Copied!" confirmation. */
+function CopyButton(props: { getText: () => string; label?: string; class?: string }) {
+  const [copied, setCopied] = createSignal(false);
+  const copy = () => {
+    navigator.clipboard.writeText(props.getText()).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <button
+      class={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${props.class ?? ""}`}
+      classList={{
+        "bg-feature-lighter text-feature-base": copied(),
+        "text-text-normal-tertiary hover:bg-background-normal-secondary hover:text-text-normal-primary": !copied(),
+      }}
+      onClick={copy}
+    >
+      <PhosphorIcon name={copied() ? "check" : "copy"} fontSize={12} />
+      <span>{copied() ? "Copied!" : (props.label ?? "Copy")}</span>
+    </button>
+  );
+}
+
 // ─── Card builder state ───────────────────────────────────────────────────────
 
 function createCardBuilderState() {
@@ -490,9 +515,21 @@ function CardBuilderSection(props: { state: CardBuilderState; categories: MockCa
             class="fixed z-[301] min-w-[300px] overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
             style={{ top: `${popupPos().top}px`, right: `${popupPos().right}px` }}
           >
-            <p class="border-b border-stroke-1 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">
-              CSS Variable Output
-            </p>
+            <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
+              <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">
+                CSS Variable Output
+              </p>
+              <CopyButton
+                getText={() =>
+                  JSON.stringify(
+                    Object.fromEntries(cssVarRows().map((r) => [r.name, r.value])),
+                    null,
+                    2
+                  )
+                }
+                label="Copy JSON"
+              />
+            </div>
             <div class="p-3">
               <For each={cssVarRows()}>
                 {(row) => (
@@ -925,8 +962,12 @@ function CustomBrandsSection(props: {
     setCustomBrands(updated); persistCustomBrands(updated);
   };
 
+  const copyPromptAction = (
+    <CopyButton getText={() => EXTRACTION_PROMPT} label="Copy Prompt" />
+  );
+
   return (
-    <Section title="Custom Brands">
+    <Section title="Custom Brands" action={copyPromptAction}>
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2.5">
           <textarea
@@ -1043,13 +1084,13 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
       </Show>
       <div class="flex flex-col gap-3 p-4 pb-16">
         <CardBuilderSection state={state} categories={MOCK_CATEGORIES} />
-        <ThemeShowcaseSection
+        <CustomBrandsSection
           darkMode={props.darkMode}
           cardCssVars={state.cardCssVars}
           onOpenConfig={setConfigModalData}
           categories={MOCK_CATEGORIES}
         />
-        <CustomBrandsSection
+        <ThemeShowcaseSection
           darkMode={props.darkMode}
           cardCssVars={state.cardCssVars}
           onOpenConfig={setConfigModalData}

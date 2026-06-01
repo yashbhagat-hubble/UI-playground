@@ -1,0 +1,42 @@
+{
+  "key": "uber",
+  "label": "Uber",
+  "defaultIconStyle": "icon",
+  "fontImportUrl": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+  "telescopeCssVariables": {
+    "--brand-tbd-base": "#FFFFFF",
+    "--brand-tbd-dark": "#E5E5E5",
+    "--brand-tbd-light": "rgba(255,255,255,0.2)",
+    "--brand-tbd-lighter": "rgba(255,255,255,0.06)",
+    "--feature-base": "#FFFFFF",
+    "--feature-light": "rgba(255,255,255,0.2)",
+    "--feature-lighter": "rgba(255,255,255,0.06)",
+    "--brand-button-primary-text": "#000000",
+    "--text-normal-primary": "#FFFFFF",
+    "--text-normal-secondary": "#A0A0A0",
+    "--text-normal-tertiary": "#666666",
+    "--text-inverted-primary": "#000000",
+    "--background-normal-primary": "#060606",
+    "--background-normal-secondary": "#181818",
+    "--background-normal-tertiary": "#242424",
+    "--background-inverted-primary": "#FFFFFF",
+    "--background-mapping-elevation-1": "#1A1A1A",
+    "--stroke-1": "#222222",
+    "--stroke-2": "#333333",
+    "--stroke-3": "#444444",
+    "--stroke-solid": "#FFFFFF"
+  },
+  "sdkCssVariables": {
+    "--font-family": "'Inter', system-ui, sans-serif",
+    "--sdk-roundness-alpha": "4px",
+    "--sdk-roundness-card": "4px",
+    "--sdk-category-card-bg": "var(--background-normal-secondary)",
+    "--sdk-category-card-border": "var(--stroke-1)",
+    "--sdk-category-card-icon-bg": "transparent",
+    "--sdk-category-card-icon-border": "transparent",
+    "--sdk-category-card-icon-container-size": "24px",
+    "--sdk-category-card-icon-container-radius": "0px",
+    "--sdk-category-card-icon-color": "var(--text-normal-primary)",
+    "--search-bg": "#181818"
+  }
+}
