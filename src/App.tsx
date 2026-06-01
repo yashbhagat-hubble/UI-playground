@@ -440,6 +440,23 @@ function createCardBuilderState() {
     setActiveThemeKey(key);
   }
 
+  function resetCard() {
+    setCardBg("var(--background-normal-secondary)");
+    setCardRadius(12);
+    setCardBorderOn(false);
+    setCardBorderColor("var(--stroke-1)");
+    setIconStyle("icon");
+    setIconSizePx(24);
+    setIconColor("var(--text-normal-primary)");
+    setContainerOn(false);
+    setContainerFill("transparent");
+    setContainerSizePx(32);
+    setContainerRadiusPx(50);
+    setContainerBorderOn(false);
+    setContainerBorderColor("var(--stroke-1)");
+    setActiveThemeKey("default");
+  }
+
   return {
     cardBg, setCardBg, cardRadius, setCardRadius,
     cardBorderOn, setCardBorderOn, cardBorderColor, setCardBorderColor,
@@ -451,7 +468,7 @@ function createCardBuilderState() {
     ctxTextPrimary, setCtxTextPrimary, ctxTextSecondary, setCtxTextSecondary,
     ctxTextTertiary, setCtxTextTertiary,
     contextVars, cardCssVars,
-    activeThemeKey, loadTheme, resetCtxToMode,
+    activeThemeKey, loadTheme, resetCtxToMode, resetCard,
   };
 }
 
@@ -490,15 +507,25 @@ function CardBuilderSection(props: { state: CardBuilderState; categories: MockCa
   );
 
   const configAction = (
-    <button
-      ref={(el) => (configBtnRef = el)}
-      class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-secondary"
-      classList={{ "bg-background-normal-secondary text-text-normal-primary": configOpen() }}
-      onClick={openConfig}
-      title="CSS Variables"
-    >
-      <PhosphorIcon name="sliders" fontSize={16} />
-    </button>
+    <div class="flex items-center gap-1">
+      <button
+        class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+        onClick={() => props.state.resetCard()}
+        title="Reset to defaults"
+      >
+        <PhosphorIcon name="arrow-ccw" fontSize={13} />
+        <span>Reset</span>
+      </button>
+      <button
+        ref={(el) => (configBtnRef = el)}
+        class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-secondary"
+        classList={{ "bg-background-normal-secondary text-text-normal-primary": configOpen() }}
+        onClick={openConfig}
+        title="CSS Variables"
+      >
+        <PhosphorIcon name="sliders" fontSize={16} />
+      </button>
+    </div>
   );
 
   return (
@@ -838,10 +865,28 @@ type Brand = {
   sdkCssVariables?: Record<string, string>;
 };
 
+/** Fixed reference card — always shows SDK defaults, never moves with the builder */
+const DEFAULT_BRAND: Brand = {
+  key: "default",
+  label: "Default",
+  defaultIconStyle: "icon",
+  sdkCssVariables: {
+    "--sdk-roundness-card": "12px",
+    "--sdk-category-card-bg": "var(--background-normal-secondary)",
+    "--sdk-category-card-border": "transparent",
+    "--sdk-category-card-icon-bg": "transparent",
+    "--sdk-category-card-icon-border": "transparent",
+    "--sdk-category-card-icon-container-size": "24px",
+    "--sdk-category-card-icon-container-radius": "9999px",
+    "--sdk-category-card-icon-color": "var(--text-normal-primary)",
+  },
+};
+
 /** Built-in showcase brands — seeded on first load */
-const SEED_BRANDS: Brand[] = SHOWCASE_KEYS
-  .map((k) => brandThemes.find((t) => t.key === k))
-  .filter(Boolean) as Brand[];
+const SEED_BRANDS: Brand[] = [
+  DEFAULT_BRAND,
+  ...SHOWCASE_KEYS.map((k) => brandThemes.find((t) => t.key === k)).filter(Boolean) as Brand[],
+];
 
 function loadBrands(): Brand[] {
   try {
@@ -879,6 +924,11 @@ function BrandsSection(props: {
       localStorage.setItem(BRANDS_INIT_KEY, "1");
     } else {
       list = loadBrands();
+      // Migration: ensure the Default brand is always present at position 0
+      if (!list.find((b) => b.key === "default")) {
+        list = [DEFAULT_BRAND, ...list];
+        saveBrands(list);
+      }
     }
     setBrands(list);
     list.forEach((b) => b.fontImportUrl && loadFont(b.fontImportUrl));
@@ -989,7 +1039,8 @@ function BrandsSection(props: {
                   <div
                     class="rounded-xl"
                     style={{
-                      ...props.cardCssVars(),
+                      // Default brand is a fixed reference — skip builder vars so it never moves
+                      ...(brand.key !== "default" ? props.cardCssVars() : {}),
                       ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
                       ...(brand.telescopeCssVariables as JSX.CSSProperties | undefined),
                       ...(brand.sdkCssVariables as JSX.CSSProperties | undefined),
