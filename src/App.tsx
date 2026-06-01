@@ -580,10 +580,10 @@ function CardBuilderSection(props: { state: CardBuilderState; categories: MockCa
             </div>
           </div>
 
-          {/* ── 3-column controls ── */}
-          <div class="grid grid-cols-3 gap-4 border-t border-stroke-1 pt-4">
+          {/* ── 2-column controls ── */}
+          <div class="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-stroke-1 pt-4">
 
-            {/* Column 1: Card */}
+            {/* Left: Card */}
             <CtrlGroup title="Card">
               <CtrlRow label="Background">
                 <SwatchRow value={cardBg()} onChange={setCardBg} options={CARD_BG_OPTIONS} />
@@ -599,50 +599,23 @@ function CardBuilderSection(props: { state: CardBuilderState; categories: MockCa
               </CtrlRow>
             </CtrlGroup>
 
-            {/* Column 2: Icon + Icon Container */}
-            <div class="flex flex-col gap-4">
-              <CtrlGroup title="Icon">
-                <CtrlRow label="Style">
-                  <Segment
-                    value={iconStyle()} onChange={setIconStyle}
-                    options={[{ label: "Icon", value: "icon" as const }, { label: "Emoji", value: "emoji" as const }]}
-                  />
-                </CtrlRow>
-                <CtrlRow label="Size">
-                  <SliderInput min={12} max={40} value={iconSizePx()} onChange={setIconSizePx} unit="px" />
-                </CtrlRow>
-                <CtrlRow label="Color">
-                  <SwatchRow value={iconColor()} onChange={setIconColor} options={ICON_COLOR_OPTIONS} />
-                </CtrlRow>
-              </CtrlGroup>
+            {/* Right: Icon */}
+            <CtrlGroup title="Icon">
+              <CtrlRow label="Style">
+                <Segment
+                  value={iconStyle()} onChange={setIconStyle}
+                  options={[{ label: "Icon", value: "icon" as const }, { label: "Emoji", value: "emoji" as const }]}
+                />
+              </CtrlRow>
+              <CtrlRow label="Size">
+                <SliderInput min={12} max={40} value={iconSizePx()} onChange={setIconSizePx} unit="px" />
+              </CtrlRow>
+              <CtrlRow label="Color">
+                <SwatchRow value={iconColor()} onChange={setIconColor} options={ICON_COLOR_OPTIONS} />
+              </CtrlRow>
+            </CtrlGroup>
 
-              <CtrlGroup title="Icon Container">
-                <CtrlRow label="Show">
-                  <ToggleSwitch value={containerOn()} onChange={setContainerOn} />
-                </CtrlRow>
-                <Show when={containerOn()}>
-                  <CtrlRow label="Fill">
-                    <SwatchRow value={containerFill()} onChange={setContainerFill} options={FILL_OPTIONS} />
-                  </CtrlRow>
-                  <CtrlRow label="Border">
-                    <ToggleSwitch value={containerBorderOn()} onChange={setContainerBorderOn} />
-                    <Show when={containerBorderOn()}>
-                      <SwatchRow value={containerBorderColor()} onChange={setContainerBorderColor} options={BORDER_COLOR_OPTIONS} />
-                    </Show>
-                  </CtrlRow>
-                  <Show when={containerFill() !== "transparent" || containerBorderOn()}>
-                    <CtrlRow label="Size">
-                      <SliderInput min={20} max={72} value={containerSizePx()} onChange={setContainerSizePx} unit="px" />
-                    </CtrlRow>
-                    <CtrlRow label="Radius">
-                      <SliderInput min={0} max={50} value={containerRadiusPx()} onChange={setContainerRadiusPx} unit="px" />
-                    </CtrlRow>
-                  </Show>
-                </Show>
-              </CtrlGroup>
-            </div>
-
-            {/* Column 3: Background & Text */}
+            {/* Left: Background & Text */}
             <CtrlGroup title="Background & Text">
               <CtrlRow label="Bg Primary">
                 <ColorPickerCtrl value={ctxBgPrimary()} onChange={setCtxBgPrimary} />
@@ -659,6 +632,32 @@ function CardBuilderSection(props: { state: CardBuilderState; categories: MockCa
               <CtrlRow label="Text Ter">
                 <ColorPickerCtrl value={ctxTextTertiary()} onChange={setCtxTextTertiary} />
               </CtrlRow>
+            </CtrlGroup>
+
+            {/* Right: Icon Container */}
+            <CtrlGroup title="Icon Container">
+              <CtrlRow label="Show">
+                <ToggleSwitch value={containerOn()} onChange={setContainerOn} />
+              </CtrlRow>
+              <Show when={containerOn()}>
+                <CtrlRow label="Fill">
+                  <SwatchRow value={containerFill()} onChange={setContainerFill} options={FILL_OPTIONS} />
+                </CtrlRow>
+                <CtrlRow label="Border">
+                  <ToggleSwitch value={containerBorderOn()} onChange={setContainerBorderOn} />
+                  <Show when={containerBorderOn()}>
+                    <SwatchRow value={containerBorderColor()} onChange={setContainerBorderColor} options={BORDER_COLOR_OPTIONS} />
+                  </Show>
+                </CtrlRow>
+                <Show when={containerFill() !== "transparent" || containerBorderOn()}>
+                  <CtrlRow label="Size">
+                    <SliderInput min={20} max={72} value={containerSizePx()} onChange={setContainerSizePx} unit="px" />
+                  </CtrlRow>
+                  <CtrlRow label="Radius">
+                    <SliderInput min={0} max={50} value={containerRadiusPx()} onChange={setContainerRadiusPx} unit="px" />
+                  </CtrlRow>
+                </Show>
+              </Show>
             </CtrlGroup>
 
           </div>
