@@ -103,7 +103,7 @@ function Section(props: {
   return (
     <div class={`flex flex-col overflow-hidden rounded-2xl border border-stroke-1 bg-background-normal-primary ${props.class ?? ""}`}>
       <div class="flex items-center justify-between border-b border-stroke-1 px-4 py-3">
-        <p class="text-[15px] font-bold text-text-normal-primary">
+        <p class="text-[15px] font-semibold text-text-normal-primary">
           {props.title}
         </p>
         <Show when={props.action}>{props.action}</Show>
@@ -1033,15 +1033,6 @@ function BrandsSection(props: {
 
   return (
     <>
-      {/* ── Brands list ── */}
-      <Show when={brands().length > 0}>
-        <Section title="Brands">
-          <div class="flex flex-col gap-4">
-            <For each={brands()}>{(brand) => BrandCard(brand)}</For>
-          </div>
-        </Section>
-      </Show>
-
       {/* ── Add custom brand ── */}
       <Section
         title="Custom Brand"
@@ -1076,6 +1067,15 @@ function BrandsSection(props: {
           </div>
         </div>
       </Section>
+
+      {/* ── Brands list ── */}
+      <Show when={brands().length > 0}>
+        <Section title="Brands">
+          <div class="flex flex-col gap-4">
+            <For each={brands()}>{(brand) => BrandCard(brand)}</For>
+          </div>
+        </Section>
+      </Show>
     </>
   );
 }
