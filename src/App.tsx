@@ -1106,8 +1106,25 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
+type PlaygroundTab = "categories" | "appbar";
+
+// ─── Appbar playground (stub — to be built) ───────────────────────────────────
+
+function AppbarPlayground() {
+  return (
+    <div class="flex flex-col gap-16 p-4 pb-20">
+      <div class="flex h-40 items-center justify-center rounded-2xl border border-dashed border-stroke-2">
+        <p class="text-label-regular text-text-normal-tertiary">Appbar builder — coming soon</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Root ─────────────────────────────────────────────────────────────────────
+
 export default function App() {
   const [darkMode, setDarkMode] = createSignal(false);
+  const [tab, setTab] = createSignal<PlaygroundTab>("categories");
 
   onMount(() => document.documentElement.classList.toggle("dark", false));
 
@@ -1120,8 +1137,9 @@ export default function App() {
       class="flex min-h-dvh w-full flex-col bg-background-normal-primary"
       style={outerStyle()}
     >
-      {/* Full-width sticky header */}
-      <div class="sticky top-0 z-[200] w-full border-b border-stroke-1 bg-background-normal-primary">
+      {/* Full-width sticky header + tabs */}
+      <div class="sticky top-0 z-[200] w-full bg-background-normal-primary">
+        {/* Title row */}
         <div class="mx-auto flex max-w-[900px] items-center justify-between px-5 py-3">
           <div class="flex flex-col gap-0.5">
             <p class="text-title-5-semi-bold text-text-normal-primary">Design Playground</p>
@@ -1142,11 +1160,43 @@ export default function App() {
             ]}
           />
         </div>
+
+        {/* Tab bar — full-width stroke via border-b on the outer div */}
+        <div class="border-b border-stroke-1">
+          <div class="mx-auto flex max-w-[900px] gap-1 px-4">
+            <For each={[
+              { key: "categories" as PlaygroundTab, label: "Categories" },
+              { key: "appbar" as PlaygroundTab, label: "Appbar" },
+            ]}>
+              {(t) => (
+                <button
+                  class="relative px-3 py-2.5 text-label-semi-bold transition-colors"
+                  classList={{
+                    "text-text-normal-primary": tab() === t.key,
+                    "text-text-normal-tertiary hover:text-text-normal-secondary": tab() !== t.key,
+                  }}
+                  onClick={() => setTab(t.key)}
+                >
+                  {t.label}
+                  {/* Active indicator */}
+                  <Show when={tab() === t.key}>
+                    <span class="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-text-normal-primary" />
+                  </Show>
+                </button>
+              )}
+            </For>
+          </div>
+        </div>
       </div>
 
       {/* Content */}
       <div class="mx-auto w-full max-w-[900px]">
-        <PlaygroundGrid darkMode={darkMode} />
+        <Show when={tab() === "categories"}>
+          <PlaygroundGrid darkMode={darkMode} />
+        </Show>
+        <Show when={tab() === "appbar"}>
+          <AppbarPlayground />
+        </Show>
       </div>
     </div>
   );
