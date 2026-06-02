@@ -1769,42 +1769,104 @@ function AppbarCustomSection(props: { darkMode: () => boolean }) {
         <Section title="Saved Configs">
           <div class="flex flex-col gap-6">
             <For each={customs()}>
-              {(c) => (
-                <div class="flex flex-col gap-1.5">
-                  <div class="flex items-center justify-between">
-                    <p class="text-label-semi-bold text-text-normal-primary">{c.label}</p>
-                    <div class="flex items-center gap-1">
-                      <CopyButton
-                        getText={() => JSON.stringify({ appbarCssVariables: c.appbarCssVariables, appbarConfig: c.appbarConfig }, null, 2)}
-                        label="Copy JSON"
-                      />
-                      <button
-                        class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
-                        title="Delete"
-                        onClick={() => deleteCustom(c.key)}
-                      >
-                        <PhosphorIcon name="trash" fontSize={14} />
-                      </button>
+              {(c) => {
+                const [configOpen, setConfigOpen] = createSignal(false);
+                const [popupPos, setPopupPos] = createSignal({ top: 0, right: 0 });
+                let configBtnRef: HTMLButtonElement | undefined;
+
+                const openConfig = () => {
+                  if (configBtnRef) {
+                    const rect = configBtnRef.getBoundingClientRect();
+                    setPopupPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+                  }
+                  setConfigOpen((v) => !v);
+                };
+
+                const getJson = () => JSON.stringify(
+                  { appbarCssVariables: c.appbarCssVariables, appbarConfig: c.appbarConfig },
+                  null, 2
+                );
+
+                const cssVarRows = () => Object.entries(c.appbarCssVariables ?? {}).map(([name, value]) => ({ name, value }));
+
+                return (
+                  <div class="flex flex-col gap-1.5">
+                    <Show when={configOpen()}>
+                      <Portal>
+                        <div class="fixed inset-0 z-[300]" onClick={() => setConfigOpen(false)} />
+                        <div
+                          class="fixed z-[301] min-w-[300px] overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
+                          style={{ top: `${popupPos().top}px`, right: `${popupPos().right}px` }}
+                        >
+                          <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
+                            <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">{c.label}</p>
+                            <CopyButton getText={getJson} label="Copy JSON" />
+                          </div>
+                          <div class="p-3">
+                            <For each={cssVarRows()}>
+                              {(row) => (
+                                <div class="flex items-start justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                                  <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{row.name}</span>
+                                  <span class="max-w-[160px] break-all text-right font-mono text-[11px] text-text-normal-primary">{row.value}</span>
+                                </div>
+                              )}
+                            </For>
+                            <div class="mt-1 border-t border-stroke-1 pt-1">
+                              <For each={Object.entries(c.appbarConfig ?? {})}>
+                                {([k, v]) => (
+                                  <div class="flex items-start justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                                    <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{k}</span>
+                                    <span class="font-mono text-[11px] text-text-normal-primary">{v as string}</span>
+                                  </div>
+                                )}
+                              </For>
+                            </div>
+                          </div>
+                        </div>
+                      </Portal>
+                    </Show>
+
+                    <div class="flex items-center justify-between">
+                      <p class="text-label-semi-bold text-text-normal-primary">{c.label}</p>
+                      <div class="flex items-center gap-1">
+                        <button
+                          ref={(el) => (configBtnRef = el)}
+                          class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+                          classList={{ "bg-background-normal-secondary text-text-normal-primary": configOpen() }}
+                          onClick={openConfig}
+                        >
+                          <PhosphorIcon name="code" fontSize={13} />
+                          <span>Config</span>
+                        </button>
+                        <button
+                          class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
+                          title="Delete"
+                          onClick={() => deleteCustom(c.key)}
+                        >
+                          <PhosphorIcon name="trash" fontSize={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div
+                      class="flex justify-center"
+                      style={{
+                        ...(c.appbarCssVariables as JSX.CSSProperties),
+                        ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
+                      }}
+                    >
+                      <PhonePreview>
+                        <SdkAppbar
+                          title="Gift Cards"
+                          backIcon={c.appbarConfig.backIcon}
+                          titleAlign={c.appbarConfig.titleAlign}
+                        />
+                        <PageContentSkeleton />
+                      </PhonePreview>
                     </div>
                   </div>
-                  <div
-                    class="flex justify-center"
-                    style={{
-                      ...(c.appbarCssVariables as JSX.CSSProperties),
-                      ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
-                    }}
-                  >
-                    <PhonePreview>
-                      <SdkAppbar
-                        title="Gift Cards"
-                        backIcon={c.appbarConfig.backIcon}
-                        titleAlign={c.appbarConfig.titleAlign}
-                      />
-                      <PageContentSkeleton />
-                    </PhonePreview>
-                  </div>
-                </div>
-              )}
+                );
+              }}
             </For>
           </div>
         </Section>
