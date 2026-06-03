@@ -2026,7 +2026,7 @@ function ButtonPlayground() {
         </Portal>
       </Show>
 
-      <Section title="Button Builder" action={configAction}>
+      <Section title="Button Builder Primary" action={configAction}>
         <div class="flex flex-col gap-6">
 
           {/* ── Preview ── */}
@@ -2087,6 +2087,35 @@ function ButtonPlayground() {
           </div>
         </div>
       </Section>
+
+      {/* ── All variants ── */}
+      <div class="grid grid-cols-2 gap-4">
+        <Section title="Brand">
+          <div class="flex flex-col gap-2 rounded-xl border border-stroke-1 p-4">
+            <BtnColumn title="Variants" buttons={BRAND_BUTTONS} />
+          </div>
+        </Section>
+        <Section title="Neutral & Semantic">
+          <div class="flex flex-col gap-2 rounded-xl border border-stroke-1 p-4">
+            <BtnColumn title="Variants" buttons={NEUTRAL_BUTTONS} />
+            <div class="flex flex-col gap-2 pt-1">
+              <p class="text-label-semi-bold text-text-normal-secondary">Icon</p>
+              <div class="flex flex-wrap gap-2">
+                <For each={ICON_BUTTONS}>
+                  {(b) => (
+                    <button
+                      class="flex size-11 items-center justify-center rounded-full"
+                      style={{ background: b.bg, color: b.text, border: b.border ?? "none" }}
+                    >
+                      <PhosphorIcon name="list" fontSize={20} />
+                    </button>
+                  )}
+                </For>
+              </div>
+            </div>
+          </div>
+        </Section>
+      </div>
     </div>
   );
 }
