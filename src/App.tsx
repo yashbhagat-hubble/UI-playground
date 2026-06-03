@@ -1847,7 +1847,7 @@ function ColoursSection() {
           {(group) => (
             <div class="flex flex-col gap-2">
               <p class="text-label-semi-bold text-text-normal-secondary">{group.label}</p>
-              <div class="grid grid-cols-4 gap-2">
+              <div class="grid grid-cols-5 gap-2">
                 <For each={group.tokens}>
                   {(token) => (
                     <div class="flex flex-col gap-1">
