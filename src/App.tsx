@@ -1655,6 +1655,119 @@ function BrandsSection(props: {
   );
 }
 
+// ─── Basics tab ──────────────────────────────────────────────────────────────
+
+const TYPE_STYLES: { label: string; className: string; size: string; weight: string }[] = [
+  { label: "Display 4",      className: "text-display-4-semi-bold", size: "48px", weight: "600" },
+  { label: "Title 1",        className: "text-title-1-semi-bold",   size: "36px", weight: "600" },
+  { label: "Title 2",        className: "text-title-2-semi-bold",   size: "32px", weight: "600" },
+  { label: "Title 3",        className: "text-title-3-semi-bold",   size: "24px", weight: "600" },
+  { label: "Title 4",        className: "text-title-4-semi-bold",   size: "20px", weight: "600" },
+  { label: "Title 5",        className: "text-title-5-semi-bold",   size: "16px", weight: "600" },
+  { label: "Title 6",        className: "text-title-6-semi-bold",   size: "14px", weight: "600" },
+  { label: "Para 2 Regular", className: "text-para-2-regular",      size: "16px", weight: "400" },
+  { label: "Para 2 SemiBold",className: "text-para-2-semi-bold",    size: "16px", weight: "600" },
+  { label: "Label Regular",  className: "text-label-regular",       size: "12px", weight: "400" },
+  { label: "Label SemiBold", className: "text-label-semi-bold",     size: "12px", weight: "600" },
+  { label: "Caption Regular",className: "text-caption-regular",     size: "10px", weight: "400" },
+];
+
+function TypographySection() {
+  return (
+    <Section title="Typography">
+      <div class="overflow-hidden rounded-xl border border-stroke-1">
+        <For each={TYPE_STYLES}>
+          {(s, i) => (
+            <div
+              class="flex items-baseline justify-between gap-4 px-4 py-3"
+              classList={{ "border-t border-stroke-1": i() > 0 }}
+            >
+              <span class={`${s.className} text-text-normal-primary`}>{s.label}</span>
+              <span class="shrink-0 font-mono text-label-regular text-text-normal-tertiary">
+                {s.size} / {s.weight}
+              </span>
+            </div>
+          )}
+        </For>
+      </div>
+    </Section>
+  );
+}
+
+type BtnVariant = { label: string; bg: string; text: string; border?: string; opacity?: boolean };
+
+const BUTTON_VARIANTS: BtnVariant[] = [
+  { label: "Primary · Brand",     bg: "var(--brand-tbd-base)",             text: "#fff" },
+  { label: "Secondary · Brand",   bg: "transparent",                       text: "var(--feature-base)",        border: "1px solid var(--feature-base)" },
+  { label: "Tertiary · Brand",    bg: "var(--feature-lighter)",            text: "var(--feature-base)" },
+  { label: "Ghost · Brand",       bg: "transparent",                       text: "var(--feature-base)" },
+  { label: "Primary · Neutral",   bg: "var(--background-inverted-primary)",text: "var(--text-inverted-primary)" },
+  { label: "Secondary · Neutral", bg: "transparent",                       text: "var(--text-normal-primary)", border: "1px solid var(--stroke-solid)" },
+  { label: "Error",               bg: "var(--error-base, #ef4444)",        text: "#fff" },
+  { label: "Disabled",            bg: "var(--brand-tbd-base)",             text: "#fff", opacity: true },
+];
+
+const ICON_BUTTONS: { bg: string; text: string; border?: string }[] = [
+  { bg: "var(--brand-tbd-base)",              text: "#fff" },
+  { bg: "transparent",                         text: "var(--feature-base)",        border: "1px solid var(--feature-base)" },
+  { bg: "var(--feature-lighter)",             text: "var(--feature-base)" },
+  { bg: "transparent",                         text: "var(--feature-base)" },
+  { bg: "var(--background-inverted-primary)", text: "var(--text-inverted-primary)" },
+  { bg: "var(--error-base, #ef4444)",         text: "#fff" },
+  { bg: "var(--background-normal-secondary)", text: "var(--text-normal-tertiary)" },
+];
+
+function ButtonsSection() {
+  return (
+    <Section title="Buttons">
+      <div class="flex flex-col gap-3 rounded-xl border border-stroke-1 p-4">
+        <For each={BUTTON_VARIANTS}>
+          {(v) => (
+            <button
+              class="flex h-11 w-full items-center justify-center rounded-xl text-label-semi-bold transition-opacity"
+              style={{
+                background: v.bg,
+                color: v.text,
+                border: v.border ?? "none",
+                opacity: v.opacity ? "0.4" : "1",
+              }}
+            >
+              {v.label}
+            </button>
+          )}
+        </For>
+
+        {/* Round icon buttons */}
+        <div class="flex flex-wrap gap-2 border-t border-stroke-1 pt-3">
+          <For each={ICON_BUTTONS}>
+            {(b) => (
+              <button
+                class="flex size-11 items-center justify-center rounded-full"
+                style={{
+                  background: b.bg,
+                  color: b.text,
+                  border: b.border ?? "none",
+                }}
+              >
+                <PhosphorIcon name="list" fontSize={20} />
+              </button>
+            )}
+          </For>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function BasicsPlayground() {
+  return (
+    <div class="flex flex-col gap-16 p-4 pb-20">
+      <TypographySection />
+      <ButtonsSection />
+    </div>
+  );
+}
+
 // ─── Playground grid ──────────────────────────────────────────────────────────
 
 function PlaygroundGrid(props: { darkMode: () => boolean }) {
@@ -1683,7 +1796,7 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-type PlaygroundTab = "categories" | "appbar" | "listing";
+type PlaygroundTab = "categories" | "appbar" | "listing" | "basics";
 
 // ─── Listing data (imported from API response) ────────────────────────────────
 
@@ -2198,6 +2311,7 @@ export default function App() {
               { key: "categories" as PlaygroundTab, label: "Categories" },
               { key: "appbar" as PlaygroundTab, label: "Appbar" },
               { key: "listing" as PlaygroundTab, label: "Listing" },
+              { key: "basics" as PlaygroundTab, label: "Basics" },
             ]}>
               {(t) => (
                 <button
@@ -2230,6 +2344,9 @@ export default function App() {
         </Show>
         <Show when={tab() === "listing"}>
           <ListingPlayground />
+        </Show>
+        <Show when={tab() === "basics"}>
+          <BasicsPlayground />
         </Show>
       </div>
     </div>
