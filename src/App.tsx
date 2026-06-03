@@ -12,6 +12,7 @@ import { brandThemes, designVariantOverrides } from "./data/brand_themes_registr
 import { appbarThemes } from "./data/appbar_themes_registry";
 import { EXTRACTION_PROMPT } from "./data/extraction_prompt";
 import { APPBAR_EXTRACTION_PROMPT } from "./data/appbar_extraction_prompt";
+import { LISTING_EXTRACTION_PROMPT } from "./data/listing_extraction_prompt";
 import { MOCK_CATEGORIES, categoryIconMap, categoryEmoji, type MockCategory } from "./utils/categories";
 import { formatDiscountPercent } from "./utils/number";
 import listingDataRaw from "./data/listing-data.json";
@@ -2329,11 +2330,224 @@ function ListingBuilderSection(props: { state: ReturnType<typeof createListingBu
 
 // ─── Listing playground ───────────────────────────────────────────────────────
 
+// ─── Listing custom brands ────────────────────────────────────────────────────
+
+type ListingCustomBrand = {
+  key: string;
+  label: string;
+  telescopeCssVariables?: Record<string, string>;
+  sdkCssVariables?: Record<string, string>;
+};
+
+const LISTING_CUSTOMS_KEY = "hcp-listing-customs";
+
+function loadListingCustoms(): ListingCustomBrand[] {
+  try { const s = localStorage.getItem(LISTING_CUSTOMS_KEY); return s ? JSON.parse(s) : []; }
+  catch { return []; }
+}
+function saveListingCustoms(list: ListingCustomBrand[]) {
+  localStorage.setItem(LISTING_CUSTOMS_KEY, JSON.stringify(list));
+}
+
+function ListingCustomSection(props: { builderState: ReturnType<typeof createListingBuilderState> }) {
+  const [customs, setCustoms] = createSignal<ListingCustomBrand[]>([]);
+  const [jsonInput, setJsonInput] = createSignal("");
+  const [nameInput, setNameInput] = createSignal("");
+  const [parseError, setParseError] = createSignal<string | null>(null);
+
+  onMount(() => setCustoms(loadListingCustoms()));
+
+  const add = () => {
+    const name = nameInput().trim();
+    if (!name) { setParseError("Enter a brand name"); return; }
+    const raw = jsonInput().trim();
+    if (!raw) { setParseError("Paste a JSON config first"); return; }
+    try {
+      const p = JSON.parse(raw) as Record<string, unknown>;
+      if (typeof p !== "object" || p === null || Array.isArray(p)) {
+        setParseError("Invalid JSON: expected an object"); return;
+      }
+      const brand: ListingCustomBrand = {
+        key: `listing-${Date.now()}`,
+        label: name,
+        telescopeCssVariables: p["telescopeCssVariables"] as Record<string, string> | undefined,
+        sdkCssVariables: p["sdkCssVariables"] as Record<string, string> | undefined,
+      };
+      const updated = [...customs(), brand];
+      setCustoms(updated); saveListingCustoms(updated);
+      setJsonInput(""); setNameInput(""); setParseError(null);
+    } catch (e) {
+      setParseError(`JSON parse error: ${(e as Error).message}`);
+    }
+  };
+
+  const remove = (key: string) => {
+    const updated = customs().filter((c) => c.key !== key);
+    setCustoms(updated); saveListingCustoms(updated);
+  };
+
+  return (
+    <>
+      <Section
+        title="Custom Brand"
+        subtitle="Copy prompt and use it with screenshots or a URL to generate a JSON response"
+        action={<CopyButton getText={() => LISTING_EXTRACTION_PROMPT} label="Copy Prompt" />}
+      >
+        <div class="flex flex-col gap-2.5">
+          <textarea
+            class="h-24 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
+            placeholder={`{\n  "telescopeCssVariables": { "--background-normal-primary": "#..." },\n  "sdkCssVariables": { "--sdk-listing-image-radius": "16px", "--text-listing": "#..." }\n}`}
+            value={jsonInput()}
+            onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
+          />
+          <Show when={parseError()}>
+            <p class="text-[11px] text-red-400">{parseError()}</p>
+          </Show>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              class="min-w-0 flex-1 rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 text-label-regular text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
+              placeholder="Brand name…"
+              value={nameInput()}
+              onInput={(e) => setNameInput(e.currentTarget.value)}
+              onKeyDown={(e) => e.key === "Enter" && add()}
+            />
+            <button
+              class="shrink-0 rounded-lg bg-feature-base px-4 py-2 text-label-semi-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+              disabled={!jsonInput().trim() || !nameInput().trim()}
+              onClick={add}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </Section>
+
+      <Show when={customs().length > 0}>
+        <Section title="Saved Brands">
+          <div class="flex flex-col gap-6">
+            <For each={customs()}>
+              {(brand) => {
+                const sdkVars = () => brand.sdkCssVariables ?? {};
+                const imageRadius = () => sdkVars()["--sdk-listing-image-radius"] ?? `${props.builderState.imageRadius()}px`;
+
+                const [configOpen, setConfigOpen] = createSignal(false);
+                const [popupPos, setPopupPos] = createSignal({ top: 0, right: 0 });
+                let configBtnRef: HTMLButtonElement | undefined;
+
+                const openConfig = () => {
+                  if (configBtnRef) {
+                    const rect = configBtnRef.getBoundingClientRect();
+                    setPopupPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+                  }
+                  setConfigOpen((v) => !v);
+                };
+
+                const allVarRows = () => [
+                  ...Object.entries(brand.telescopeCssVariables ?? {}),
+                  ...Object.entries(brand.sdkCssVariables ?? {}),
+                ].map(([name, value]) => ({ name, value }));
+
+                return (
+                  <div class="flex flex-col gap-1.5">
+                    <Show when={configOpen()}>
+                      <Portal>
+                        <div class="fixed inset-0 z-[300]" onClick={() => setConfigOpen(false)} />
+                        <div
+                          class="fixed z-[301] min-w-[300px] overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
+                          style={{ top: `${popupPos().top}px`, right: `${popupPos().right}px` }}
+                        >
+                          <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
+                            <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">{brand.label}</p>
+                            <CopyButton
+                              getText={() => JSON.stringify({
+                                telescopeCssVariables: brand.telescopeCssVariables ?? {},
+                                sdkCssVariables: brand.sdkCssVariables ?? {},
+                              }, null, 2)}
+                              label="Copy JSON"
+                            />
+                          </div>
+                          <div class="p-3">
+                            <For each={allVarRows()}>
+                              {(row) => (
+                                <div class="flex items-start justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                                  <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{row.name}</span>
+                                  <span class="max-w-[160px] break-all text-right font-mono text-[11px] text-text-normal-primary">{row.value}</span>
+                                </div>
+                              )}
+                            </For>
+                          </div>
+                        </div>
+                      </Portal>
+                    </Show>
+
+                    {/* Header */}
+                    <div class="flex items-center justify-between">
+                      <p class="text-label-semi-bold text-text-normal-primary">{brand.label}</p>
+                      <div class="flex items-center gap-1">
+                        <button
+                          ref={(el) => (configBtnRef = el)}
+                          class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+                          classList={{ "bg-background-normal-secondary text-text-normal-primary": configOpen() }}
+                          onClick={openConfig}
+                        >
+                          <PhosphorIcon name="code" fontSize={13} />
+                          <span>Config</span>
+                        </button>
+                        <button
+                          class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
+                          title="Delete"
+                          onClick={() => remove(brand.key)}
+                        >
+                          <PhosphorIcon name="trash" fontSize={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Preview */}
+                    <div
+                      class="overflow-hidden rounded-xl"
+                      style={{
+                        ...(brand.telescopeCssVariables as JSX.CSSProperties | undefined),
+                        ...(brand.sdkCssVariables as JSX.CSSProperties | undefined),
+                        background: "var(--background-normal-primary)",
+                        "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+                      }}
+                    >
+                      <div class="flex gap-3 overflow-x-auto px-4 py-4 no-scrollbar">
+                        <For each={(listingDataRaw as ListingItem[]).slice(0, 5)}>
+                          {(item) => (
+                            <SdkListingCard
+                              title={item.title}
+                              tags={item.tags}
+                              discountPercent={item.discountPercentage}
+                              imageUrl={item.imageUrl}
+                              style={{
+                                width: "140px",
+                                "--sdk-listing-image-radius": imageRadius(),
+                              } as JSX.CSSProperties}
+                            />
+                          )}
+                        </For>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }}
+            </For>
+          </div>
+        </Section>
+      </Show>
+    </>
+  );
+}
+
 function ListingPlayground() {
   const state = createListingBuilderState();
   return (
     <div class="flex flex-col gap-16 p-4 pb-20">
       <ListingBuilderSection state={state} />
+      <ListingCustomSection builderState={state} />
     </div>
   );
 }
