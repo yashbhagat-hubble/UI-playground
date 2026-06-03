@@ -2052,7 +2052,7 @@ function ButtonPlayground() {
         </Portal>
       </Show>
 
-      <Section title="Button Builder Primary" action={configAction}>
+      <Section title="Button Builder" action={configAction}>
         <div class="flex flex-col gap-6">
 
           {/* ── Preview — all variants against the brand bg ── */}
@@ -2083,10 +2083,6 @@ function ButtonPlayground() {
                   {(spec) => <BtnPreview spec={spec} />}
                 </For>
                 <BtnPreview spec={NEUTRAL_BUTTONS.find(b => b.opacity)!} />
-                {/* Icon buttons */}
-                <For each={ICON_BUTTONS}>
-                  {(spec) => <BtnPreview spec={spec as BtnSpec} icon />}
-                </For>
               </div>
             </div>
           </div>
