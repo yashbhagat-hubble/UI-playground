@@ -1848,15 +1848,15 @@ function ColoursSection() {
               <div class="grid grid-cols-4 gap-2">
                 <For each={group.tokens}>
                   {(token) => (
-                    <div class="flex flex-col gap-1.5">
+                    <div class="flex flex-col gap-1">
                       <div
-                        class="size-12 rounded-xl"
+                        class="size-10 rounded-lg"
                         style={{
                           background: token.bg,
                           "box-shadow": token.border ? "inset 0 0 0 1px var(--stroke-1)" : undefined,
                         }}
                       />
-                      <p class="text-center text-label-regular text-text-normal-tertiary">{token.name}</p>
+                      <p class="text-label-regular text-text-normal-tertiary">{token.name}</p>
                     </div>
                   )}
                 </For>
