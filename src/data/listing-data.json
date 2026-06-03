@@ -1,0 +1,44 @@
+[
+  {
+    "id": "01HSBD494BMXNNP9HA9CTXAQ16",
+    "title": "IKEA",
+    "tags": ["New Brands", "Furnishing"],
+    "discountPercentage": 5,
+    "imageUrl": "https://assets.myhubble.money/brand-assets/icon-images/Ikea_icon_0406.png"
+  },
+  {
+    "id": "01H1XKY26N13898TV295GC8ZWB",
+    "title": "Nykaa",
+    "tags": ["Beauty", "Lifestyle"],
+    "discountPercentage": 3,
+    "imageUrl": "/brand-assets/nykaa.webp"
+  },
+  {
+    "id": "01J1W4D2KRHMJZKPAQWXCEMF4M",
+    "title": "Jio Mart",
+    "tags": ["New Brands", "Grocery"],
+    "discountPercentage": 2,
+    "imageUrl": "/brand-assets/jio-mart.webp"
+  },
+  {
+    "id": "01GMMNJECTDZAG2YS61K58HVG8",
+    "title": "Flipkart",
+    "tags": ["One Stop Shops", "Electronics"],
+    "discountPercentage": 1,
+    "imageUrl": "/brand-assets/flipkart.webp"
+  },
+  {
+    "id": "01KGGZN65SW37VX9P8FB9Y9MR2",
+    "title": "Amazon",
+    "tags": ["One Stop Shops", "Electronics"],
+    "discountPercentage": 5,
+    "imageUrl": "/brand-assets/amazon.webp"
+  },
+  {
+    "id": "myntra-01",
+    "title": "Myntra",
+    "tags": ["Fashion", "Clothing"],
+    "discountPercentage": 4,
+    "imageUrl": "https://gullak-assets.s3.ap-south-1.amazonaws.com/brand-images/promos-v2/myntra-3x.png"
+  }
+]

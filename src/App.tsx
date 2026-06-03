@@ -7,12 +7,14 @@ import { Portal } from "solid-js/web";
 import { PhosphorIcon } from "./components/PhosphorIcon";
 import { SdkAppbar } from "./components/SdkAppbar";
 import { SdkCategoryCard } from "./components/SdkCategoryCard";
+import { SdkListingCard } from "./components/SdkListingCard";
 import { brandThemes, designVariantOverrides } from "./data/brand_themes_registry";
 import { appbarThemes } from "./data/appbar_themes_registry";
 import { EXTRACTION_PROMPT } from "./data/extraction_prompt";
 import { APPBAR_EXTRACTION_PROMPT } from "./data/appbar_extraction_prompt";
 import { MOCK_CATEGORIES, categoryIconMap, categoryEmoji, type MockCategory } from "./utils/categories";
 import { formatDiscountPercent } from "./utils/number";
+import listingDataRaw from "./data/listing-data.json";
 
 // ─── Dark / light defaults ────────────────────────────────────────────────────
 
@@ -120,6 +122,11 @@ const SDK_CARD_CONFIG_KEYS = [
   "--sdk-category-card-icon-color",
 ];
 
+const SDK_LISTING_CONFIG_KEYS = [
+  "--text-listing",
+  "--sdk-listing-image-radius",
+];
+
 type ConfigModalData = {
   key?: string;
   label: string;
@@ -133,16 +140,22 @@ type ConfigModalData = {
 
 function Section(props: {
   title: string;
+  subtitle?: string;
   children: JSX.Element;
   class?: string;
   action?: JSX.Element;
 }) {
   return (
     <div class={`flex flex-col ${props.class ?? ""}`}>
-      <div class="flex items-center justify-between pb-3">
-        <p class="text-[15px] font-semibold text-text-normal-primary">
-          {props.title}
-        </p>
+      <div class="flex items-start justify-between pb-3">
+        <div class="flex flex-col gap-0.5">
+          <p class="text-[15px] font-semibold text-text-normal-primary">
+            {props.title}
+          </p>
+          <Show when={props.subtitle}>
+            <p class="text-[11px] text-text-normal-tertiary">{props.subtitle}</p>
+          </Show>
+        </div>
         <Show when={props.action}>{props.action}</Show>
       </div>
       <div>{props.children}</div>
@@ -1381,6 +1394,16 @@ function ConfigModal(props: { data: ConfigModalData; onClose: () => void }) {
                 </Show>
               </CfgSection>
             </Show>
+            <Show when={SDK_LISTING_CONFIG_KEYS.some((k) => sdk()[k] !== undefined)}>
+              <CfgSection title="Listing">
+                <Show when={sdk()["--text-listing"] !== undefined}>
+                  <CfgKVRow label="Discount color" value={sdk()["--text-listing"]!} />
+                </Show>
+                <Show when={sdk()["--sdk-listing-image-radius"] !== undefined}>
+                  <CfgKVRow label="Image radius" value={sdk()["--sdk-listing-image-radius"]!} />
+                </Show>
+              </CfgSection>
+            </Show>
           </div>
         </div>
       </div>
@@ -1456,6 +1479,7 @@ function loadFont(url: string) {
 function BrandsSection(props: {
   darkMode: () => boolean;
   cardCssVars: () => JSX.CSSProperties;
+  listingCssVars: () => JSX.CSSProperties;
   onOpenConfig: (data: ConfigModalData) => void;
   categories: MockCategory[];
 }) {
@@ -1544,19 +1568,20 @@ function BrandsSection(props: {
         </div>
       </div>
       <div
-        class="rounded-xl"
+        class="overflow-hidden rounded-xl"
         style={{
           ...(brand.key !== "default" ? props.cardCssVars() : {}),
+          ...props.listingCssVars(),
           ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
           ...(brand.telescopeCssVariables as JSX.CSSProperties | undefined),
           ...(brand.sdkCssVariables as JSX.CSSProperties | undefined),
           ...collapseInvisibleContainer(brand.sdkCssVariables),
           background: "var(--background-normal-primary)",
           "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
-          padding: "40px",
         }}
       >
-        <div class="flex flex-wrap gap-2">
+        {/* Category cards */}
+        <div class="flex flex-wrap gap-2 p-6">
           <For each={props.categories.slice(0, 5)}>
             {(cat) => {
               const IconComponent = categoryIconMap[cat.categoryName];
@@ -1585,6 +1610,7 @@ function BrandsSection(props: {
       {/* ── Add custom brand ── */}
       <Section
         title="Custom Brand"
+        subtitle="Copy prompt and use it with screenshots or a URL to generate a JSON response"
         action={<CopyButton getText={() => EXTRACTION_PROMPT} label="Copy Prompt" />}
       >
         <div class="flex flex-col gap-2.5">
@@ -1633,6 +1659,7 @@ function BrandsSection(props: {
 
 function PlaygroundGrid(props: { darkMode: () => boolean }) {
   const state = createCardBuilderState();
+  const listingState = createListingBuilderState();
   const [configModalData, setConfigModalData] = createSignal<ConfigModalData | null>(null);
 
   return (
@@ -1645,6 +1672,7 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
         <BrandsSection
           darkMode={props.darkMode}
           cardCssVars={state.cardCssVars}
+          listingCssVars={listingState.listingCssVars}
           onOpenConfig={setConfigModalData}
           categories={MOCK_CATEGORIES}
         />
@@ -1655,7 +1683,235 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-type PlaygroundTab = "categories" | "appbar";
+type PlaygroundTab = "categories" | "appbar" | "listing";
+
+// ─── Listing data (imported from API response) ────────────────────────────────
+
+type ListingItem = {
+  id: string;
+  title: string;
+  tags: string[];
+  discountPercentage: number;
+  imageUrl: string;
+};
+
+const LISTING_DATA: ListingItem[] = listingDataRaw as ListingItem[];
+
+// ─── Listing CSS var options ──────────────────────────────────────────────────
+
+const LISTING_COLOR_OPTIONS: ColorOption[] = [
+  { label: "Feature",  value: "var(--feature-base)" },
+  { label: "Brand",    value: "var(--brand-tbd-base)" },
+  { label: "Primary",  value: "var(--text-normal-primary)" },
+  { label: "Secondary",value: "var(--text-normal-secondary)" },
+  { label: "Warning",  value: "#f59e0b" },
+];
+
+// ─── Listing builder state ────────────────────────────────────────────────────
+
+function createListingBuilderState() {
+  const [imageRadius, setImageRadius] = createSignal(16);
+  const [listingColor, setListingColor] = createSignal("var(--feature-base)");
+  // — Context —
+  const [ctxBgPrimary,     setCtxBgPrimary]     = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
+  const [ctxBgSecondary,   setCtxBgSecondary]   = createSignal(LIGHT_CTX_DEFAULTS.bgSecondary);
+  const [ctxTextPrimary,   setCtxTextPrimary]   = createSignal(LIGHT_CTX_DEFAULTS.textPrimary);
+  const [ctxTextSecondary, setCtxTextSecondary] = createSignal(LIGHT_CTX_DEFAULTS.textSecondary);
+  const [ctxTextTertiary,  setCtxTextTertiary]  = createSignal(LIGHT_CTX_DEFAULTS.textTertiary);
+
+  const contextVars = createMemo((): JSX.CSSProperties => ({
+    "--background-normal-primary":   ctxBgPrimary(),
+    "--background-normal-secondary": ctxBgSecondary(),
+    "--text-normal-primary":   ctxTextPrimary(),
+    "--text-normal-secondary": ctxTextSecondary(),
+    "--text-normal-tertiary":  ctxTextTertiary(),
+  }));
+
+  const listingCssVars = createMemo((): JSX.CSSProperties => ({
+    "--sdk-listing-image-radius": `${imageRadius()}px`,
+    "--text-listing": listingColor(),
+  }));
+
+  function resetListing() {
+    setImageRadius(16);
+    setListingColor("var(--feature-base)");
+  }
+
+  function resetCtxToMode(dark: boolean) {
+    const d = dark ? DARK_CTX_DEFAULTS : LIGHT_CTX_DEFAULTS;
+    setCtxBgPrimary(d.bgPrimary); setCtxBgSecondary(d.bgSecondary);
+    setCtxTextPrimary(d.textPrimary); setCtxTextSecondary(d.textSecondary);
+    setCtxTextTertiary(d.textTertiary);
+  }
+
+  return {
+    imageRadius, setImageRadius, listingColor, setListingColor,
+    ctxBgPrimary, setCtxBgPrimary, ctxBgSecondary, setCtxBgSecondary,
+    ctxTextPrimary, setCtxTextPrimary, ctxTextSecondary, setCtxTextSecondary,
+    ctxTextTertiary, setCtxTextTertiary,
+    contextVars, listingCssVars, resetListing, resetCtxToMode,
+  };
+}
+
+// ─── Listing builder section ──────────────────────────────────────────────────
+
+function ListingBuilderSection(props: { state: ReturnType<typeof createListingBuilderState> }) {
+  const {
+    imageRadius, setImageRadius, listingColor, setListingColor,
+    ctxBgPrimary, setCtxBgPrimary, ctxBgSecondary, setCtxBgSecondary,
+    ctxTextPrimary, setCtxTextPrimary, ctxTextSecondary, setCtxTextSecondary,
+    ctxTextTertiary, setCtxTextTertiary,
+  } = props.state;
+
+  const [configOpen, setConfigOpen] = createSignal(false);
+  const [popupPos, setPopupPos] = createSignal({ top: 0, right: 0 });
+  let configBtnRef: HTMLButtonElement | undefined;
+
+  const openConfig = () => {
+    if (configBtnRef) {
+      const rect = configBtnRef.getBoundingClientRect();
+      setPopupPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+    }
+    setConfigOpen((v) => !v);
+  };
+
+  const cssVarRows = createMemo(() =>
+    Object.entries(props.state.listingCssVars()).map(([name, value]) => ({ name, value: String(value) }))
+  );
+
+  const configAction = (
+    <div class="flex items-center gap-1">
+      <button
+        class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+        onClick={() => props.state.resetListing()}
+        title="Reset to defaults"
+      >
+        <PhosphorIcon name="arrow-ccw" fontSize={13} />
+        <span>Reset</span>
+      </button>
+      <button
+        ref={(el) => (configBtnRef = el)}
+        class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-secondary"
+        classList={{ "bg-background-normal-secondary text-text-normal-primary": configOpen() }}
+        onClick={openConfig}
+        title="CSS Variables"
+      >
+        <PhosphorIcon name="sliders" fontSize={16} />
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      <Show when={configOpen()}>
+        <Portal>
+          <div class="fixed inset-0 z-[300]" onClick={() => setConfigOpen(false)} />
+          <div
+            class="fixed z-[301] min-w-[300px] overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
+            style={{ top: `${popupPos().top}px`, right: `${popupPos().right}px` }}
+          >
+            <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
+              <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">CSS Variable Output</p>
+              <CopyButton
+                getText={() => JSON.stringify({
+                  telescopeCssVariables: Object.fromEntries(
+                    Object.entries(props.state.contextVars()).map(([k, v]) => [k, String(v)])
+                  ),
+                  sdkCssVariables: Object.fromEntries(cssVarRows().map((r) => [r.name, r.value])),
+                }, null, 2)}
+                label="Copy JSON"
+              />
+            </div>
+            <div class="p-3">
+              <For each={cssVarRows()}>
+                {(row) => (
+                  <div class="flex items-start justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                    <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{row.name}</span>
+                    <span class="max-w-[160px] break-all text-right font-mono text-[11px] text-text-normal-primary">{row.value}</span>
+                  </div>
+                )}
+              </For>
+            </div>
+          </div>
+        </Portal>
+      </Show>
+
+      <Section title="Listing Builder" action={configAction}>
+        <div class="flex flex-col gap-4">
+
+          {/* ── Preview ── */}
+          <div
+            class="overflow-hidden rounded-2xl border border-stroke-1"
+            style={{
+              ...props.state.contextVars(),
+              ...props.state.listingCssVars(),
+              background: ctxBgPrimary(),
+            }}
+          >
+            <div class="grid gap-4 overflow-x-auto no-scrollbar" style={{ "grid-auto-flow": "column", "grid-template-rows": "1fr", padding: "12px" }}>
+              <For each={LISTING_DATA.slice(0, 5)}>
+                {(item) => (
+                  <SdkListingCard
+                    title={item.title}
+                    tags={item.tags}
+                    discountPercent={item.discountPercentage}
+                    imageUrl={item.imageUrl}
+                  />
+                )}
+              </For>
+            </div>
+          </div>
+
+          {/* ── Controls ── */}
+          <div class="grid grid-cols-2 gap-x-6 border-t border-stroke-1 pt-4">
+
+            {/* Left column */}
+            <div class="flex flex-col gap-4">
+              <CtrlGroup title="Card">
+                <CtrlRow label="Image radius">
+                  <SliderInput min={0} max={32} value={imageRadius()} onChange={setImageRadius} unit="px" />
+                </CtrlRow>
+                <CtrlRow label="Offer color">
+                  <SwatchRow value={listingColor()} onChange={setListingColor} options={LISTING_COLOR_OPTIONS} />
+                </CtrlRow>
+              </CtrlGroup>
+
+              <CtrlGroup title="Background & Text">
+                <CtrlRow label="Bg Primary">
+                  <ColorPickerCtrl value={ctxBgPrimary()} onChange={setCtxBgPrimary} />
+                </CtrlRow>
+                <CtrlRow label="Bg Secondary">
+                  <ColorPickerCtrl value={ctxBgSecondary()} onChange={setCtxBgSecondary} />
+                </CtrlRow>
+                <CtrlRow label="Text Primary">
+                  <ColorPickerCtrl value={ctxTextPrimary()} onChange={setCtxTextPrimary} />
+                </CtrlRow>
+                <CtrlRow label="Text Sec">
+                  <ColorPickerCtrl value={ctxTextSecondary()} onChange={setCtxTextSecondary} />
+                </CtrlRow>
+                <CtrlRow label="Text Ter">
+                  <ColorPickerCtrl value={ctxTextTertiary()} onChange={setCtxTextTertiary} />
+                </CtrlRow>
+              </CtrlGroup>
+            </div>
+
+          </div>
+        </div>
+      </Section>
+    </>
+  );
+}
+
+// ─── Listing playground ───────────────────────────────────────────────────────
+
+function ListingPlayground() {
+  const state = createListingBuilderState();
+  return (
+    <div class="flex flex-col gap-16 p-4 pb-20">
+      <ListingBuilderSection state={state} />
+    </div>
+  );
+}
 
 // ─── Appbar playground ────────────────────────────────────────────────────────
 
@@ -1734,7 +1990,7 @@ function AppbarCustomSection(props: { darkMode: () => boolean }) {
 
   return (
     <>
-      <Section title="Custom Appbar" action={<CopyButton getText={() => APPBAR_EXTRACTION_PROMPT} label="Copy Prompt" />}>
+      <Section title="Custom Appbar" subtitle="Copy prompt and use it with screenshots or a URL to generate a JSON response" action={<CopyButton getText={() => APPBAR_EXTRACTION_PROMPT} label="Copy Prompt" />}>
         <div class="flex flex-col gap-2.5">
           <textarea
             class="h-40 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
@@ -1941,6 +2197,7 @@ export default function App() {
             <For each={[
               { key: "categories" as PlaygroundTab, label: "Categories" },
               { key: "appbar" as PlaygroundTab, label: "Appbar" },
+              { key: "listing" as PlaygroundTab, label: "Listing" },
             ]}>
               {(t) => (
                 <button
@@ -1970,6 +2227,9 @@ export default function App() {
         </Show>
         <Show when={tab() === "appbar"}>
           <AppbarPlayground darkMode={darkMode} />
+        </Show>
+        <Show when={tab() === "listing"}>
+          <ListingPlayground />
         </Show>
       </div>
     </div>
