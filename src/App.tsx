@@ -1879,14 +1879,7 @@ function BasicsPlayground() {
 
 // ─── Button builder ───────────────────────────────────────────────────────────
 
-type TextStyleKey = "t4" | "t5" | "t6" | "label-sb" | "label-reg";
-const TEXT_STYLES: Record<TextStyleKey, { label: string; size: number; weight: number }> = {
-  "t4":       { label: "Title 4",      size: 20, weight: 600 },
-  "t5":       { label: "Title 5",      size: 16, weight: 600 },
-  "t6":       { label: "Title 6",      size: 14, weight: 600 },
-  "label-sb": { label: "Label SB",     size: 12, weight: 600 },
-  "label-reg":{ label: "Label Reg",    size: 12, weight: 400 },
-};
+// Button builder reuses TITLE_SIZES and TITLE_WEIGHTS from the Appbar section above
 
 const BTN_BG_OPTIONS: ColorOption[] = [
   { label: "Brand",     value: "var(--brand-tbd-base)" },
@@ -1921,9 +1914,11 @@ function ButtonPlayground() {
   const [bg, setBg] = createSignal("var(--brand-tbd-base)");
   const [textColor, setTextColor] = createSignal("#ffffff");
   const [borderColor, setBorderColor] = createSignal("transparent");
-  const [textStyleKey, setTextStyleKey] = createSignal<TextStyleKey>("t6");
+  const [textSizeKey, setTextSizeKey] = createSignal<TitleSizeKey>("t6");
+  const [textWeightKey, setTextWeightKey] = createSignal<TitleWeightKey>("semibold");
 
-  const textStyle = () => TEXT_STYLES[textStyleKey()];
+  const fontSize = () => TITLE_SIZES[textSizeKey()].size;
+  const fontWeight = () => TITLE_WEIGHTS[textWeightKey()].weight;
 
   const btnStyle = (): JSX.CSSProperties => ({
     height: `${height()}px`,
@@ -1931,8 +1926,8 @@ function ButtonPlayground() {
     background: bg(),
     color: textColor(),
     "box-shadow": borderColor() !== "transparent" ? `inset 0 0 0 1px ${borderColor()}` : "none",
-    "font-size": `${textStyle().size}px`,
-    "font-weight": String(textStyle().weight),
+    "font-size": `${fontSize()}px`,
+    "font-weight": String(fontWeight()),
   });
 
   const iconBtnStyle = (): JSX.CSSProperties => ({
@@ -1955,8 +1950,8 @@ function ButtonPlayground() {
     { name: "background",   value: bg() },
     { name: "color",        value: textColor() },
     { name: "border",       value: borderColor() !== "transparent" ? `1px solid ${borderColor()}` : "none" },
-    { name: "font-size",    value: `${textStyle().size}px` },
-    { name: "font-weight",  value: String(textStyle().weight) },
+    { name: "font-size",    value: `${fontSize()}px` },
+    { name: "font-weight",  value: String(fontWeight()) },
   ];
 
   const openConfig = () => {
@@ -1967,6 +1962,15 @@ function ButtonPlayground() {
     setConfigOpen((v) => !v);
   };
 
+  const TITLE_SIZE_OPTIONS = (Object.keys(TITLE_SIZES) as TitleSizeKey[]).map((k) => ({
+    label: TITLE_SIZES[k].label,
+    value: k,
+  }));
+  const TITLE_WEIGHT_OPTIONS = (Object.keys(TITLE_WEIGHTS) as TitleWeightKey[]).map((k) => ({
+    label: TITLE_WEIGHTS[k].label,
+    value: k,
+  }));
+
   const configAction = (
     <div class="flex items-center gap-1">
       <button
@@ -1974,7 +1978,8 @@ function ButtonPlayground() {
         onClick={() => {
           setHeight(44); setRadius(12);
           setBg("var(--brand-tbd-base)"); setTextColor("#ffffff");
-          setBorderColor("transparent"); setTextStyleKey("t6");
+          setBorderColor("transparent");
+          setTextSizeKey("t6"); setTextWeightKey("semibold");
         }}
       >
         <PhosphorIcon name="arrow-ccw" fontSize={13} />
@@ -2055,27 +2060,12 @@ function ButtonPlayground() {
               </CtrlGroup>
 
               <CtrlGroup title="Text style">
-                <div class="flex flex-col gap-1.5">
-                  <For each={Object.entries(TEXT_STYLES) as [TextStyleKey, typeof TEXT_STYLES[TextStyleKey]][]} >
-                    {([key, s]) => (
-                      <button
-                        class="flex items-center justify-between rounded-lg px-3 py-2 transition-colors"
-                        style={{
-                          background: textStyleKey() === key ? "var(--feature-lighter)" : "var(--background-normal-secondary)",
-                          "box-shadow": textStyleKey() === key ? `inset 0 0 0 1px var(--feature-base)` : "none",
-                        }}
-                        onClick={() => setTextStyleKey(key)}
-                      >
-                        <span style={{ "font-size": `${s.size}px`, "font-weight": String(s.weight), color: "var(--text-normal-primary)" }}>
-                          {s.label}
-                        </span>
-                        <span class="font-mono text-label-regular text-text-normal-tertiary">
-                          {s.size}px · {s.weight}
-                        </span>
-                      </button>
-                    )}
-                  </For>
-                </div>
+                <CtrlRow label="Size">
+                  <Segment value={textSizeKey()} onChange={setTextSizeKey} options={TITLE_SIZE_OPTIONS} />
+                </CtrlRow>
+                <CtrlRow label="Weight">
+                  <Segment value={textWeightKey()} onChange={setTextWeightKey} options={TITLE_WEIGHT_OPTIONS} />
+                </CtrlRow>
               </CtrlGroup>
             </div>
 
