@@ -1759,9 +1759,90 @@ function ButtonsSection() {
   );
 }
 
+const COLOR_GROUPS: { label: string; tokens: { name: string; bg: string; border?: boolean }[] }[] = [
+  {
+    label: "Brand",
+    tokens: [
+      { name: "Base",    bg: "var(--brand-tbd-base)" },
+      { name: "Dark",    bg: "var(--brand-tbd-dark)" },
+      { name: "Feature", bg: "var(--feature-base)" },
+      { name: "Feature Light", bg: "var(--feature-light)" },
+      { name: "Feature Lighter", bg: "var(--feature-lighter)" },
+    ],
+  },
+  {
+    label: "Background",
+    tokens: [
+      { name: "Primary",   bg: "var(--background-normal-primary)",   border: true },
+      { name: "Secondary", bg: "var(--background-normal-secondary)" },
+      { name: "Tertiary",  bg: "var(--background-normal-tertiary)" },
+      { name: "Inverted",  bg: "var(--background-inverted-primary)" },
+    ],
+  },
+  {
+    label: "Text",
+    tokens: [
+      { name: "Primary",   bg: "var(--text-normal-primary)" },
+      { name: "Secondary", bg: "var(--text-normal-secondary)" },
+      { name: "Tertiary",  bg: "var(--text-normal-tertiary)" },
+      { name: "Inverted",  bg: "var(--text-inverted-primary)" },
+    ],
+  },
+  {
+    label: "Stroke",
+    tokens: [
+      { name: "Solid", bg: "var(--stroke-solid)" },
+      { name: "3",     bg: "var(--stroke-3)" },
+      { name: "2",     bg: "var(--stroke-2)" },
+      { name: "1",     bg: "var(--stroke-1)", border: true },
+    ],
+  },
+  {
+    label: "Semantic",
+    tokens: [
+      { name: "Success", bg: "var(--success-base, #22c55e)" },
+      { name: "Error",   bg: "var(--error-base, #ef4444)" },
+      { name: "Warning", bg: "var(--warning-base, #f59e0b)" },
+    ],
+  },
+];
+
+function ColoursSection() {
+  return (
+    <Section title="Colours">
+      <div class="flex flex-col gap-6">
+        <For each={COLOR_GROUPS}>
+          {(group) => (
+            <div class="flex flex-col gap-2">
+              <p class="text-label-semi-bold text-text-normal-secondary">{group.label}</p>
+              <div class="grid grid-cols-4 gap-2">
+                <For each={group.tokens}>
+                  {(token) => (
+                    <div class="flex flex-col gap-1.5">
+                      <div
+                        class="h-12 w-full rounded-xl"
+                        style={{
+                          background: token.bg,
+                          "box-shadow": token.border ? "inset 0 0 0 1px var(--stroke-1)" : undefined,
+                        }}
+                      />
+                      <p class="text-center text-label-regular text-text-normal-tertiary">{token.name}</p>
+                    </div>
+                  )}
+                </For>
+              </div>
+            </div>
+          )}
+        </For>
+      </div>
+    </Section>
+  );
+}
+
 function BasicsPlayground() {
   return (
     <div class="flex flex-col gap-16 p-4 pb-20">
+      <ColoursSection />
       <TypographySection />
       <ButtonsSection />
     </div>
