@@ -1850,7 +1850,7 @@ function ColoursSection() {
                   {(token) => (
                     <div class="flex flex-col gap-1.5">
                       <div
-                        class="h-12 w-full rounded-xl"
+                        class="size-12 rounded-xl"
                         style={{
                           background: token.bg,
                           "box-shadow": token.border ? "inset 0 0 0 1px var(--stroke-1)" : undefined,
