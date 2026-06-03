@@ -13,6 +13,7 @@ import { appbarThemes } from "./data/appbar_themes_registry";
 import { EXTRACTION_PROMPT } from "./data/extraction_prompt";
 import { APPBAR_EXTRACTION_PROMPT } from "./data/appbar_extraction_prompt";
 import { LISTING_EXTRACTION_PROMPT } from "./data/listing_extraction_prompt";
+import { BUTTON_EXTRACTION_PROMPT } from "./data/button_extraction_prompt";
 import { MOCK_CATEGORIES, categoryIconMap, categoryEmoji, type MockCategory } from "./utils/categories";
 import { formatDiscountPercent } from "./utils/number";
 import listingDataRaw from "./data/listing-data.json";
@@ -2089,33 +2090,208 @@ function ButtonPlayground() {
       </Section>
 
       {/* ── All variants ── */}
-      <div class="grid grid-cols-2 gap-4">
-        <Section title="Brand">
-          <div class="flex flex-col gap-2 rounded-xl border border-stroke-1 p-4">
-            <BtnColumn title="Variants" buttons={BRAND_BUTTONS} />
-          </div>
-        </Section>
-        <Section title="Neutral & Semantic">
-          <div class="flex flex-col gap-2 rounded-xl border border-stroke-1 p-4">
-            <BtnColumn title="Variants" buttons={NEUTRAL_BUTTONS} />
-            <div class="flex flex-col gap-2 pt-1">
-              <p class="text-label-semi-bold text-text-normal-secondary">Icon</p>
-              <div class="flex flex-wrap gap-2">
-                <For each={ICON_BUTTONS}>
-                  {(b) => (
-                    <button
-                      class="flex size-11 items-center justify-center rounded-full"
-                      style={{ background: b.bg, color: b.text, border: b.border ?? "none" }}
-                    >
-                      <PhosphorIcon name="list" fontSize={20} />
-                    </button>
-                  )}
-                </For>
+      <div class="mt-8 flex flex-col gap-3 border-t border-stroke-1 pt-8">
+        <p class="text-[15px] font-semibold text-text-normal-primary">Variants</p>
+        <div class="grid grid-cols-2 gap-4">
+          <Section title="Brand">
+            <div class="flex flex-col gap-2 rounded-xl border border-stroke-1 p-4">
+              <BtnColumn title="Variants" buttons={BRAND_BUTTONS} />
+            </div>
+          </Section>
+          <Section title="Neutral & Semantic">
+            <div class="flex flex-col gap-2 rounded-xl border border-stroke-1 p-4">
+              <BtnColumn title="Variants" buttons={NEUTRAL_BUTTONS} />
+              <div class="flex flex-col gap-2 pt-1">
+                <p class="text-label-semi-bold text-text-normal-secondary">Icon</p>
+                <div class="flex flex-wrap gap-2">
+                  <For each={ICON_BUTTONS}>
+                    {(b) => (
+                      <button
+                        class="flex size-11 items-center justify-center rounded-full"
+                        style={{ background: b.bg, color: b.text, border: b.border ?? "none" }}
+                      >
+                        <PhosphorIcon name="list" fontSize={20} />
+                      </button>
+                    )}
+                  </For>
+                </div>
               </div>
             </div>
-          </div>
-        </Section>
+          </Section>
+        </div>
       </div>
+
+      {/* ── Custom button ── */}
+      <ButtonCustomSection />
+    </div>
+  );
+}
+
+// ─── Custom button section ────────────────────────────────────────────────────
+
+type CustomButton = {
+  key: string;
+  label: string;
+  background: string;
+  color: string;
+  height: string;
+  borderRadius: string;
+  borderColor?: string;
+  fontSize: string;
+  fontWeight: string;
+};
+
+const BTN_CUSTOMS_KEY = "hcp-btn-customs";
+
+function loadBtnCustoms(): CustomButton[] {
+  try { const s = localStorage.getItem(BTN_CUSTOMS_KEY); return s ? JSON.parse(s) : []; }
+  catch { return []; }
+}
+function saveBtnCustoms(list: CustomButton[]) {
+  localStorage.setItem(BTN_CUSTOMS_KEY, JSON.stringify(list));
+}
+
+function ButtonCustomSection() {
+  const [customs, setCustoms] = createSignal<CustomButton[]>([]);
+  const [jsonInput, setJsonInput] = createSignal("");
+  const [nameInput, setNameInput] = createSignal("");
+  const [parseError, setParseError] = createSignal<string | null>(null);
+
+  onMount(() => setCustoms(loadBtnCustoms()));
+
+  const add = () => {
+    const name = nameInput().trim();
+    if (!name) { setParseError("Enter a name"); return; }
+    const raw = jsonInput().trim();
+    if (!raw) { setParseError("Paste a JSON config first"); return; }
+    try {
+      const p = JSON.parse(raw) as Record<string, string>;
+      if (typeof p !== "object" || p === null || Array.isArray(p)) {
+        setParseError("Invalid JSON: expected an object"); return;
+      }
+      const btn: CustomButton = {
+        key: `btn-${Date.now()}`,
+        label: name,
+        background:   p["background"]   ?? "var(--brand-tbd-base)",
+        color:        p["color"]        ?? "#ffffff",
+        height:       p["height"]       ?? "44px",
+        borderRadius: p["borderRadius"] ?? "12px",
+        borderColor:  p["borderColor"],
+        fontSize:     p["fontSize"]     ?? "14px",
+        fontWeight:   p["fontWeight"]   ?? "600",
+      };
+      const updated = [...customs(), btn];
+      setCustoms(updated); saveBtnCustoms(updated);
+      setJsonInput(""); setNameInput(""); setParseError(null);
+    } catch (e) {
+      setParseError(`JSON parse error: ${(e as Error).message}`);
+    }
+  };
+
+  const remove = (key: string) => {
+    const updated = customs().filter((b) => b.key !== key);
+    setCustoms(updated); saveBtnCustoms(updated);
+  };
+
+  const btnStyle = (b: CustomButton): JSX.CSSProperties => ({
+    height: b.height,
+    "border-radius": b.borderRadius,
+    background: b.background,
+    color: b.color,
+    "box-shadow": b.borderColor ? `inset 0 0 0 1px ${b.borderColor}` : "none",
+    "font-size": b.fontSize,
+    "font-weight": b.fontWeight,
+  });
+
+  return (
+    <div class="mt-8 flex flex-col gap-3 border-t border-stroke-1 pt-8">
+      <Section
+        title="Custom Button"
+        subtitle="Copy prompt and use it with screenshots or a URL to generate a JSON response"
+        action={<CopyButton getText={() => BUTTON_EXTRACTION_PROMPT} label="Copy Prompt" />}
+      >
+        <div class="flex flex-col gap-2.5">
+          <textarea
+            class="h-24 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
+            placeholder={`{\n  "background": "#...",\n  "color": "#fff",\n  "height": "44px",\n  "borderRadius": "12px",\n  "fontSize": "14px",\n  "fontWeight": "600"\n}`}
+            value={jsonInput()}
+            onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
+          />
+          <Show when={parseError()}>
+            <p class="text-[11px] text-red-400">{parseError()}</p>
+          </Show>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              class="min-w-0 flex-1 rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 text-label-regular text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
+              placeholder="Button name…"
+              value={nameInput()}
+              onInput={(e) => setNameInput(e.currentTarget.value)}
+              onKeyDown={(e) => e.key === "Enter" && add()}
+            />
+            <button
+              class="shrink-0 rounded-lg bg-feature-base px-4 py-2 text-label-semi-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+              disabled={!jsonInput().trim() || !nameInput().trim()}
+              onClick={add}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </Section>
+
+      <Show when={customs().length > 0}>
+        <div class="flex flex-col gap-4 pt-2">
+          <For each={customs()}>
+            {(btn) => (
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                  <p class="text-label-semi-bold text-text-normal-primary">{btn.label}</p>
+                  <button
+                    class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
+                    title="Delete"
+                    onClick={() => remove(btn.key)}
+                  >
+                    <PhosphorIcon name="trash" fontSize={14} />
+                  </button>
+                </div>
+                <div
+                  class="flex flex-wrap items-center gap-4 rounded-xl p-6"
+                  style={{ background: "var(--background-normal-secondary)", "box-shadow": "inset 0 0 0 1px var(--stroke-1)" }}
+                >
+                  <button class="flex items-center justify-center px-6" style={btnStyle(btn)}>
+                    Get this card
+                  </button>
+                  <button class="flex items-center justify-center px-6" style={btnStyle(btn)} disabled>
+                    <span style={{ opacity: "0.4" }}>Disabled</span>
+                  </button>
+                  <button
+                    class="flex items-center justify-center"
+                    style={{ ...btnStyle(btn), width: btn.height, padding: "0" }}
+                  >
+                    <PhosphorIcon name="arrow-right" fontSize={20} />
+                  </button>
+                  {/* Spec strip */}
+                  <div class="flex flex-wrap gap-3">
+                    <For each={[
+                      ["h", btn.height],
+                      ["r", btn.borderRadius],
+                      ["fs", btn.fontSize],
+                      ["fw", btn.fontWeight],
+                    ]}>
+                      {([k, v]) => (
+                        <span class="font-mono text-label-regular text-text-normal-tertiary">
+                          {k}: {v}
+                        </span>
+                      )}
+                    </For>
+                  </div>
+                </div>
+              </div>
+            )}
+          </For>
+        </div>
+      </Show>
     </div>
   );
 }
