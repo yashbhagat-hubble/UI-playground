@@ -1740,30 +1740,31 @@ function TypographySection() {
   );
 }
 
-type BtnSpec = { label: string; bg: string; text: string; border?: string; opacity?: boolean };
+type BtnSpec = { label: string; bg: string; text: string; border?: string; opacity?: boolean; hover?: string };
 
 const BRAND_BUTTONS: BtnSpec[] = [
-  { label: "Primary",   bg: "var(--brand-tbd-base)",  text: "#fff" },
-  { label: "Secondary", bg: "transparent",             text: "var(--feature-base)", border: "1px solid var(--feature-base)" },
-  { label: "Tertiary",  bg: "var(--feature-lighter)", text: "var(--feature-base)" },
-  { label: "Ghost",     bg: "transparent",             text: "var(--feature-base)" },
+  { label: "Primary",   bg: "var(--brand-tbd-base)",  text: "#fff",                   hover: "hover:bg-brand-tbd-dark active:bg-brand-tbd-dark" },
+  { label: "Secondary", bg: "transparent",             text: "var(--feature-base)",    border: "1px solid var(--feature-base)", hover: "hover:bg-feature-lighter active:bg-feature-lighter" },
+  { label: "Tertiary",  bg: "var(--feature-lighter)", text: "var(--feature-base)",    hover: "hover:opacity-80 active:opacity-60" },
+  { label: "Ghost",     bg: "transparent",             text: "var(--feature-base)",    hover: "hover:bg-background-normal-secondary active:bg-background-normal-tertiary" },
   { label: "Disabled",  bg: "var(--brand-tbd-base)",  text: "#fff", opacity: true },
 ];
 
 const NEUTRAL_BUTTONS: BtnSpec[] = [
-  { label: "Primary",   bg: "var(--background-inverted-primary)", text: "var(--text-inverted-primary)" },
-  { label: "Secondary", bg: "transparent",                         text: "var(--text-normal-primary)", border: "1px solid var(--stroke-solid)" },
-  { label: "Error",     bg: "var(--error-base, #ef4444)",         text: "#fff" },
+  { label: "Primary",   bg: "var(--background-inverted-primary)", text: "var(--text-inverted-primary)", hover: "hover:opacity-80 active:opacity-60" },
+  { label: "Secondary", bg: "transparent",                         text: "var(--text-normal-primary)",   border: "1px solid var(--stroke-solid)", hover: "hover:bg-background-normal-secondary active:bg-background-normal-secondary" },
+  { label: "Error",     bg: "var(--error-base, #ef4444)",         text: "#fff",                         hover: "hover:opacity-80 active:opacity-60" },
   { label: "Disabled",  bg: "var(--background-normal-secondary)", text: "var(--text-normal-tertiary)", opacity: true },
 ];
 
-const ICON_BUTTONS: { bg: string; text: string; border?: string }[] = [
-  { bg: "var(--brand-tbd-base)",               text: "#fff" },
-  { bg: "transparent",                          text: "var(--feature-base)", border: "1px solid var(--feature-base)" },
-  { bg: "var(--feature-lighter)",              text: "var(--feature-base)" },
-  { bg: "var(--background-inverted-primary)", text: "var(--text-inverted-primary)" },
-  { bg: "var(--error-base, #ef4444)",          text: "#fff" },
-  { bg: "var(--background-normal-secondary)", text: "var(--text-normal-tertiary)" },
+type IconBtnSpec = { bg: string; text: string; border?: string; hover?: string };
+const ICON_BUTTONS: IconBtnSpec[] = [
+  { bg: "var(--brand-tbd-base)",               text: "#fff",                         hover: "hover:bg-brand-tbd-dark active:bg-brand-tbd-dark" },
+  { bg: "transparent",                          text: "var(--feature-base)",          border: "1px solid var(--feature-base)", hover: "hover:bg-feature-lighter active:bg-feature-lighter" },
+  { bg: "var(--feature-lighter)",              text: "var(--feature-base)",          hover: "hover:opacity-80 active:opacity-60" },
+  { bg: "var(--background-inverted-primary)", text: "var(--text-inverted-primary)", hover: "hover:opacity-80 active:opacity-60" },
+  { bg: "var(--error-base, #ef4444)",          text: "#fff",                         hover: "hover:opacity-80 active:opacity-60" },
+  { bg: "var(--background-normal-secondary)", text: "var(--text-normal-tertiary)",  hover: "hover:bg-background-normal-tertiary active:bg-background-normal-tertiary" },
 ];
 
 function BtnColumn(props: { title: string; buttons: BtnSpec[] }) {
@@ -1773,7 +1774,7 @@ function BtnColumn(props: { title: string; buttons: BtnSpec[] }) {
       <For each={props.buttons}>
         {(v) => (
           <button
-            class="flex h-11 w-full items-center justify-center rounded-xl"
+            class={`flex h-11 w-full items-center justify-center rounded-xl transition-all active:scale-[0.98] ${v.opacity ? "pointer-events-none" : (v.hover ?? "")}`}
             style={{
               background: v.bg,
               color: v.text,
@@ -2037,13 +2038,13 @@ function ButtonPlayground() {
             class="flex flex-wrap items-center justify-center gap-4 rounded-xl p-8"
             style={{ background: "var(--background-normal-secondary)", "box-shadow": "inset 0 0 0 1px var(--stroke-1)" }}
           >
-            <button class="flex items-center justify-center px-6" style={btnStyle()}>
+            <button class="flex items-center justify-center px-6 transition-all hover:opacity-90 active:scale-[0.98]" style={btnStyle()}>
               Get this card
             </button>
-            <button class="flex items-center justify-center px-6" style={btnStyle()} disabled>
+            <button class="flex items-center justify-center px-6 pointer-events-none" style={btnStyle()}>
               <span style={{ opacity: "0.4" }}>Disabled</span>
             </button>
-            <button class="flex items-center justify-center" style={iconBtnStyle()}>
+            <button class="flex items-center justify-center transition-all hover:opacity-90 active:scale-95" style={iconBtnStyle()}>
               <PhosphorIcon name="arrow-right" fontSize={20} />
             </button>
           </div>
@@ -2109,7 +2110,7 @@ function ButtonPlayground() {
                   <For each={ICON_BUTTONS}>
                     {(b) => (
                       <button
-                        class="flex size-11 items-center justify-center rounded-full"
+                        class={`flex size-11 items-center justify-center rounded-full transition-all active:scale-95 ${b.hover ?? ""}`}
                         style={{ background: b.bg, color: b.text, border: b.border ?? "none" }}
                       >
                         <PhosphorIcon name="list" fontSize={20} />
