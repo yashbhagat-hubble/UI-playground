@@ -1657,34 +1657,56 @@ function BrandsSection(props: {
 
 // ─── Basics tab ──────────────────────────────────────────────────────────────
 
-const TYPE_STYLES: { label: string; className: string; size: string; weight: string }[] = [
-  { label: "Display 4",      className: "text-display-4-semi-bold", size: "48px", weight: "600" },
-  { label: "Title 1",        className: "text-title-1-semi-bold",   size: "36px", weight: "600" },
-  { label: "Title 2",        className: "text-title-2-semi-bold",   size: "32px", weight: "600" },
-  { label: "Title 3",        className: "text-title-3-semi-bold",   size: "24px", weight: "600" },
-  { label: "Title 4",        className: "text-title-4-semi-bold",   size: "20px", weight: "600" },
-  { label: "Title 5",        className: "text-title-5-semi-bold",   size: "16px", weight: "600" },
-  { label: "Title 6",        className: "text-title-6-semi-bold",   size: "14px", weight: "600" },
-  { label: "Para 2 Regular", className: "text-para-2-regular",      size: "16px", weight: "400" },
-  { label: "Para 2 SemiBold",className: "text-para-2-semi-bold",    size: "16px", weight: "600" },
-  { label: "Label Regular",  className: "text-label-regular",       size: "12px", weight: "400" },
-  { label: "Label SemiBold", className: "text-label-semi-bold",     size: "12px", weight: "600" },
-  { label: "Caption Regular",className: "text-caption-regular",     size: "10px", weight: "400" },
+const TYPE_STYLES: { label: string; size: number; lineHeight: number; weight: number }[] = [
+  { label: "Display 4",       size: 48, lineHeight: 54, weight: 600 },
+  { label: "Title 1",         size: 36, lineHeight: 42, weight: 600 },
+  { label: "Title 2",         size: 32, lineHeight: 40, weight: 600 },
+  { label: "Title 3",         size: 24, lineHeight: 32, weight: 600 },
+  { label: "Title 4",         size: 20, lineHeight: 28, weight: 600 },
+  { label: "Title 5",         size: 16, lineHeight: 24, weight: 600 },
+  { label: "Title 6",         size: 14, lineHeight: 20, weight: 600 },
+  { label: "Para 2 Regular",  size: 16, lineHeight: 24, weight: 400 },
+  { label: "Para 2 SemiBold", size: 16, lineHeight: 24, weight: 600 },
+  { label: "Label Regular",   size: 12, lineHeight: 16, weight: 400 },
+  { label: "Label SemiBold",  size: 12, lineHeight: 16, weight: 600 },
+  { label: "Caption Regular", size: 10, lineHeight: 12, weight: 400 },
 ];
 
 function TypographySection() {
+  let probeRef: HTMLSpanElement | undefined;
+  const [fontName, setFontName] = createSignal("—");
+  onMount(() => {
+    if (!probeRef) return;
+    const raw = getComputedStyle(probeRef).fontFamily;
+    const first = raw.split(",")[0].trim().replace(/['"]/g, "");
+    setFontName(first || "system-ui");
+  });
   return (
     <Section title="Typography">
+      <span ref={probeRef} class="sr-only" aria-hidden="true" />
       <div class="overflow-hidden rounded-xl border border-stroke-1">
+        <div class="flex items-center justify-between border-b border-stroke-1 px-4 py-2.5">
+          <span class="text-label-regular text-text-normal-tertiary">Typeface</span>
+          <span class="text-label-semi-bold text-text-normal-primary">{fontName()}</span>
+        </div>
         <For each={TYPE_STYLES}>
           {(s, i) => (
             <div
-              class="flex items-baseline justify-between gap-4 px-4 py-3"
+              class="flex items-baseline justify-between gap-4 px-4 py-2.5"
               classList={{ "border-t border-stroke-1": i() > 0 }}
             >
-              <span class={`${s.className} text-text-normal-primary`}>{s.label}</span>
+              <span
+                style={{
+                  "font-size": `${s.size}px`,
+                  "line-height": `${s.lineHeight}px`,
+                  "font-weight": String(s.weight),
+                  color: "var(--text-normal-primary)",
+                }}
+              >
+                {s.label}
+              </span>
               <span class="shrink-0 font-mono text-label-regular text-text-normal-tertiary">
-                {s.size} / {s.weight}
+                {s.size}px · {s.weight}
               </span>
             </div>
           )}
@@ -1694,68 +1716,54 @@ function TypographySection() {
   );
 }
 
-type BtnVariant = { label: string; bg: string; text: string; border?: string; opacity?: boolean };
+type BtnSpec = { label: string; bg: string; text: string; border?: string; opacity?: boolean };
 
-const BUTTON_VARIANTS: BtnVariant[] = [
-  { label: "Primary · Brand",     bg: "var(--brand-tbd-base)",             text: "#fff" },
-  { label: "Secondary · Brand",   bg: "transparent",                       text: "var(--feature-base)",        border: "1px solid var(--feature-base)" },
-  { label: "Tertiary · Brand",    bg: "var(--feature-lighter)",            text: "var(--feature-base)" },
-  { label: "Ghost · Brand",       bg: "transparent",                       text: "var(--feature-base)" },
-  { label: "Primary · Neutral",   bg: "var(--background-inverted-primary)",text: "var(--text-inverted-primary)" },
-  { label: "Secondary · Neutral", bg: "transparent",                       text: "var(--text-normal-primary)", border: "1px solid var(--stroke-solid)" },
-  { label: "Error",               bg: "var(--error-base, #ef4444)",        text: "#fff" },
-  { label: "Disabled",            bg: "var(--brand-tbd-base)",             text: "#fff", opacity: true },
+const BRAND_BUTTONS: BtnSpec[] = [
+  { label: "Primary",   bg: "var(--brand-tbd-base)",  text: "#fff" },
+  { label: "Secondary", bg: "transparent",             text: "var(--feature-base)", border: "1px solid var(--feature-base)" },
+  { label: "Tertiary",  bg: "var(--feature-lighter)", text: "var(--feature-base)" },
+  { label: "Ghost",     bg: "transparent",             text: "var(--feature-base)" },
+  { label: "Disabled",  bg: "var(--brand-tbd-base)",  text: "#fff", opacity: true },
+];
+
+const NEUTRAL_BUTTONS: BtnSpec[] = [
+  { label: "Primary",   bg: "var(--background-inverted-primary)", text: "var(--text-inverted-primary)" },
+  { label: "Secondary", bg: "transparent",                         text: "var(--text-normal-primary)", border: "1px solid var(--stroke-solid)" },
+  { label: "Error",     bg: "var(--error-base, #ef4444)",         text: "#fff" },
+  { label: "Disabled",  bg: "var(--background-normal-secondary)", text: "var(--text-normal-tertiary)", opacity: true },
 ];
 
 const ICON_BUTTONS: { bg: string; text: string; border?: string }[] = [
-  { bg: "var(--brand-tbd-base)",              text: "#fff" },
-  { bg: "transparent",                         text: "var(--feature-base)",        border: "1px solid var(--feature-base)" },
-  { bg: "var(--feature-lighter)",             text: "var(--feature-base)" },
-  { bg: "transparent",                         text: "var(--feature-base)" },
+  { bg: "var(--brand-tbd-base)",               text: "#fff" },
+  { bg: "transparent",                          text: "var(--feature-base)", border: "1px solid var(--feature-base)" },
+  { bg: "var(--feature-lighter)",              text: "var(--feature-base)" },
   { bg: "var(--background-inverted-primary)", text: "var(--text-inverted-primary)" },
-  { bg: "var(--error-base, #ef4444)",         text: "#fff" },
+  { bg: "var(--error-base, #ef4444)",          text: "#fff" },
   { bg: "var(--background-normal-secondary)", text: "var(--text-normal-tertiary)" },
 ];
 
-function ButtonsSection() {
+function BtnColumn(props: { title: string; buttons: BtnSpec[] }) {
   return (
-    <Section title="Buttons">
-      <div class="flex flex-col gap-3 rounded-xl border border-stroke-1 p-4">
-        <For each={BUTTON_VARIANTS}>
-          {(v) => (
-            <button
-              class="flex h-11 w-full items-center justify-center rounded-xl text-label-semi-bold transition-opacity"
-              style={{
-                background: v.bg,
-                color: v.text,
-                border: v.border ?? "none",
-                opacity: v.opacity ? "0.4" : "1",
-              }}
-            >
-              {v.label}
-            </button>
-          )}
-        </For>
-
-        {/* Round icon buttons */}
-        <div class="flex flex-wrap gap-2 border-t border-stroke-1 pt-3">
-          <For each={ICON_BUTTONS}>
-            {(b) => (
-              <button
-                class="flex size-11 items-center justify-center rounded-full"
-                style={{
-                  background: b.bg,
-                  color: b.text,
-                  border: b.border ?? "none",
-                }}
-              >
-                <PhosphorIcon name="list" fontSize={20} />
-              </button>
-            )}
-          </For>
-        </div>
-      </div>
-    </Section>
+    <div class="flex flex-col gap-2">
+      <p class="text-label-semi-bold text-text-normal-secondary">{props.title}</p>
+      <For each={props.buttons}>
+        {(v) => (
+          <button
+            class="flex h-11 w-full items-center justify-center rounded-xl"
+            style={{
+              background: v.bg,
+              color: v.text,
+              border: v.border ?? "none",
+              opacity: v.opacity ? "0.4" : "1",
+              "font-size": "14px",
+              "font-weight": "600",
+            }}
+          >
+            {v.label}
+          </button>
+        )}
+      </For>
+    </div>
   );
 }
 
@@ -1841,10 +1849,41 @@ function ColoursSection() {
 
 function BasicsPlayground() {
   return (
-    <div class="flex flex-col gap-16 p-4 pb-20">
-      <ColoursSection />
-      <TypographySection />
-      <ButtonsSection />
+    <div class="flex flex-col gap-8 p-4 pb-20">
+      {/* Row 1: Brand buttons | Neutral & icon buttons */}
+      <div class="grid grid-cols-2 gap-4">
+        <Section title="Brand Buttons">
+          <div class="flex flex-col gap-2 rounded-xl border border-stroke-1 p-4">
+            <BtnColumn title="Variants" buttons={BRAND_BUTTONS} />
+          </div>
+        </Section>
+        <Section title="Neutral Buttons">
+          <div class="flex flex-col gap-2 rounded-xl border border-stroke-1 p-4">
+            <BtnColumn title="Variants" buttons={NEUTRAL_BUTTONS} />
+            <div class="flex flex-col gap-2 pt-1">
+              <p class="text-label-semi-bold text-text-normal-secondary">Icon</p>
+              <div class="flex flex-wrap gap-2">
+                <For each={ICON_BUTTONS}>
+                  {(b) => (
+                    <button
+                      class="flex size-11 items-center justify-center rounded-full"
+                      style={{ background: b.bg, color: b.text, border: b.border ?? "none" }}
+                    >
+                      <PhosphorIcon name="list" fontSize={20} />
+                    </button>
+                  )}
+                </For>
+              </div>
+            </div>
+          </div>
+        </Section>
+      </div>
+
+      {/* Row 2: Colors | Typography */}
+      <div class="grid grid-cols-2 gap-4">
+        <ColoursSection />
+        <TypographySection />
+      </div>
     </div>
   );
 }
