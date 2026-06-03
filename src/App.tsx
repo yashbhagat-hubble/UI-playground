@@ -1689,6 +1689,8 @@ const TYPE_STYLES: { label: string; size: number; lineHeight: number; weight: nu
   { label: "Title 6",         size: 14, lineHeight: 20, weight: 600 },
   { label: "Para 2 Regular",  size: 16, lineHeight: 24, weight: 400 },
   { label: "Para 2 SemiBold", size: 16, lineHeight: 24, weight: 600 },
+  { label: "Para 3 Regular",  size: 14, lineHeight: 20, weight: 400 },
+  { label: "Para 3 SemiBold", size: 14, lineHeight: 20, weight: 600 },
   { label: "Label Regular",   size: 12, lineHeight: 16, weight: 400 },
   { label: "Label SemiBold",  size: 12, lineHeight: 16, weight: 600 },
   { label: "Caption Regular", size: 10, lineHeight: 12, weight: 400 },
