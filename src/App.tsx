@@ -1743,8 +1743,8 @@ function TypographySection() {
 type BtnSpec = { label: string; bg: string; text: string; border?: string; opacity?: boolean; hover?: string };
 
 const BRAND_BUTTONS: BtnSpec[] = [
-  { label: "Primary",   bg: "var(--brand-tbd-base)",  text: "#fff",                   hover: "hover:bg-brand-tbd-dark active:bg-brand-tbd-dark" },
-  { label: "Secondary", bg: "transparent",             text: "var(--feature-base)",    border: "1px solid var(--feature-base)", hover: "hover:bg-feature-lighter active:bg-feature-lighter" },
+  { label: "Primary",   bg: "var(--brand-tbd-base)",  text: "var(--text-inverted-primary)",  hover: "hover:bg-brand-tbd-dark active:bg-brand-tbd-dark" },
+  { label: "Secondary", bg: "transparent",             text: "var(--brand-tbd-base)",         border: "1px solid var(--brand-tbd-base)", hover: "hover:bg-feature-lighter active:bg-feature-lighter" },
   { label: "Tertiary",  bg: "var(--feature-lighter)", text: "var(--feature-base)",    hover: "hover:opacity-80 active:opacity-60" },
   { label: "Ghost",     bg: "transparent",             text: "var(--feature-base)",    hover: "hover:bg-background-normal-secondary active:bg-background-normal-tertiary" },
   { label: "Disabled",  bg: "var(--brand-tbd-base)",  text: "#fff", opacity: true },
