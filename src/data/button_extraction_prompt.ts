@@ -1,32 +1,38 @@
-export const BUTTON_EXTRACTION_PROMPT = `**Task: Extract button style from a screenshot or URL**
+export const BUTTON_EXTRACTION_PROMPT = `**Task: Extract button theme from a screenshot or URL**
 
-Look at the screenshot or visit the URL provided. Find the primary action button — typically the most prominent call-to-action (e.g. "Buy", "Continue", "Pay", "Add to cart"). If multiple buttons exist, pick the most visually prominent one.
-
----
-
-## What the button looks like
-
-\`\`\`
-┌────────────────────────────────┐
-│         Get this card          │  ← text color, font size, weight
-└────────────────────────────────┘
-↑ height     ↑ corner radius     ↑ background color (+ optional border)
-\`\`\`
+Look at the screenshot or visit the URL provided. Find the primary action button (the most prominent CTA — "Buy", "Continue", "Pay", etc.) and the surrounding page/screen colors.
 
 ---
 
 ## What to extract
 
-### From the primary button
-| Property | How to identify it | Output key |
+### Button shape & text
+| Property | How to identify | Key |
 |---|---|---|
-| Background color | The fill color of the button | \`background\` |
-| Text color | The label/text color on the button | \`color\` |
-| Height | Estimated height in px (common: 44px, 48px, 52px) | \`height\` |
-| Corner radius | How rounded the corners are. Pill → \`9999px\`. Rounded → \`8px\`–\`16px\`. Square → \`0px\` | \`borderRadius\` |
-| Border | Is there a visible stroke around the button? If yes → that color. If no → omit | \`borderColor\` |
-| Font size | Estimate the label text size. Common: 14px, 15px, 16px | \`fontSize\` |
+| Height | Estimated px height (common: 44px, 48px, 52px) | \`height\` |
+| Corner radius | Pill → \`9999px\`. Rounded → \`8–16px\`. Square → \`0px\` | \`borderRadius\` |
+| Font size | Estimate label size. Common: 13px, 14px, 15px, 16px | \`fontSize\` |
 | Font weight | Regular (400) · Medium (500) · Semibold (600) · Bold (700) | \`fontWeight\` |
+
+### Brand colors (sample exact hex values from the screen)
+| What | Key |
+|---|---|
+| Primary brand / button fill | \`--brand-tbd-base\` |
+| Darker brand shade (hover state) | \`--brand-tbd-dark\` |
+| Interactive / feature highlight | \`--feature-base\` |
+| Very light brand tint (button tertiary bg) | \`--feature-lighter\` |
+| Outline / stroke color | \`--stroke-solid\` |
+
+### Background & text colors
+| What | Key |
+|---|---|
+| Page / screen background | \`--background-normal-primary\` |
+| Card / surface background | \`--background-normal-secondary\` |
+| Inverted surface (neutral button fill) | \`--background-inverted-primary\` |
+| Primary text color | \`--text-normal-primary\` |
+| Secondary text | \`--text-normal-secondary\` |
+| Tertiary / hint text | \`--text-normal-tertiary\` |
+| Text on inverted / brand surfaces | \`--text-inverted-primary\` |
 
 ---
 
@@ -35,13 +41,26 @@ Look at the screenshot or visit the URL provided. Find the primary action button
 Return ONLY this JSON — no markdown, no explanation:
 
 {
-  "background": "<hex color>",
-  "color": "<hex text color>",
-  "height": "<e.g. 44px>",
-  "borderRadius": "<e.g. 12px>",
-  "borderColor": "<hex color, only if a border is visible>",
-  "fontSize": "<e.g. 14px>",
-  "fontWeight": "<400 | 500 | 600 | 700>"
+  "telescopeCssVariables": {
+    "--background-normal-primary":   "<hex>",
+    "--background-normal-secondary": "<hex>",
+    "--background-inverted-primary": "<hex>",
+    "--text-normal-primary":   "<hex>",
+    "--text-normal-secondary": "<hex>",
+    "--text-normal-tertiary":  "<hex>",
+    "--text-inverted-primary": "<hex>",
+    "--brand-tbd-base": "<hex>",
+    "--brand-tbd-dark": "<hex>",
+    "--feature-base":   "<hex>",
+    "--feature-lighter":"<rgba or hex>",
+    "--stroke-solid":   "<hex>"
+  },
+  "buttonConfig": {
+    "height":       "<e.g. 44px>",
+    "borderRadius": "<e.g. 12px>",
+    "fontSize":     "<e.g. 14px>",
+    "fontWeight":   "<400 | 500 | 600 | 700>"
+  }
 }
 
-Omit \`borderColor\` if no border is visible. Use exact sampled hex values — never approximate.`;
+Omit any key you cannot confidently determine. Use exact sampled hex values — never approximate.`;

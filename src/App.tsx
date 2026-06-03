@@ -1885,78 +1885,79 @@ function BasicsPlayground() {
 
 // Button builder reuses TITLE_SIZES and TITLE_WEIGHTS from the Appbar section above
 
-const BTN_BG_OPTIONS: ColorOption[] = [
-  { label: "Brand",     value: "var(--brand-tbd-base)" },
-  { label: "Feature",   value: "var(--feature-base)" },
-  { label: "Tint",      value: "var(--feature-lighter)" },
-  { label: "Inverted",  value: "var(--background-inverted-primary)" },
-  { label: "Error",     value: "var(--error-base, #ef4444)" },
-  { label: "Neutral",   value: "var(--background-normal-secondary)" },
-  { label: "None",      value: "transparent" },
-];
-
-const BTN_TEXT_OPTIONS: ColorOption[] = [
-  { label: "White",     value: "#ffffff" },
-  { label: "Inverted",  value: "var(--text-inverted-primary)" },
-  { label: "Primary",   value: "var(--text-normal-primary)" },
-  { label: "Feature",   value: "var(--feature-base)" },
-  { label: "Brand",     value: "var(--brand-tbd-base)" },
-  { label: "Error",     value: "var(--error-base, #ef4444)" },
-];
-
-const BTN_BORDER_OPTIONS: ColorOption[] = [
-  { label: "None",      value: "transparent" },
-  { label: "Feature",   value: "var(--feature-base)" },
-  { label: "Stroke",    value: "var(--stroke-solid)" },
-  { label: "Brand",     value: "var(--brand-tbd-base)" },
-  { label: "Error",     value: "var(--error-base, #ef4444)" },
-];
-
 function ButtonPlayground() {
+  // — Shape & text —
   const [height, setHeight] = createSignal(44);
   const [radius, setRadius] = createSignal(12);
-  const [bg, setBg] = createSignal("var(--brand-tbd-base)");
-  const [textColor, setTextColor] = createSignal("#ffffff");
-  const [borderColor, setBorderColor] = createSignal("transparent");
   const [textSizeKey, setTextSizeKey] = createSignal<TitleSizeKey>("t6");
   const [textWeightKey, setTextWeightKey] = createSignal<TitleWeightKey>("semibold");
+
+  // — Brand context colors (same pattern as Appbar / Listing) —
+  const [ctxBgPrimary,    setCtxBgPrimary]    = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
+  const [ctxBgSecondary,  setCtxBgSecondary]  = createSignal(LIGHT_CTX_DEFAULTS.bgSecondary);
+  const [ctxBgInverted,   setCtxBgInverted]   = createSignal("#111827");
+  const [ctxTextPrimary,  setCtxTextPrimary]  = createSignal(LIGHT_CTX_DEFAULTS.textPrimary);
+  const [ctxTextSecondary,setCtxTextSecondary]= createSignal(LIGHT_CTX_DEFAULTS.textSecondary);
+  const [ctxTextTertiary, setCtxTextTertiary] = createSignal(LIGHT_CTX_DEFAULTS.textTertiary);
+  const [ctxTextInverted, setCtxTextInverted] = createSignal("#ffffff");
+  const [ctxBrandBase,    setCtxBrandBase]    = createSignal("#6366f1");
+  const [ctxBrandDark,    setCtxBrandDark]    = createSignal("#4f46e5");
+  const [ctxFeatureBase,  setCtxFeatureBase]  = createSignal("#6366f1");
+  const [ctxFeatureLighter,setCtxFeatureLighter]=createSignal("rgba(99,102,241,0.10)");
+  const [ctxStrokeSolid,  setCtxStrokeSolid]  = createSignal("#6b7280");
+
+  const contextVars = createMemo((): JSX.CSSProperties => ({
+    "--background-normal-primary":   ctxBgPrimary(),
+    "--background-normal-secondary": ctxBgSecondary(),
+    "--background-inverted-primary": ctxBgInverted(),
+    "--text-normal-primary":    ctxTextPrimary(),
+    "--text-normal-secondary":  ctxTextSecondary(),
+    "--text-normal-tertiary":   ctxTextTertiary(),
+    "--text-inverted-primary":  ctxTextInverted(),
+    "--brand-tbd-base":   ctxBrandBase(),
+    "--brand-tbd-dark":   ctxBrandDark(),
+    "--feature-base":     ctxFeatureBase(),
+    "--feature-lighter":  ctxFeatureLighter(),
+    "--stroke-solid":     ctxStrokeSolid(),
+  }));
 
   const fontSize = () => TITLE_SIZES[textSizeKey()].size;
   const fontWeight = () => TITLE_WEIGHTS[textWeightKey()].weight;
 
-  const btnStyle = (): JSX.CSSProperties => ({
-    height: `${height()}px`,
-    "border-radius": `${radius()}px`,
-    background: bg(),
-    color: textColor(),
-    "box-shadow": borderColor() !== "transparent" ? `inset 0 0 0 1px ${borderColor()}` : "none",
-    "font-size": `${fontSize()}px`,
-    "font-weight": String(fontWeight()),
+  // Shared button shape (applied via CSS vars on the preview wrapper)
+  const shapeVars = (): JSX.CSSProperties => ({
+    "--btn-height": `${height()}px`,
+    "--btn-radius": `${radius()}px`,
+    "--btn-font-size": `${fontSize()}px`,
+    "--btn-font-weight": String(fontWeight()),
   });
 
-  const iconBtnStyle = (): JSX.CSSProperties => ({
-    width: `${height()}px`,
-    height: `${height()}px`,
-    "border-radius": `${radius()}px`,
-    background: bg(),
-    color: textColor(),
-    "box-shadow": borderColor() !== "transparent" ? `inset 0 0 0 1px ${borderColor()}` : "none",
-  });
+  // A button that reads shape from CSS vars (so all variants share one set)
+  const BtnPreview = (p: { spec: BtnSpec; icon?: boolean }) => (
+    <button
+      class={`flex items-center justify-center transition-all active:scale-[0.98] ${p.spec.opacity ? "pointer-events-none" : (p.spec.hover ?? "")}`}
+      style={{
+        height: "var(--btn-height)",
+        width: p.icon ? "var(--btn-height)" : undefined,
+        "min-width": p.icon ? undefined : "120px",
+        padding: p.icon ? "0" : "0 20px",
+        "border-radius": "var(--btn-radius)",
+        background: p.spec.bg,
+        color: p.spec.text,
+        "box-shadow": p.spec.border ? `inset 0 0 0 1px ${p.spec.border.replace("1px solid ", "")}` : "none",
+        "font-size": "var(--btn-font-size)",
+        "font-weight": "var(--btn-font-weight)",
+        opacity: p.spec.opacity ? "0.4" : "1",
+      }}
+    >
+      {p.icon ? <PhosphorIcon name="arrow-right" fontSize={20} /> : p.spec.label}
+    </button>
+  );
 
   // Config popup
   const [configOpen, setConfigOpen] = createSignal(false);
   const [popupPos, setPopupPos] = createSignal({ top: 0, right: 0 });
   let configBtnRef: HTMLButtonElement | undefined;
-
-  const cssVarRows = () => [
-    { name: "height",       value: `${height()}px` },
-    { name: "border-radius",value: `${radius()}px` },
-    { name: "background",   value: bg() },
-    { name: "color",        value: textColor() },
-    { name: "border",       value: borderColor() !== "transparent" ? `1px solid ${borderColor()}` : "none" },
-    { name: "font-size",    value: `${fontSize()}px` },
-    { name: "font-weight",  value: String(fontWeight()) },
-  ];
 
   const openConfig = () => {
     if (configBtnRef) {
@@ -1966,13 +1967,34 @@ function ButtonPlayground() {
     setConfigOpen((v) => !v);
   };
 
+  const getJson = () => JSON.stringify({
+    telescopeCssVariables: {
+      "--background-normal-primary":   ctxBgPrimary(),
+      "--background-normal-secondary": ctxBgSecondary(),
+      "--background-inverted-primary": ctxBgInverted(),
+      "--text-normal-primary":   ctxTextPrimary(),
+      "--text-normal-secondary": ctxTextSecondary(),
+      "--text-normal-tertiary":  ctxTextTertiary(),
+      "--text-inverted-primary": ctxTextInverted(),
+      "--brand-tbd-base":   ctxBrandBase(),
+      "--brand-tbd-dark":   ctxBrandDark(),
+      "--feature-base":     ctxFeatureBase(),
+      "--feature-lighter":  ctxFeatureLighter(),
+      "--stroke-solid":     ctxStrokeSolid(),
+    },
+    buttonConfig: {
+      height: `${height()}px`,
+      borderRadius: `${radius()}px`,
+      fontSize: `${fontSize()}px`,
+      fontWeight: String(fontWeight()),
+    },
+  }, null, 2);
+
   const TITLE_SIZE_OPTIONS = (Object.keys(TITLE_SIZES) as TitleSizeKey[]).map((k) => ({
-    label: TITLE_SIZES[k].label,
-    value: k,
+    label: TITLE_SIZES[k].label, value: k,
   }));
   const TITLE_WEIGHT_OPTIONS = (Object.keys(TITLE_WEIGHTS) as TitleWeightKey[]).map((k) => ({
-    label: TITLE_WEIGHTS[k].label,
-    value: k,
+    label: TITLE_WEIGHTS[k].label, value: k,
   }));
 
   const configAction = (
@@ -1980,10 +2002,13 @@ function ButtonPlayground() {
       <button
         class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
         onClick={() => {
-          setHeight(44); setRadius(12);
-          setBg("var(--brand-tbd-base)"); setTextColor("#ffffff");
-          setBorderColor("transparent");
-          setTextSizeKey("t6"); setTextWeightKey("semibold");
+          setHeight(44); setRadius(12); setTextSizeKey("t6"); setTextWeightKey("semibold");
+          setCtxBgPrimary(LIGHT_CTX_DEFAULTS.bgPrimary); setCtxBgSecondary(LIGHT_CTX_DEFAULTS.bgSecondary);
+          setCtxBgInverted("#111827"); setCtxBrandBase("#6366f1"); setCtxBrandDark("#4f46e5");
+          setCtxFeatureBase("#6366f1"); setCtxFeatureLighter("rgba(99,102,241,0.10)");
+          setCtxTextPrimary(LIGHT_CTX_DEFAULTS.textPrimary); setCtxTextSecondary(LIGHT_CTX_DEFAULTS.textSecondary);
+          setCtxTextTertiary(LIGHT_CTX_DEFAULTS.textTertiary); setCtxTextInverted("#ffffff");
+          setCtxStrokeSolid("#6b7280");
         }}
       >
         <PhosphorIcon name="arrow-ccw" fontSize={13} />
@@ -2006,22 +2031,19 @@ function ButtonPlayground() {
         <Portal>
           <div class="fixed inset-0 z-[300]" onClick={() => setConfigOpen(false)} />
           <div
-            class="fixed z-[301] min-w-[280px] overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
+            class="fixed z-[301] min-w-[300px] overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
             style={{ top: `${popupPos().top}px`, right: `${popupPos().right}px` }}
           >
             <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
-              <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">CSS Properties</p>
-              <CopyButton
-                getText={() => JSON.stringify(Object.fromEntries(cssVarRows().map((r) => [r.name, r.value])), null, 2)}
-                label="Copy JSON"
-              />
+              <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">CSS Output</p>
+              <CopyButton getText={getJson} label="Copy JSON" />
             </div>
-            <div class="p-3">
-              <For each={cssVarRows()}>
-                {(row) => (
+            <div class="max-h-80 overflow-y-auto p-3">
+              <For each={Object.entries({ ...contextVars(), ...shapeVars() })}>
+                {([k, v]) => (
                   <div class="flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
-                    <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{row.name}</span>
-                    <span class="font-mono text-[11px] text-text-normal-primary">{row.value}</span>
+                    <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{k}</span>
+                    <span class="font-mono text-[11px] text-text-normal-primary">{String(v)}</span>
                   </div>
                 )}
               </For>
@@ -2033,26 +2055,46 @@ function ButtonPlayground() {
       <Section title="Button Builder Primary" action={configAction}>
         <div class="flex flex-col gap-6">
 
-          {/* ── Preview ── */}
+          {/* ── Preview — all variants against the brand bg ── */}
           <div
-            class="flex flex-wrap items-center justify-center gap-4 rounded-xl p-8"
-            style={{ background: "var(--background-normal-secondary)", "box-shadow": "inset 0 0 0 1px var(--stroke-1)" }}
+            class="overflow-hidden rounded-xl"
+            style={{
+              ...contextVars(),
+              ...shapeVars(),
+              background: ctxBgPrimary(),
+              "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+            }}
           >
-            <button class="flex items-center justify-center px-6 transition-all hover:opacity-90 active:scale-[0.98]" style={btnStyle()}>
-              Get this card
-            </button>
-            <button class="flex items-center justify-center px-6 pointer-events-none" style={btnStyle()}>
-              <span style={{ opacity: "0.4" }}>Disabled</span>
-            </button>
-            <button class="flex items-center justify-center transition-all hover:opacity-90 active:scale-95" style={iconBtnStyle()}>
-              <PhosphorIcon name="arrow-right" fontSize={20} />
-            </button>
+            {/* Brand variants */}
+            <div class="flex flex-col gap-3 border-b p-5" style={{ "border-color": "var(--stroke-1)" }}>
+              <p class="text-label-semi-bold text-text-normal-secondary">Brand</p>
+              <div class="flex flex-wrap gap-3">
+                <For each={BRAND_BUTTONS.filter(b => !b.opacity)}>
+                  {(spec) => <BtnPreview spec={spec} />}
+                </For>
+                <BtnPreview spec={BRAND_BUTTONS.find(b => b.opacity)!} />
+              </div>
+            </div>
+            {/* Neutral variants */}
+            <div class="flex flex-col gap-3 p-5">
+              <p class="text-label-semi-bold text-text-normal-secondary">Neutral & Semantic</p>
+              <div class="flex flex-wrap gap-3">
+                <For each={NEUTRAL_BUTTONS.filter(b => !b.opacity)}>
+                  {(spec) => <BtnPreview spec={spec} />}
+                </For>
+                <BtnPreview spec={NEUTRAL_BUTTONS.find(b => b.opacity)!} />
+                {/* Icon buttons */}
+                <For each={ICON_BUTTONS}>
+                  {(spec) => <BtnPreview spec={spec as BtnSpec} icon />}
+                </For>
+              </div>
+            </div>
           </div>
 
           {/* ── Controls ── */}
           <div class="grid grid-cols-2 gap-x-8 gap-y-4 border-t border-stroke-1 pt-4">
 
-            {/* Left column */}
+            {/* Left: Shape + Text style */}
             <div class="flex flex-col gap-4">
               <CtrlGroup title="Shape">
                 <CtrlRow label="Height">
@@ -2062,7 +2104,6 @@ function ButtonPlayground() {
                   <SliderInput min={0} max={32} value={radius()} onChange={setRadius} unit="px" />
                 </CtrlRow>
               </CtrlGroup>
-
               <CtrlGroup title="Text style">
                 <CtrlRow label="Size">
                   <Segment value={textSizeKey()} onChange={setTextSizeKey} options={TITLE_SIZE_OPTIONS} />
@@ -2073,17 +2114,39 @@ function ButtonPlayground() {
               </CtrlGroup>
             </div>
 
-            {/* Right column */}
+            {/* Right: Background & Text colors */}
             <div class="flex flex-col gap-4">
-              <CtrlGroup title="Colours">
-                <CtrlRow label="Background">
-                  <SwatchRow value={bg()} onChange={setBg} options={BTN_BG_OPTIONS} />
+              <CtrlGroup title="Background">
+                <CtrlRow label="Primary">
+                  <ColorPickerCtrl value={ctxBgPrimary()} onChange={setCtxBgPrimary} />
                 </CtrlRow>
-                <CtrlRow label="Text">
-                  <SwatchRow value={textColor()} onChange={setTextColor} options={BTN_TEXT_OPTIONS} />
+                <CtrlRow label="Secondary">
+                  <ColorPickerCtrl value={ctxBgSecondary()} onChange={setCtxBgSecondary} />
                 </CtrlRow>
-                <CtrlRow label="Border">
-                  <SwatchRow value={borderColor()} onChange={setBorderColor} options={BTN_BORDER_OPTIONS} />
+                <CtrlRow label="Inverted">
+                  <ColorPickerCtrl value={ctxBgInverted()} onChange={setCtxBgInverted} />
+                </CtrlRow>
+              </CtrlGroup>
+              <CtrlGroup title="Text">
+                <CtrlRow label="Primary">
+                  <ColorPickerCtrl value={ctxTextPrimary()} onChange={setCtxTextPrimary} />
+                </CtrlRow>
+                <CtrlRow label="Inverted">
+                  <ColorPickerCtrl value={ctxTextInverted()} onChange={setCtxTextInverted} />
+                </CtrlRow>
+              </CtrlGroup>
+              <CtrlGroup title="Brand">
+                <CtrlRow label="Base">
+                  <ColorPickerCtrl value={ctxBrandBase()} onChange={setCtxBrandBase} />
+                </CtrlRow>
+                <CtrlRow label="Dark">
+                  <ColorPickerCtrl value={ctxBrandDark()} onChange={setCtxBrandDark} />
+                </CtrlRow>
+                <CtrlRow label="Feature">
+                  <ColorPickerCtrl value={ctxFeatureBase()} onChange={setCtxFeatureBase} />
+                </CtrlRow>
+                <CtrlRow label="Stroke">
+                  <ColorPickerCtrl value={ctxStrokeSolid()} onChange={setCtxStrokeSolid} />
                 </CtrlRow>
               </CtrlGroup>
             </div>
@@ -2135,13 +2198,13 @@ function ButtonPlayground() {
 type CustomButton = {
   key: string;
   label: string;
-  background: string;
-  color: string;
-  height: string;
-  borderRadius: string;
-  borderColor?: string;
-  fontSize: string;
-  fontWeight: string;
+  telescopeCssVariables?: Record<string, string>;
+  buttonConfig: {
+    height: string;
+    borderRadius: string;
+    fontSize: string;
+    fontWeight: string;
+  };
 };
 
 const BTN_CUSTOMS_KEY = "hcp-btn-customs";
@@ -2168,20 +2231,21 @@ function ButtonCustomSection() {
     const raw = jsonInput().trim();
     if (!raw) { setParseError("Paste a JSON config first"); return; }
     try {
-      const p = JSON.parse(raw) as Record<string, string>;
+      const p = JSON.parse(raw) as Record<string, unknown>;
       if (typeof p !== "object" || p === null || Array.isArray(p)) {
         setParseError("Invalid JSON: expected an object"); return;
       }
+      const cfg = (p["buttonConfig"] ?? {}) as Record<string, string>;
       const btn: CustomButton = {
         key: `btn-${Date.now()}`,
         label: name,
-        background:   p["background"]   ?? "var(--brand-tbd-base)",
-        color:        p["color"]        ?? "#ffffff",
-        height:       p["height"]       ?? "44px",
-        borderRadius: p["borderRadius"] ?? "12px",
-        borderColor:  p["borderColor"],
-        fontSize:     p["fontSize"]     ?? "14px",
-        fontWeight:   p["fontWeight"]   ?? "600",
+        telescopeCssVariables: p["telescopeCssVariables"] as Record<string, string> | undefined,
+        buttonConfig: {
+          height:       cfg["height"]       ?? "44px",
+          borderRadius: cfg["borderRadius"] ?? "12px",
+          fontSize:     cfg["fontSize"]     ?? "14px",
+          fontWeight:   cfg["fontWeight"]   ?? "600",
+        },
       };
       const updated = [...customs(), btn];
       setCustoms(updated); saveBtnCustoms(updated);
@@ -2196,14 +2260,11 @@ function ButtonCustomSection() {
     setCustoms(updated); saveBtnCustoms(updated);
   };
 
-  const btnStyle = (b: CustomButton): JSX.CSSProperties => ({
-    height: b.height,
-    "border-radius": b.borderRadius,
-    background: b.background,
-    color: b.color,
-    "box-shadow": b.borderColor ? `inset 0 0 0 1px ${b.borderColor}` : "none",
-    "font-size": b.fontSize,
-    "font-weight": b.fontWeight,
+  const shapeVars = (b: CustomButton): JSX.CSSProperties => ({
+    "--btn-height": b.buttonConfig.height,
+    "--btn-radius": b.buttonConfig.borderRadius,
+    "--btn-font-size": b.buttonConfig.fontSize,
+    "--btn-font-weight": b.buttonConfig.fontWeight,
   });
 
   return (
@@ -2216,7 +2277,7 @@ function ButtonCustomSection() {
         <div class="flex flex-col gap-2.5">
           <textarea
             class="h-24 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
-            placeholder={`{\n  "background": "#...",\n  "color": "#fff",\n  "height": "44px",\n  "borderRadius": "12px",\n  "fontSize": "14px",\n  "fontWeight": "600"\n}`}
+            placeholder={`{\n  "telescopeCssVariables": { "--background-normal-primary": "#...", "--brand-tbd-base": "#..." },\n  "buttonConfig": { "height": "44px", "borderRadius": "12px", "fontSize": "14px", "fontWeight": "600" }\n}`}
             value={jsonInput()}
             onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
           />
@@ -2259,33 +2320,74 @@ function ButtonCustomSection() {
                   </button>
                 </div>
                 <div
-                  class="flex flex-wrap items-center gap-4 rounded-xl p-6"
-                  style={{ background: "var(--background-normal-secondary)", "box-shadow": "inset 0 0 0 1px var(--stroke-1)" }}
+                  class="overflow-hidden rounded-xl"
+                  style={{
+                    ...(btn.telescopeCssVariables as JSX.CSSProperties | undefined),
+                    ...shapeVars(btn),
+                    background: btn.telescopeCssVariables?.["--background-normal-primary"] ?? "var(--background-normal-primary)",
+                    "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+                  }}
                 >
-                  <button class="flex items-center justify-center px-6" style={btnStyle(btn)}>
-                    Get this card
-                  </button>
-                  <button class="flex items-center justify-center px-6" style={btnStyle(btn)} disabled>
-                    <span style={{ opacity: "0.4" }}>Disabled</span>
-                  </button>
-                  <button
-                    class="flex items-center justify-center"
-                    style={{ ...btnStyle(btn), width: btn.height, padding: "0" }}
-                  >
-                    <PhosphorIcon name="arrow-right" fontSize={20} />
-                  </button>
+                  <div class="flex flex-col gap-3 border-b p-5" style={{ "border-color": "var(--stroke-1)" }}>
+                    <p class="text-label-semi-bold text-text-normal-secondary">Brand</p>
+                    <div class="flex flex-wrap gap-3">
+                      <For each={BRAND_BUTTONS}>
+                        {(spec) => (
+                          <button
+                            class={`flex items-center justify-center transition-all active:scale-[0.98] ${spec.opacity ? "pointer-events-none" : (spec.hover ?? "")}`}
+                            style={{
+                              height: "var(--btn-height)", "min-width": "100px", padding: "0 16px",
+                              "border-radius": "var(--btn-radius)", background: spec.bg, color: spec.text,
+                              "box-shadow": spec.border ? `inset 0 0 0 1px ${spec.border.replace("1px solid ", "")}` : "none",
+                              "font-size": "var(--btn-font-size)", "font-weight": "var(--btn-font-weight)",
+                              opacity: spec.opacity ? "0.4" : "1",
+                            }}
+                          >{spec.label}</button>
+                        )}
+                      </For>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-3 p-5">
+                    <p class="text-label-semi-bold text-text-normal-secondary">Neutral & Semantic</p>
+                    <div class="flex flex-wrap gap-3">
+                      <For each={NEUTRAL_BUTTONS}>
+                        {(spec) => (
+                          <button
+                            class={`flex items-center justify-center transition-all active:scale-[0.98] ${spec.opacity ? "pointer-events-none" : (spec.hover ?? "")}`}
+                            style={{
+                              height: "var(--btn-height)", "min-width": "100px", padding: "0 16px",
+                              "border-radius": "var(--btn-radius)", background: spec.bg, color: spec.text,
+                              "box-shadow": spec.border ? `inset 0 0 0 1px ${spec.border.replace("1px solid ", "")}` : "none",
+                              "font-size": "var(--btn-font-size)", "font-weight": "var(--btn-font-weight)",
+                              opacity: spec.opacity ? "0.4" : "1",
+                            }}
+                          >{spec.label}</button>
+                        )}
+                      </For>
+                      <For each={ICON_BUTTONS}>
+                        {(spec) => (
+                          <button
+                            class={`flex items-center justify-center transition-all active:scale-95 ${spec.hover ?? ""}`}
+                            style={{
+                              height: "var(--btn-height)", width: "var(--btn-height)",
+                              "border-radius": "var(--btn-radius)", background: spec.bg, color: spec.text,
+                              "box-shadow": spec.border ? `inset 0 0 0 1px ${spec.border.replace("1px solid ", "")}` : "none",
+                            }}
+                          ><PhosphorIcon name="arrow-right" fontSize={20} /></button>
+                        )}
+                      </For>
+                    </div>
+                  </div>
                   {/* Spec strip */}
-                  <div class="flex flex-wrap gap-3">
+                  <div class="flex flex-wrap gap-3 border-t px-5 py-3" style={{ "border-color": "var(--stroke-1)" }}>
                     <For each={[
-                      ["h", btn.height],
-                      ["r", btn.borderRadius],
-                      ["fs", btn.fontSize],
-                      ["fw", btn.fontWeight],
+                      ["h", btn.buttonConfig.height],
+                      ["r", btn.buttonConfig.borderRadius],
+                      ["fs", btn.buttonConfig.fontSize],
+                      ["fw", btn.buttonConfig.fontWeight],
                     ]}>
                       {([k, v]) => (
-                        <span class="font-mono text-label-regular text-text-normal-tertiary">
-                          {k}: {v}
-                        </span>
+                        <span class="font-mono text-label-regular text-text-normal-tertiary">{k}: {v}</span>
                       )}
                     </For>
                   </div>
