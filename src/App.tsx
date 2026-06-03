@@ -1849,41 +1849,233 @@ function ColoursSection() {
 
 function BasicsPlayground() {
   return (
-    <div class="flex flex-col gap-8 p-4 pb-20">
-      {/* Row 1: Brand buttons | Neutral & icon buttons */}
-      <div class="grid grid-cols-2 gap-4">
-        <Section title="Brand Buttons">
-          <div class="flex flex-col gap-2 rounded-xl border border-stroke-1 p-4">
-            <BtnColumn title="Variants" buttons={BRAND_BUTTONS} />
-          </div>
-        </Section>
-        <Section title="Neutral Buttons">
-          <div class="flex flex-col gap-2 rounded-xl border border-stroke-1 p-4">
-            <BtnColumn title="Variants" buttons={NEUTRAL_BUTTONS} />
-            <div class="flex flex-col gap-2 pt-1">
-              <p class="text-label-semi-bold text-text-normal-secondary">Icon</p>
-              <div class="flex flex-wrap gap-2">
-                <For each={ICON_BUTTONS}>
-                  {(b) => (
-                    <button
-                      class="flex size-11 items-center justify-center rounded-full"
-                      style={{ background: b.bg, color: b.text, border: b.border ?? "none" }}
-                    >
-                      <PhosphorIcon name="list" fontSize={20} />
-                    </button>
-                  )}
-                </For>
-              </div>
+    <div class="grid grid-cols-2 gap-4 p-4 pb-20">
+      <ColoursSection />
+      <TypographySection />
+    </div>
+  );
+}
+
+// ─── Button builder ───────────────────────────────────────────────────────────
+
+type TextStyleKey = "t4" | "t5" | "t6" | "label-sb" | "label-reg";
+const TEXT_STYLES: Record<TextStyleKey, { label: string; size: number; weight: number }> = {
+  "t4":       { label: "Title 4",      size: 20, weight: 600 },
+  "t5":       { label: "Title 5",      size: 16, weight: 600 },
+  "t6":       { label: "Title 6",      size: 14, weight: 600 },
+  "label-sb": { label: "Label SB",     size: 12, weight: 600 },
+  "label-reg":{ label: "Label Reg",    size: 12, weight: 400 },
+};
+
+const BTN_BG_OPTIONS: ColorOption[] = [
+  { label: "Brand",     value: "var(--brand-tbd-base)" },
+  { label: "Feature",   value: "var(--feature-base)" },
+  { label: "Tint",      value: "var(--feature-lighter)" },
+  { label: "Inverted",  value: "var(--background-inverted-primary)" },
+  { label: "Error",     value: "var(--error-base, #ef4444)" },
+  { label: "Neutral",   value: "var(--background-normal-secondary)" },
+  { label: "None",      value: "transparent" },
+];
+
+const BTN_TEXT_OPTIONS: ColorOption[] = [
+  { label: "White",     value: "#ffffff" },
+  { label: "Inverted",  value: "var(--text-inverted-primary)" },
+  { label: "Primary",   value: "var(--text-normal-primary)" },
+  { label: "Feature",   value: "var(--feature-base)" },
+  { label: "Brand",     value: "var(--brand-tbd-base)" },
+  { label: "Error",     value: "var(--error-base, #ef4444)" },
+];
+
+const BTN_BORDER_OPTIONS: ColorOption[] = [
+  { label: "None",      value: "transparent" },
+  { label: "Feature",   value: "var(--feature-base)" },
+  { label: "Stroke",    value: "var(--stroke-solid)" },
+  { label: "Brand",     value: "var(--brand-tbd-base)" },
+  { label: "Error",     value: "var(--error-base, #ef4444)" },
+];
+
+function ButtonPlayground() {
+  const [height, setHeight] = createSignal(44);
+  const [radius, setRadius] = createSignal(12);
+  const [bg, setBg] = createSignal("var(--brand-tbd-base)");
+  const [textColor, setTextColor] = createSignal("#ffffff");
+  const [borderColor, setBorderColor] = createSignal("transparent");
+  const [textStyleKey, setTextStyleKey] = createSignal<TextStyleKey>("t6");
+
+  const textStyle = () => TEXT_STYLES[textStyleKey()];
+
+  const btnStyle = (): JSX.CSSProperties => ({
+    height: `${height()}px`,
+    "border-radius": `${radius()}px`,
+    background: bg(),
+    color: textColor(),
+    "box-shadow": borderColor() !== "transparent" ? `inset 0 0 0 1px ${borderColor()}` : "none",
+    "font-size": `${textStyle().size}px`,
+    "font-weight": String(textStyle().weight),
+  });
+
+  const iconBtnStyle = (): JSX.CSSProperties => ({
+    width: `${height()}px`,
+    height: `${height()}px`,
+    "border-radius": `${radius()}px`,
+    background: bg(),
+    color: textColor(),
+    "box-shadow": borderColor() !== "transparent" ? `inset 0 0 0 1px ${borderColor()}` : "none",
+  });
+
+  // Config popup
+  const [configOpen, setConfigOpen] = createSignal(false);
+  const [popupPos, setPopupPos] = createSignal({ top: 0, right: 0 });
+  let configBtnRef: HTMLButtonElement | undefined;
+
+  const cssVarRows = () => [
+    { name: "height",       value: `${height()}px` },
+    { name: "border-radius",value: `${radius()}px` },
+    { name: "background",   value: bg() },
+    { name: "color",        value: textColor() },
+    { name: "border",       value: borderColor() !== "transparent" ? `1px solid ${borderColor()}` : "none" },
+    { name: "font-size",    value: `${textStyle().size}px` },
+    { name: "font-weight",  value: String(textStyle().weight) },
+  ];
+
+  const openConfig = () => {
+    if (configBtnRef) {
+      const rect = configBtnRef.getBoundingClientRect();
+      setPopupPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+    }
+    setConfigOpen((v) => !v);
+  };
+
+  const configAction = (
+    <div class="flex items-center gap-1">
+      <button
+        class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+        onClick={() => {
+          setHeight(44); setRadius(12);
+          setBg("var(--brand-tbd-base)"); setTextColor("#ffffff");
+          setBorderColor("transparent"); setTextStyleKey("t6");
+        }}
+      >
+        <PhosphorIcon name="arrow-ccw" fontSize={13} />
+        <span>Reset</span>
+      </button>
+      <button
+        ref={(el) => (configBtnRef = el)}
+        class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-secondary"
+        classList={{ "bg-background-normal-secondary text-text-normal-primary": configOpen() }}
+        onClick={openConfig}
+      >
+        <PhosphorIcon name="sliders" fontSize={16} />
+      </button>
+    </div>
+  );
+
+  return (
+    <div class="p-4 pb-20">
+      <Show when={configOpen()}>
+        <Portal>
+          <div class="fixed inset-0 z-[300]" onClick={() => setConfigOpen(false)} />
+          <div
+            class="fixed z-[301] min-w-[280px] overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
+            style={{ top: `${popupPos().top}px`, right: `${popupPos().right}px` }}
+          >
+            <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
+              <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">CSS Properties</p>
+              <CopyButton
+                getText={() => JSON.stringify(Object.fromEntries(cssVarRows().map((r) => [r.name, r.value])), null, 2)}
+                label="Copy JSON"
+              />
+            </div>
+            <div class="p-3">
+              <For each={cssVarRows()}>
+                {(row) => (
+                  <div class="flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                    <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{row.name}</span>
+                    <span class="font-mono text-[11px] text-text-normal-primary">{row.value}</span>
+                  </div>
+                )}
+              </For>
             </div>
           </div>
-        </Section>
-      </div>
+        </Portal>
+      </Show>
 
-      {/* Row 2: Colors | Typography */}
-      <div class="grid grid-cols-2 gap-4">
-        <ColoursSection />
-        <TypographySection />
-      </div>
+      <Section title="Button Builder" action={configAction}>
+        <div class="flex flex-col gap-6">
+
+          {/* ── Preview ── */}
+          <div
+            class="flex flex-wrap items-center justify-center gap-4 rounded-xl p-8"
+            style={{ background: "var(--background-normal-secondary)", "box-shadow": "inset 0 0 0 1px var(--stroke-1)" }}
+          >
+            <button class="flex items-center justify-center px-6" style={btnStyle()}>
+              Get this card
+            </button>
+            <button class="flex items-center justify-center px-6" style={btnStyle()} disabled>
+              <span style={{ opacity: "0.4" }}>Disabled</span>
+            </button>
+            <button class="flex items-center justify-center" style={iconBtnStyle()}>
+              <PhosphorIcon name="arrow-right" fontSize={20} />
+            </button>
+          </div>
+
+          {/* ── Controls ── */}
+          <div class="grid grid-cols-2 gap-x-8 gap-y-4 border-t border-stroke-1 pt-4">
+
+            {/* Left column */}
+            <div class="flex flex-col gap-4">
+              <CtrlGroup title="Shape">
+                <CtrlRow label="Height">
+                  <SliderInput min={32} max={64} value={height()} onChange={setHeight} unit="px" />
+                </CtrlRow>
+                <CtrlRow label="Radius">
+                  <SliderInput min={0} max={32} value={radius()} onChange={setRadius} unit="px" />
+                </CtrlRow>
+              </CtrlGroup>
+
+              <CtrlGroup title="Text style">
+                <div class="flex flex-col gap-1.5">
+                  <For each={Object.entries(TEXT_STYLES) as [TextStyleKey, typeof TEXT_STYLES[TextStyleKey]][]} >
+                    {([key, s]) => (
+                      <button
+                        class="flex items-center justify-between rounded-lg px-3 py-2 transition-colors"
+                        style={{
+                          background: textStyleKey() === key ? "var(--feature-lighter)" : "var(--background-normal-secondary)",
+                          "box-shadow": textStyleKey() === key ? `inset 0 0 0 1px var(--feature-base)` : "none",
+                        }}
+                        onClick={() => setTextStyleKey(key)}
+                      >
+                        <span style={{ "font-size": `${s.size}px`, "font-weight": String(s.weight), color: "var(--text-normal-primary)" }}>
+                          {s.label}
+                        </span>
+                        <span class="font-mono text-label-regular text-text-normal-tertiary">
+                          {s.size}px · {s.weight}
+                        </span>
+                      </button>
+                    )}
+                  </For>
+                </div>
+              </CtrlGroup>
+            </div>
+
+            {/* Right column */}
+            <div class="flex flex-col gap-4">
+              <CtrlGroup title="Colours">
+                <CtrlRow label="Background">
+                  <SwatchRow value={bg()} onChange={setBg} options={BTN_BG_OPTIONS} />
+                </CtrlRow>
+                <CtrlRow label="Text">
+                  <SwatchRow value={textColor()} onChange={setTextColor} options={BTN_TEXT_OPTIONS} />
+                </CtrlRow>
+                <CtrlRow label="Border">
+                  <SwatchRow value={borderColor()} onChange={setBorderColor} options={BTN_BORDER_OPTIONS} />
+                </CtrlRow>
+              </CtrlGroup>
+            </div>
+
+          </div>
+        </div>
+      </Section>
     </div>
   );
 }
@@ -1916,7 +2108,7 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-type PlaygroundTab = "categories" | "appbar" | "listing" | "basics";
+type PlaygroundTab = "categories" | "appbar" | "listing" | "button" | "basics";
 
 // ─── Listing data (imported from API response) ────────────────────────────────
 
@@ -2431,6 +2623,7 @@ export default function App() {
               { key: "categories" as PlaygroundTab, label: "Categories" },
               { key: "appbar" as PlaygroundTab, label: "Appbar" },
               { key: "listing" as PlaygroundTab, label: "Listing" },
+              { key: "button" as PlaygroundTab, label: "Button" },
               { key: "basics" as PlaygroundTab, label: "Basics" },
             ]}>
               {(t) => (
@@ -2464,6 +2657,9 @@ export default function App() {
         </Show>
         <Show when={tab() === "listing"}>
           <ListingPlayground />
+        </Show>
+        <Show when={tab() === "button"}>
+          <ButtonPlayground />
         </Show>
         <Show when={tab() === "basics"}>
           <BasicsPlayground />
