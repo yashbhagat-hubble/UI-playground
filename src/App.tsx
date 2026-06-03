@@ -365,10 +365,30 @@ function CtrlGroup(props: { title: string; children: JSX.Element }) {
 function CopyButton(props: { getText: () => string; label?: string; class?: string }) {
   const [copied, setCopied] = createSignal(false);
   const copy = () => {
-    navigator.clipboard.writeText(props.getText()).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    const text = props.getText();
+    const finish = () => { setCopied(true); setTimeout(() => setCopied(false), 2000); };
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(finish).catch(() => {
+        // Fallback for environments where clipboard API is blocked
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        finish();
+      });
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      finish();
+    }
   };
   return (
     <button

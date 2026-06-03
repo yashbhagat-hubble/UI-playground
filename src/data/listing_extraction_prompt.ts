@@ -1,74 +1,67 @@
-export const LISTING_EXTRACTION_PROMPT = `**Prompt: Extract listing card theme config from a screenshot or URL**
----
-You are extracting a listing card theme config from a screenshot (or by visiting a URL) of a mobile app's brand/product listing section. The output is a single JSON object.
----
-## The listing card component
-Each card shows a brand image on top with text below:
-\`\`\`tsx
-<div style={{ width: "140px" }}>
-  {/* Brand image */}
-  <div style={{
-    "border-radius": "var(--sdk-listing-image-radius, 16px)",
-    // aspect-ratio 104:116
-  }}>
-    <img src={imageUrl} />
-  </div>
+export const LISTING_EXTRACTION_PROMPT = `**Task: Extract listing card theme from a screenshot or URL**
 
-  {/* Text */}
-  <p style={{ color: "var(--text-normal-primary)" }}>{brandName}</p>
-  <p style={{ color: "var(--text-normal-secondary)" }}>{tags}</p>
+Look at the screenshot or visit the URL provided. Find the section that most closely resembles a brand/product listing — a vertically stacked card with a brand image on top and text (brand name, category tags, offer/discount) below. If multiple sections exist, pick the one that best matches this pattern.
 
-  {/* Offer label */}
-  <div style={{ color: "var(--text-listing)" }}>
-    SAVE {discount}%
-  </div>
-</div>
+---
+
+## What the listing card looks like
+
 \`\`\`
+┌─────────────┐
+│             │  ← brand image (rounded corners)
+│   [image]   │
+│             │
+└─────────────┘
+Brand Name          ← --text-normal-primary
+Category · Tag      ← --text-normal-secondary
+SAVE 5%             ← --text-listing  (the offer/discount color)
+\`\`\`
+
 ---
-## Decision guide — map every visual property to a variable
 
-### Image
-| Property | How to decide | Variable |
+## What to extract
+
+Go through each property below, sample it from the screenshot, and output the exact hex value.
+
+### From the listing card itself
+| What | How to find it | Variable |
 |---|---|---|
-| Corner radius | Measure/estimate the brand image rounding. Pill → \`9999px\`. Slight rounding → e.g. \`12px\`. Square → \`0px\` | \`--sdk-listing-image-radius\` |
+| Image corner radius | Measure/estimate the rounding on the brand image. Pill → \`9999px\`. Moderate → \`12px\`–\`20px\`. Square → \`0px\` | \`--sdk-listing-image-radius\` |
+| Offer / discount color | The color of the "SAVE X%" or "X% off" label. Often green, brand accent, or a highlight color | \`--text-listing\` |
 
-### Offer / discount label
-| Property | How to decide | Variable |
-|---|---|---|
-| Color | The color used for the "SAVE X%" or discount text. Usually brand accent or green | \`--text-listing\` |
+### From the page background and text
+Sample these from the overall screen, not just the card:
 
-### Background & text colors (telescope variables)
-Sample these from the page background and text visible in the screenshot:
-
-| Property | Variable |
+| What | Variable |
 |---|---|
-| Page background | \`--background-normal-primary\` |
-| Card / surface background | \`--background-normal-secondary\` |
-| Primary text (brand name) | \`--text-normal-primary\` |
+| Page / screen background | \`--background-normal-primary\` |
+| Card or surface background | \`--background-normal-secondary\` |
+| Primary text (headings, brand name) | \`--text-normal-primary\` |
 | Secondary text (tags, subtitles) | \`--text-normal-secondary\` |
 | Tertiary text (hints, labels) | \`--text-normal-tertiary\` |
-| Brand accent color | \`--brand-tbd-base\` |
-| Feature / interactive color | \`--feature-base\` |
+| Brand accent / primary action color | \`--brand-tbd-base\` |
+| Feature / interactive highlight color | \`--feature-base\` |
 
-**Always sample exact hex values. Do not estimate.**
 ---
-## Output format
-Return **only** the JSON object below, fully populated. No markdown fences, no explanation.
+
+## Output
+
+Return ONLY this JSON — no markdown, no explanation, no extra keys:
 
 {
   "telescopeCssVariables": {
-    "--background-normal-primary":   "<page background color>",
-    "--background-normal-secondary": "<card/surface background>",
-    "--text-normal-primary":   "<primary text color>",
-    "--text-normal-secondary": "<secondary/dimmer text>",
-    "--text-normal-tertiary":  "<hint/label text>",
-    "--brand-tbd-base":  "<brand accent color, if identifiable>",
-    "--feature-base":    "<interactive/highlight color>"
+    "--background-normal-primary": "<hex>",
+    "--background-normal-secondary": "<hex>",
+    "--text-normal-primary": "<hex>",
+    "--text-normal-secondary": "<hex>",
+    "--text-normal-tertiary": "<hex>",
+    "--brand-tbd-base": "<hex>",
+    "--feature-base": "<hex>"
   },
   "sdkCssVariables": {
-    "--sdk-listing-image-radius": "<image corner radius, e.g. 16px>",
-    "--text-listing": "<offer/discount label color>"
+    "--sdk-listing-image-radius": "<e.g. 16px>",
+    "--text-listing": "<hex>"
   }
 }
 
-Omit any key you cannot determine. Do not leave placeholder strings.`;
+Omit any key you cannot confidently determine. Use exact sampled hex values — never approximate or invent.`;
