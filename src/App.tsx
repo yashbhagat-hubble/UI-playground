@@ -14,6 +14,7 @@ import { EXTRACTION_PROMPT } from "./data/extraction_prompt";
 import { APPBAR_EXTRACTION_PROMPT } from "./data/appbar_extraction_prompt";
 import { LISTING_EXTRACTION_PROMPT } from "./data/listing_extraction_prompt";
 import { BUTTON_EXTRACTION_PROMPT } from "./data/button_extraction_prompt";
+import { INPUT_EXTRACTION_PROMPT } from "./data/input_extraction_prompt";
 import { MOCK_CATEGORIES, categoryIconMap, categoryEmoji, type MockCategory } from "./utils/categories";
 import { formatDiscountPercent } from "./utils/number";
 import listingDataRaw from "./data/listing-data.json";
@@ -2401,6 +2402,437 @@ function ButtonCustomSection() {
   );
 }
 
+// ─── Input playground ────────────────────────────────────────────────────────
+
+/** A self-contained replica of the Telescope Input component using CSS vars */
+function InputField(props: {
+  label?: string;
+  placeholder?: string;
+  helperText?: string;
+  state: "default" | "focused" | "error" | "disabled";
+  value?: string;
+  height: number;
+  radius: number;
+}) {
+  const borderColor = () => {
+    switch (props.state) {
+      case "error":    return "var(--error-base, #ef4444)";
+      case "focused":  return "var(--stroke-solid)";
+      case "disabled": return "transparent";
+      default:         return "var(--stroke-2)";
+    }
+  };
+  const bg = () => props.state === "disabled"
+    ? "var(--background-normal-tertiary)"
+    : "var(--background-normal-primary)";
+  const textColor = () => props.state === "disabled"
+    ? "var(--text-normal-tertiary)"
+    : "var(--text-normal-primary)";
+  const focusRing = () => props.state === "focused"
+    ? "0 0 0 2px var(--background-normal-primary), 0 0 0 4px rgba(159,159,169,0.16)"
+    : props.state === "default"
+    ? "0px 1px 2px 0px rgba(10,13,20,0.03)"
+    : "none";
+
+  return (
+    <div class="flex flex-col gap-1 w-full">
+      <Show when={props.label}>
+        <label class="text-para-3-medium" style={{ color: "var(--text-normal-primary)" }}>
+          {props.label}
+        </label>
+      </Show>
+      <div
+        style={{
+          height: `${props.height}px`,
+          "border-radius": `${props.radius}px`,
+          background: bg(),
+          border: `1px solid ${borderColor()}`,
+          "box-shadow": focusRing(),
+          display: "flex",
+          "align-items": "center",
+          padding: "0 12px",
+          transition: "all 150ms ease",
+          cursor: props.state === "disabled" ? "not-allowed" : "text",
+        }}
+      >
+        <span
+          class="text-para-2-regular w-full overflow-hidden text-ellipsis whitespace-nowrap"
+          style={{ color: props.value ? textColor() : "var(--text-normal-tertiary)" }}
+        >
+          {props.value || props.placeholder || "Placeholder text"}
+        </span>
+      </div>
+      <Show when={props.helperText}>
+        <span
+          class="text-label-regular"
+          style={{ color: props.state === "error" ? "var(--error-base, #ef4444)" : "var(--text-normal-secondary)" }}
+        >
+          {props.helperText}
+        </span>
+      </Show>
+    </div>
+  );
+}
+
+type InputCustomBrand = {
+  key: string;
+  label: string;
+  telescopeCssVariables?: Record<string, string>;
+  inputConfig: { height: string; borderRadius: string };
+};
+
+const INPUT_CUSTOMS_KEY = "hcp-input-customs";
+function loadInputCustoms(): InputCustomBrand[] {
+  try { const s = localStorage.getItem(INPUT_CUSTOMS_KEY); return s ? JSON.parse(s) : []; }
+  catch { return []; }
+}
+function saveInputCustoms(list: InputCustomBrand[]) {
+  localStorage.setItem(INPUT_CUSTOMS_KEY, JSON.stringify(list));
+}
+
+function InputPlayground() {
+  // — Shape —
+  const [height, setHeight] = createSignal(44);
+  const [radius, setRadius] = createSignal(12);
+
+  // — Context colors —
+  const [ctxBgPrimary,   setCtxBgPrimary]   = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
+  const [ctxBgSecondary, setCtxBgSecondary] = createSignal(LIGHT_CTX_DEFAULTS.bgSecondary);
+  const [ctxBgTertiary,  setCtxBgTertiary]  = createSignal("#f3f4f6");
+  const [ctxStroke2,     setCtxStroke2]     = createSignal("#e5e7eb");
+  const [ctxStroke3,     setCtxStroke3]     = createSignal("#d1d5db");
+  const [ctxStrokeSolid, setCtxStrokeSolid] = createSignal("#6b7280");
+  const [ctxErrorBase,   setCtxErrorBase]   = createSignal("#ef4444");
+  const [ctxTextPrimary, setCtxTextPrimary] = createSignal(LIGHT_CTX_DEFAULTS.textPrimary);
+  const [ctxTextSecondary,setCtxTextSecondary]=createSignal(LIGHT_CTX_DEFAULTS.textSecondary);
+  const [ctxTextTertiary,setCtxTextTertiary]= createSignal(LIGHT_CTX_DEFAULTS.textTertiary);
+
+  const contextVars = createMemo((): JSX.CSSProperties => ({
+    "--background-normal-primary":   ctxBgPrimary(),
+    "--background-normal-secondary": ctxBgSecondary(),
+    "--background-normal-tertiary":  ctxBgTertiary(),
+    "--stroke-2":     ctxStroke2(),
+    "--stroke-3":     ctxStroke3(),
+    "--stroke-solid": ctxStrokeSolid(),
+    "--error-base":   ctxErrorBase(),
+    "--text-normal-primary":   ctxTextPrimary(),
+    "--text-normal-secondary": ctxTextSecondary(),
+    "--text-normal-tertiary":  ctxTextTertiary(),
+  }));
+
+  // Config popup
+  const [configOpen, setConfigOpen] = createSignal(false);
+  const [popupPos, setPopupPos] = createSignal({ top: 0, right: 0 });
+  let configBtnRef: HTMLButtonElement | undefined;
+
+  const openConfig = () => {
+    if (configBtnRef) {
+      const r = configBtnRef.getBoundingClientRect();
+      setPopupPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
+    }
+    setConfigOpen((v) => !v);
+  };
+
+  const getJson = () => JSON.stringify({
+    telescopeCssVariables: Object.fromEntries(
+      Object.entries(contextVars()).map(([k, v]) => [k, String(v)])
+    ),
+    inputConfig: { height: `${height()}px`, borderRadius: `${radius()}px` },
+  }, null, 2);
+
+  const configAction = (
+    <div class="flex items-center gap-1">
+      <button
+        class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+        onClick={() => {
+          setHeight(44); setRadius(12);
+          setCtxBgPrimary(LIGHT_CTX_DEFAULTS.bgPrimary); setCtxBgSecondary(LIGHT_CTX_DEFAULTS.bgSecondary);
+          setCtxBgTertiary("#f3f4f6"); setCtxStroke2("#e5e7eb"); setCtxStroke3("#d1d5db");
+          setCtxStrokeSolid("#6b7280"); setCtxErrorBase("#ef4444");
+          setCtxTextPrimary(LIGHT_CTX_DEFAULTS.textPrimary); setCtxTextSecondary(LIGHT_CTX_DEFAULTS.textSecondary);
+          setCtxTextTertiary(LIGHT_CTX_DEFAULTS.textTertiary);
+        }}
+      >
+        <PhosphorIcon name="arrow-ccw" fontSize={13} />
+        <span>Reset</span>
+      </button>
+      <button
+        ref={(el) => (configBtnRef = el)}
+        class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-secondary"
+        classList={{ "bg-background-normal-secondary text-text-normal-primary": configOpen() }}
+        onClick={openConfig}
+      >
+        <PhosphorIcon name="sliders" fontSize={16} />
+      </button>
+    </div>
+  );
+
+  // Custom brands
+  const [customs, setCustoms] = createSignal<InputCustomBrand[]>([]);
+  const [jsonInput, setJsonInput] = createSignal("");
+  const [nameInput, setNameInput] = createSignal("");
+  const [parseError, setParseError] = createSignal<string | null>(null);
+
+  onMount(() => setCustoms(loadInputCustoms()));
+
+  const addCustom = () => {
+    const name = nameInput().trim();
+    if (!name) { setParseError("Enter a name"); return; }
+    const raw = jsonInput().trim();
+    if (!raw) { setParseError("Paste a JSON config first"); return; }
+    try {
+      const p = JSON.parse(raw) as Record<string, unknown>;
+      if (typeof p !== "object" || p === null) { setParseError("Invalid JSON"); return; }
+      const cfg = (p["inputConfig"] ?? {}) as Record<string, string>;
+      const entry: InputCustomBrand = {
+        key: `input-${Date.now()}`,
+        label: name,
+        telescopeCssVariables: p["telescopeCssVariables"] as Record<string, string> | undefined,
+        inputConfig: {
+          height:       cfg["height"]       ?? "44px",
+          borderRadius: cfg["borderRadius"] ?? "12px",
+        },
+      };
+      const updated = [...customs(), entry];
+      setCustoms(updated); saveInputCustoms(updated);
+      setJsonInput(""); setNameInput(""); setParseError(null);
+    } catch (e) { setParseError(`JSON parse error: ${(e as Error).message}`); }
+  };
+
+  const removeCustom = (key: string) => {
+    const updated = customs().filter((c) => c.key !== key);
+    setCustoms(updated); saveInputCustoms(updated);
+  };
+
+  const INPUT_STATES: { state: "default" | "focused" | "error" | "disabled"; label: string; value?: string; helper?: string }[] = [
+    { state: "default",  label: "Amount",       value: "",          helper: "Enter amount in ₹" },
+    { state: "focused",  label: "Amount",       value: "1,000",     helper: "Enter amount in ₹" },
+    { state: "error",    label: "Phone number", value: "98765",     helper: "Enter a valid 10-digit number" },
+    { state: "disabled", label: "Promo code",   value: "SAVE10",    helper: "Code applied" },
+  ];
+
+  return (
+    <div class="p-4 pb-20">
+      <Show when={configOpen()}>
+        <Portal>
+          <div class="fixed inset-0 z-[300]" onClick={() => setConfigOpen(false)} />
+          <div
+            class="fixed z-[301] min-w-[300px] max-h-80 overflow-y-auto overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
+            style={{ top: `${popupPos().top}px`, right: `${popupPos().right}px` }}
+          >
+            <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
+              <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">CSS Output</p>
+              <CopyButton getText={getJson} label="Copy JSON" />
+            </div>
+            <div class="p-3">
+              <For each={Object.entries({ ...contextVars(), height: `${height()}px`, borderRadius: `${radius()}px` })}>
+                {([k, v]) => (
+                  <div class="flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                    <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{k}</span>
+                    <span class="font-mono text-[11px] text-text-normal-primary">{String(v)}</span>
+                  </div>
+                )}
+              </For>
+            </div>
+          </div>
+        </Portal>
+      </Show>
+
+      <Section title="Input Builder" action={configAction}>
+        <div class="flex flex-col gap-6">
+
+          {/* ── Preview ── */}
+          <div
+            class="grid grid-cols-2 gap-5 rounded-xl p-6"
+            style={{
+              ...contextVars(),
+              background: ctxBgSecondary(),
+              "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+            }}
+          >
+            <For each={INPUT_STATES}>
+              {(s) => (
+                <InputField
+                  label={s.label}
+                  placeholder="Enter value…"
+                  value={s.value}
+                  helperText={s.helper}
+                  state={s.state}
+                  height={height()}
+                  radius={radius()}
+                />
+              )}
+            </For>
+          </div>
+
+          {/* ── Controls ── */}
+          <div class="grid grid-cols-2 gap-x-8 gap-y-4 border-t border-stroke-1 pt-4">
+
+            {/* Left: Shape */}
+            <div class="flex flex-col gap-4">
+              <CtrlGroup title="Shape">
+                <CtrlRow label="Height">
+                  <SliderInput min={32} max={56} value={height()} onChange={setHeight} unit="px" />
+                </CtrlRow>
+                <CtrlRow label="Radius">
+                  <SliderInput min={0} max={24} value={radius()} onChange={setRadius} unit="px" />
+                </CtrlRow>
+              </CtrlGroup>
+
+              <CtrlGroup title="Background">
+                <CtrlRow label="Input">
+                  <ColorPickerCtrl value={ctxBgPrimary()} onChange={setCtxBgPrimary} />
+                </CtrlRow>
+                <CtrlRow label="Surface">
+                  <ColorPickerCtrl value={ctxBgSecondary()} onChange={setCtxBgSecondary} />
+                </CtrlRow>
+                <CtrlRow label="Disabled">
+                  <ColorPickerCtrl value={ctxBgTertiary()} onChange={setCtxBgTertiary} />
+                </CtrlRow>
+              </CtrlGroup>
+            </div>
+
+            {/* Right: Colors */}
+            <div class="flex flex-col gap-4">
+              <CtrlGroup title="Border">
+                <CtrlRow label="Default">
+                  <ColorPickerCtrl value={ctxStroke2()} onChange={setCtxStroke2} />
+                </CtrlRow>
+                <CtrlRow label="Hover">
+                  <ColorPickerCtrl value={ctxStroke3()} onChange={setCtxStroke3} />
+                </CtrlRow>
+                <CtrlRow label="Focus">
+                  <ColorPickerCtrl value={ctxStrokeSolid()} onChange={setCtxStrokeSolid} />
+                </CtrlRow>
+                <CtrlRow label="Error">
+                  <ColorPickerCtrl value={ctxErrorBase()} onChange={setCtxErrorBase} />
+                </CtrlRow>
+              </CtrlGroup>
+
+              <CtrlGroup title="Text">
+                <CtrlRow label="Primary">
+                  <ColorPickerCtrl value={ctxTextPrimary()} onChange={setCtxTextPrimary} />
+                </CtrlRow>
+                <CtrlRow label="Secondary">
+                  <ColorPickerCtrl value={ctxTextSecondary()} onChange={setCtxTextSecondary} />
+                </CtrlRow>
+                <CtrlRow label="Tertiary">
+                  <ColorPickerCtrl value={ctxTextTertiary()} onChange={setCtxTextTertiary} />
+                </CtrlRow>
+              </CtrlGroup>
+            </div>
+
+          </div>
+        </div>
+      </Section>
+
+      {/* ── Custom inputs ── */}
+      <div class="mt-8 flex flex-col gap-3 border-t border-stroke-1 pt-8">
+        <Section
+          title="Custom Input"
+          subtitle="Copy prompt and use it with screenshots or a URL to generate a JSON response"
+          action={<CopyButton getText={() => INPUT_EXTRACTION_PROMPT} label="Copy Prompt" />}
+        >
+          <div class="flex flex-col gap-2.5">
+            <textarea
+              class="h-24 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
+              placeholder={`{\n  "telescopeCssVariables": { "--background-normal-primary": "#...", "--stroke-2": "#..." },\n  "inputConfig": { "height": "44px", "borderRadius": "12px" }\n}`}
+              value={jsonInput()}
+              onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
+            />
+            <Show when={parseError()}>
+              <p class="text-[11px] text-red-400">{parseError()}</p>
+            </Show>
+            <div class="flex gap-2">
+              <input
+                type="text"
+                class="min-w-0 flex-1 rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 text-label-regular text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
+                placeholder="Config name…"
+                value={nameInput()}
+                onInput={(e) => setNameInput(e.currentTarget.value)}
+                onKeyDown={(e) => e.key === "Enter" && addCustom()}
+              />
+              <button
+                class="shrink-0 rounded-lg bg-feature-base px-4 py-2 text-label-semi-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                disabled={!jsonInput().trim() || !nameInput().trim()}
+                onClick={addCustom}
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </Section>
+
+        <Show when={customs().length > 0}>
+          <div class="flex flex-col gap-6 pt-2">
+            <For each={customs()}>
+              {(entry) => {
+                const [cfgOpen, setCfgOpen] = createSignal(false);
+                const [cfgPos, setCfgPos] = createSignal({ top: 0, right: 0 });
+                let cfgRef: HTMLButtonElement | undefined;
+                const openCfg = () => {
+                  if (cfgRef) { const r = cfgRef.getBoundingClientRect(); setCfgPos({ top: r.bottom + 8, right: window.innerWidth - r.right }); }
+                  setCfgOpen((v) => !v);
+                };
+                const h = () => parseInt(entry.inputConfig.height) || 44;
+                const r = () => parseInt(entry.inputConfig.borderRadius) || 12;
+                return (
+                  <div class="flex flex-col gap-2">
+                    <Show when={cfgOpen()}>
+                      <Portal>
+                        <div class="fixed inset-0 z-[300]" onClick={() => setCfgOpen(false)} />
+                        <div class="fixed z-[301] min-w-[300px] max-h-80 overflow-y-auto rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl" style={{ top: `${cfgPos().top}px`, right: `${cfgPos().right}px` }}>
+                          <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
+                            <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">{entry.label}</p>
+                            <CopyButton getText={() => JSON.stringify({ telescopeCssVariables: entry.telescopeCssVariables ?? {}, inputConfig: entry.inputConfig }, null, 2)} label="Copy JSON" />
+                          </div>
+                          <div class="p-3">
+                            <For each={[...Object.entries(entry.telescopeCssVariables ?? {}), ...Object.entries(entry.inputConfig)]}>
+                              {([k, v]) => (
+                                <div class="flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                                  <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{k}</span>
+                                  <span class="font-mono text-[11px] text-text-normal-primary">{v}</span>
+                                </div>
+                              )}
+                            </For>
+                          </div>
+                        </div>
+                      </Portal>
+                    </Show>
+                    <div class="flex items-center justify-between">
+                      <p class="text-label-semi-bold text-text-normal-primary">{entry.label}</p>
+                      <div class="flex items-center gap-1">
+                        <button ref={(el) => (cfgRef = el)} class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary" classList={{ "bg-background-normal-secondary text-text-normal-primary": cfgOpen() }} onClick={openCfg}>
+                          <PhosphorIcon name="code" fontSize={13} /><span>Config</span>
+                        </button>
+                        <button class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400" onClick={() => removeCustom(entry.key)}>
+                          <PhosphorIcon name="trash" fontSize={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      class="grid grid-cols-2 gap-5 rounded-xl p-6"
+                      style={{
+                        ...(entry.telescopeCssVariables as JSX.CSSProperties | undefined),
+                        background: entry.telescopeCssVariables?.["--background-normal-secondary"] ?? "var(--background-normal-secondary)",
+                        "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+                      }}
+                    >
+                      <For each={INPUT_STATES}>
+                        {(s) => <InputField label={s.label} placeholder="Enter value…" value={s.value} helperText={s.helper} state={s.state} height={h()} radius={r()} />}
+                      </For>
+                    </div>
+                  </div>
+                );
+              }}
+            </For>
+          </div>
+        </Show>
+      </div>
+    </div>
+  );
+}
+
 // ─── Playground grid ──────────────────────────────────────────────────────────
 
 function PlaygroundGrid(props: { darkMode: () => boolean }) {
@@ -2429,7 +2861,7 @@ function PlaygroundGrid(props: { darkMode: () => boolean }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-type PlaygroundTab = "categories" | "appbar" | "listing" | "button" | "basics";
+type PlaygroundTab = "categories" | "appbar" | "listing" | "button" | "input" | "basics";
 
 // ─── Listing data (imported from API response) ────────────────────────────────
 
@@ -3158,6 +3590,7 @@ export default function App() {
               { key: "appbar" as PlaygroundTab, label: "Appbar" },
               { key: "listing" as PlaygroundTab, label: "Listing" },
               { key: "button" as PlaygroundTab, label: "Button" },
+              { key: "input" as PlaygroundTab, label: "Input" },
               { key: "basics" as PlaygroundTab, label: "Basics" },
             ]}>
               {(t) => (
@@ -3194,6 +3627,9 @@ export default function App() {
         </Show>
         <Show when={tab() === "button"}>
           <ButtonPlayground />
+        </Show>
+        <Show when={tab() === "input"}>
+          <InputPlayground />
         </Show>
         <Show when={tab() === "basics"}>
           <BasicsPlayground />
