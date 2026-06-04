@@ -2271,93 +2271,129 @@ function ButtonCustomSection() {
       <Show when={customs().length > 0}>
         <div class="flex flex-col gap-4 pt-2">
           <For each={customs()}>
-            {(btn) => (
-              <div class="flex flex-col gap-2">
-                <div class="flex items-center justify-between">
-                  <p class="text-label-semi-bold text-text-normal-primary">{btn.label}</p>
-                  <button
-                    class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
-                    title="Delete"
-                    onClick={() => remove(btn.key)}
+            {(btn) => {
+              const [cfgOpen, setCfgOpen] = createSignal(false);
+              const [cfgPos, setCfgPos] = createSignal({ top: 0, right: 0 });
+              let cfgBtnRef: HTMLButtonElement | undefined;
+
+              const openCfg = () => {
+                if (cfgBtnRef) {
+                  const r = cfgBtnRef.getBoundingClientRect();
+                  setCfgPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
+                }
+                setCfgOpen((v) => !v);
+              };
+
+              const cfgRows = () => [
+                ...Object.entries(btn.telescopeCssVariables ?? {}),
+                ...Object.entries(btn.buttonConfig),
+              ].map(([k, v]) => ({ k, v }));
+
+              return (
+                <div class="flex flex-col gap-2">
+                  <Show when={cfgOpen()}>
+                    <Portal>
+                      <div class="fixed inset-0 z-[300]" onClick={() => setCfgOpen(false)} />
+                      <div
+                        class="fixed z-[301] min-w-[300px] max-h-80 overflow-y-auto overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
+                        style={{ top: `${cfgPos().top}px`, right: `${cfgPos().right}px` }}
+                      >
+                        <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
+                          <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">{btn.label}</p>
+                          <CopyButton
+                            getText={() => JSON.stringify({ telescopeCssVariables: btn.telescopeCssVariables ?? {}, buttonConfig: btn.buttonConfig }, null, 2)}
+                            label="Copy JSON"
+                          />
+                        </div>
+                        <div class="p-3">
+                          <For each={cfgRows()}>
+                            {(row) => (
+                              <div class="flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                                <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{row.k}</span>
+                                <span class="font-mono text-[11px] text-text-normal-primary">{row.v}</span>
+                              </div>
+                            )}
+                          </For>
+                        </div>
+                      </div>
+                    </Portal>
+                  </Show>
+
+                  {/* Header */}
+                  <div class="flex items-center justify-between">
+                    <p class="text-label-semi-bold text-text-normal-primary">{btn.label}</p>
+                    <div class="flex items-center gap-1">
+                      <button
+                        ref={(el) => (cfgBtnRef = el)}
+                        class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+                        classList={{ "bg-background-normal-secondary text-text-normal-primary": cfgOpen() }}
+                        onClick={openCfg}
+                      >
+                        <PhosphorIcon name="code" fontSize={13} />
+                        <span>Config</span>
+                      </button>
+                      <button
+                        class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
+                        title="Delete"
+                        onClick={() => remove(btn.key)}
+                      >
+                        <PhosphorIcon name="trash" fontSize={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Preview — identical to builder */}
+                  <div
+                    class="overflow-hidden rounded-xl"
+                    style={{
+                      ...(btn.telescopeCssVariables as JSX.CSSProperties | undefined),
+                      ...shapeVars(btn),
+                      background: btn.telescopeCssVariables?.["--background-normal-primary"] ?? "var(--background-normal-primary)",
+                      "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+                    }}
                   >
-                    <PhosphorIcon name="trash" fontSize={14} />
-                  </button>
-                </div>
-                <div
-                  class="overflow-hidden rounded-xl"
-                  style={{
-                    ...(btn.telescopeCssVariables as JSX.CSSProperties | undefined),
-                    ...shapeVars(btn),
-                    background: btn.telescopeCssVariables?.["--background-normal-primary"] ?? "var(--background-normal-primary)",
-                    "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
-                  }}
-                >
-                  <div class="flex flex-col gap-3 border-b p-5" style={{ "border-color": "var(--stroke-1)" }}>
-                    <p class="text-label-semi-bold text-text-normal-secondary">Brand</p>
-                    <div class="flex flex-wrap gap-3">
-                      <For each={BRAND_BUTTONS}>
-                        {(spec) => (
-                          <button
-                            class={`flex items-center justify-center transition-all active:scale-[0.98] ${spec.opacity ? "pointer-events-none" : (spec.hover ?? "")}`}
-                            style={{
-                              height: "var(--btn-height)", "min-width": "100px", padding: "0 16px",
-                              "border-radius": "var(--btn-radius)", background: spec.bg, color: spec.text,
-                              "box-shadow": spec.border ? `inset 0 0 0 1px ${spec.border.replace("1px solid ", "")}` : "none",
-                              "font-size": "var(--btn-font-size)", "font-weight": "var(--btn-font-weight)",
-                              opacity: spec.opacity ? "0.4" : "1",
-                            }}
-                          >{spec.label}</button>
-                        )}
-                      </For>
+                    <div class="flex flex-col gap-3 border-b p-5" style={{ "border-color": "var(--stroke-1)" }}>
+                      <p class="text-label-semi-bold text-text-normal-secondary">Brand</p>
+                      <div class="flex flex-wrap gap-3">
+                        <For each={BRAND_BUTTONS}>
+                          {(spec) => (
+                            <button
+                              class={`flex items-center justify-center transition-all active:scale-[0.98] ${spec.opacity ? "pointer-events-none" : (spec.hover ?? "")}`}
+                              style={{
+                                height: "var(--btn-height)", "min-width": "100px", padding: "0 16px",
+                                "border-radius": "var(--btn-radius)", background: spec.bg, color: spec.text,
+                                "box-shadow": spec.border ? `inset 0 0 0 1px ${spec.border.replace("1px solid ", "")}` : "none",
+                                "font-size": "var(--btn-font-size)", "font-weight": "var(--btn-font-weight)",
+                                opacity: spec.opacity ? "0.4" : "1",
+                              }}
+                            >{spec.label}</button>
+                          )}
+                        </For>
+                      </div>
+                    </div>
+                    <div class="flex flex-col gap-3 p-5">
+                      <p class="text-label-semi-bold text-text-normal-secondary">Neutral & Semantic</p>
+                      <div class="flex flex-wrap gap-3">
+                        <For each={NEUTRAL_BUTTONS}>
+                          {(spec) => (
+                            <button
+                              class={`flex items-center justify-center transition-all active:scale-[0.98] ${spec.opacity ? "pointer-events-none" : (spec.hover ?? "")}`}
+                              style={{
+                                height: "var(--btn-height)", "min-width": "100px", padding: "0 16px",
+                                "border-radius": "var(--btn-radius)", background: spec.bg, color: spec.text,
+                                "box-shadow": spec.border ? `inset 0 0 0 1px ${spec.border.replace("1px solid ", "")}` : "none",
+                                "font-size": "var(--btn-font-size)", "font-weight": "var(--btn-font-weight)",
+                                opacity: spec.opacity ? "0.4" : "1",
+                              }}
+                            >{spec.label}</button>
+                          )}
+                        </For>
+                      </div>
                     </div>
                   </div>
-                  <div class="flex flex-col gap-3 p-5">
-                    <p class="text-label-semi-bold text-text-normal-secondary">Neutral & Semantic</p>
-                    <div class="flex flex-wrap gap-3">
-                      <For each={NEUTRAL_BUTTONS}>
-                        {(spec) => (
-                          <button
-                            class={`flex items-center justify-center transition-all active:scale-[0.98] ${spec.opacity ? "pointer-events-none" : (spec.hover ?? "")}`}
-                            style={{
-                              height: "var(--btn-height)", "min-width": "100px", padding: "0 16px",
-                              "border-radius": "var(--btn-radius)", background: spec.bg, color: spec.text,
-                              "box-shadow": spec.border ? `inset 0 0 0 1px ${spec.border.replace("1px solid ", "")}` : "none",
-                              "font-size": "var(--btn-font-size)", "font-weight": "var(--btn-font-weight)",
-                              opacity: spec.opacity ? "0.4" : "1",
-                            }}
-                          >{spec.label}</button>
-                        )}
-                      </For>
-                      <For each={ICON_BUTTONS}>
-                        {(spec) => (
-                          <button
-                            class={`flex items-center justify-center transition-all active:scale-95 ${spec.hover ?? ""}`}
-                            style={{
-                              height: "var(--btn-height)", width: "var(--btn-height)",
-                              "border-radius": "var(--btn-radius)", background: spec.bg, color: spec.text,
-                              "box-shadow": spec.border ? `inset 0 0 0 1px ${spec.border.replace("1px solid ", "")}` : "none",
-                            }}
-                          ><PhosphorIcon name="arrow-right" fontSize={20} /></button>
-                        )}
-                      </For>
-                    </div>
-                  </div>
-                  {/* Spec strip */}
-                  <div class="flex flex-wrap gap-3 border-t px-5 py-3" style={{ "border-color": "var(--stroke-1)" }}>
-                    <For each={[
-                      ["h", btn.buttonConfig.height],
-                      ["r", btn.buttonConfig.borderRadius],
-                      ["fs", btn.buttonConfig.fontSize],
-                      ["fw", btn.buttonConfig.fontWeight],
-                    ]}>
-                      {([k, v]) => (
-                        <span class="font-mono text-label-regular text-text-normal-tertiary">{k}: {v}</span>
-                      )}
-                    </For>
-                  </div>
                 </div>
-              </div>
-            )}
+              );
+            }}
           </For>
         </div>
       </Show>
