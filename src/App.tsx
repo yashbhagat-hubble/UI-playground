@@ -2409,27 +2409,25 @@ function InputField(props: {
   label?: string;
   placeholder?: string;
   helperText?: string;
-  state: "default" | "focused" | "error" | "disabled";
-  value?: string;
+  state: "default" | "error" | "disabled";
+  initialValue?: string;
   height: number;
   radius: number;
 }) {
+  const [isFocused, setIsFocused] = createSignal(false);
+  const [value, setValue] = createSignal(props.initialValue ?? "");
+
   const borderColor = () => {
-    switch (props.state) {
-      case "error":    return "var(--error-base, #ef4444)";
-      case "focused":  return "var(--stroke-solid)";
-      case "disabled": return "transparent";
-      default:         return "var(--stroke-2)";
-    }
+    if (props.state === "error")    return "var(--error-base, #ef4444)";
+    if (props.state === "disabled") return "transparent";
+    if (isFocused())                return "var(--stroke-solid)";
+    return "var(--stroke-2)";
   };
   const bg = () => props.state === "disabled"
     ? "var(--background-normal-tertiary)"
     : "var(--background-normal-primary)";
-  const textColor = () => props.state === "disabled"
-    ? "var(--text-normal-tertiary)"
-    : "var(--text-normal-primary)";
-  const focusRing = () => props.state === "focused"
-    ? "0 0 0 2px var(--background-normal-primary), 0 0 0 4px rgba(159,159,169,0.16)"
+  const shadow = () => isFocused() && props.state === "default"
+    ? "none"
     : props.state === "default"
     ? "0px 1px 2px 0px rgba(10,13,20,0.03)"
     : "none";
@@ -2447,20 +2445,27 @@ function InputField(props: {
           "border-radius": `${props.radius}px`,
           background: bg(),
           border: `1px solid ${borderColor()}`,
-          "box-shadow": focusRing(),
+          "box-shadow": shadow(),
           display: "flex",
           "align-items": "center",
           padding: "0 12px",
-          transition: "all 150ms ease",
+          transition: "border-color 150ms ease, box-shadow 150ms ease",
           cursor: props.state === "disabled" ? "not-allowed" : "text",
         }}
       >
-        <span
-          class="text-para-2-regular w-full overflow-hidden text-ellipsis whitespace-nowrap"
-          style={{ color: props.value ? textColor() : "var(--text-normal-tertiary)" }}
-        >
-          {props.value || props.placeholder || "Placeholder text"}
-        </span>
+        <input
+          class="text-para-2-regular w-full bg-transparent outline-none"
+          style={{
+            color: "var(--text-normal-primary)",
+            cursor: props.state === "disabled" ? "not-allowed" : "text",
+          }}
+          placeholder={props.placeholder ?? "Enter value…"}
+          value={value()}
+          disabled={props.state === "disabled"}
+          onInput={(e) => setValue(e.currentTarget.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
       </div>
       <Show when={props.helperText}>
         <span
@@ -2604,11 +2609,11 @@ function InputPlayground() {
     setCustoms(updated); saveInputCustoms(updated);
   };
 
-  const INPUT_STATES: { state: "default" | "focused" | "error" | "disabled"; label: string; value?: string; helper?: string }[] = [
-    { state: "default",  label: "Amount",       value: "",          helper: "Enter amount in ₹" },
-    { state: "focused",  label: "Amount",       value: "1,000",     helper: "Enter amount in ₹" },
-    { state: "error",    label: "Phone number", value: "98765",     helper: "Enter a valid 10-digit number" },
-    { state: "disabled", label: "Promo code",   value: "SAVE10",    helper: "Code applied" },
+  const INPUT_STATES: { state: "default" | "error" | "disabled"; label: string; initialValue?: string; helper?: string }[] = [
+    { state: "default",  label: "Amount",        initialValue: "",       helper: "Enter amount in ₹" },
+    { state: "default",  label: "Gift card code", initialValue: "GIFT50", helper: "Looks good!" },
+    { state: "error",    label: "Phone number",  initialValue: "98765",  helper: "Enter a valid 10-digit number" },
+    { state: "disabled", label: "Promo code",    initialValue: "SAVE10", helper: "Code applied" },
   ];
 
   return (
@@ -2655,7 +2660,7 @@ function InputPlayground() {
                 <InputField
                   label={s.label}
                   placeholder="Enter value…"
-                  value={s.value}
+                  initialValue={s.initialValue}
                   helperText={s.helper}
                   state={s.state}
                   height={height()}
@@ -2819,7 +2824,7 @@ function InputPlayground() {
                       }}
                     >
                       <For each={INPUT_STATES}>
-                        {(s) => <InputField label={s.label} placeholder="Enter value…" value={s.value} helperText={s.helper} state={s.state} height={h()} radius={r()} />}
+                        {(s) => <InputField label={s.label} placeholder="Enter value…" initialValue={s.initialValue} helperText={s.helper} state={s.state} height={h()} radius={r()} />}
                       </For>
                     </div>
                   </div>
