@@ -2360,9 +2360,39 @@ type CustomButton = {
 };
 
 const BTN_CUSTOMS_KEY = "hcp-btn-customs";
+const BTN_INIT_KEY = "hcp-btn-customs-init-v1";
+
+const DEFAULT_BTN_BRANDS: CustomButton[] = [
+  {
+    key: "btn-linkedin",
+    label: "LinkedIn",
+    telescopeCssVariables: {
+      "--background-normal-primary":   "#ffffff",
+      "--background-normal-secondary": "#f4f2ee",
+      "--background-inverted-primary": "#1d2226",
+      "--text-normal-primary":   "#000000",
+      "--text-normal-secondary": "#ffffff",
+      "--text-normal-tertiary":  "#666666",
+      "--text-inverted-primary": "#ffffff",
+      "--brand-tbd-base": "#0a66c2",
+      "--brand-tbd-dark": "#004182",
+      "--feature-base":   "#0a66c2",
+      "--feature-lighter":"rgba(10, 102, 194, 0.1)",
+      "--stroke-solid":   "#c9c9c9",
+    },
+    buttonConfig: { height: "48px", borderRadius: "9999px", fontSize: "16px", fontWeight: "600" },
+  },
+];
 
 function loadBtnCustoms(): CustomButton[] {
-  try { const s = localStorage.getItem(BTN_CUSTOMS_KEY); return s ? JSON.parse(s) : []; }
+  try {
+    if (!localStorage.getItem(BTN_INIT_KEY)) {
+      localStorage.setItem(BTN_CUSTOMS_KEY, JSON.stringify(DEFAULT_BTN_BRANDS));
+      localStorage.setItem(BTN_INIT_KEY, "1");
+      return DEFAULT_BTN_BRANDS;
+    }
+    const s = localStorage.getItem(BTN_CUSTOMS_KEY); return s ? JSON.parse(s) : [];
+  }
   catch { return []; }
 }
 function saveBtnCustoms(list: CustomButton[]) {
