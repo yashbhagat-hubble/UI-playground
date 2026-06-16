@@ -1,8 +1,8 @@
-export const APPBAR_EXTRACTION_PROMPT = `**Prompt: Extract appbar config from a screenshot**
+export const APPBAR_EXTRACTION_PROMPT = `**Prompt: Extract appbar config from a screenshot or URL**
 ---
-You are extracting an appbar (top navigation bar) config from a screenshot of a mobile app screen. The output is a single JSON object used to configure the appbar component.
+You will be given either a screenshot/image, or a URL to visit. Locate the appbar (top navigation bar) of a mobile app screen — the fixed header containing a back/menu icon and a page title. The output is a single JSON object used to configure the appbar component.
 
-**Color rule: ALL colors must be exact hex values sampled from the screenshot. Never use CSS variable references or color names. If a surface is transparent → use \`"transparent"\`.**
+**Color rule: ALL colors must be exact hex values sampled from the screenshot or page. Never use CSS variable references or color names. If a surface is transparent → use \`"transparent"\`.**
 ---
 ## The appbar component
 \`\`\`tsx

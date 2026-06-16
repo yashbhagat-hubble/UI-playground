@@ -62,9 +62,9 @@ The input sits on a page surface whose background maps to \`--background-normal-
 | What to look at | CSS variable |
 |---|---|
 | Input box fill (idle/focused) | \`--sdk-input-bg\` (hex — this is the direct input background) |
-| Page / card surface behind the input | \`--background-normal-primary\` (the page bg) |
 | Input box fill when disabled | \`--background-normal-tertiary\` |
-| Page / card surface behind the input | \`--background-normal-secondary\` |
+| Overall page background (behind everything) | \`--background-normal-primary\` |
+| Card / surface background the input sits on (often a sheet or section bg, distinct from the page) | \`--background-normal-secondary\` |
 | Idle border color | \`--stroke-2\` |
 | Hover border color | \`--stroke-3\` |
 | Focus / active border color | \`--stroke-solid\` |

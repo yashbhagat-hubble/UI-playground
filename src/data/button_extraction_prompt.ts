@@ -4,6 +4,44 @@ Look at the screenshot or visit the URL provided. Find the primary action button
 
 ---
 
+## Component code being styled
+
+This is the exact button variant set you are theming. Every CSS variable maps directly to something a variant reads — find the one that matches the CTA in the screenshot (almost always "Brand Primary") and sample its colors:
+
+\`\`\`tsx
+const BRAND_BUTTONS = [
+  { label: "Primary",   bg: "var(--brand-tbd-base)",   text: "var(--text-inverted-primary)" },
+  { label: "Secondary", bg: "transparent",              text: "var(--brand-tbd-base)", border: "var(--brand-tbd-base)" },
+  { label: "Tertiary",  bg: "var(--feature-lighter)",   text: "var(--feature-base)" },
+  { label: "Ghost",     bg: "transparent",              text: "var(--feature-base)" },
+];
+
+const NEUTRAL_BUTTONS = [
+  { label: "Primary",   bg: "var(--background-inverted-primary)", text: "var(--text-inverted-primary)" },
+  { label: "Secondary", bg: "transparent",                         text: "var(--text-normal-primary)", border: "var(--stroke-solid)" },
+];
+
+function Button({ label, bg, text, border }) {
+  return (
+    <button style={{
+      height:          "var(--btn-height)",      // ← buttonConfig.height
+      "border-radius": "var(--btn-radius)",       // ← buttonConfig.borderRadius
+      "font-size":     "var(--btn-font-size)",    // ← buttonConfig.fontSize
+      "font-weight":   "var(--btn-font-weight)",  // ← buttonConfig.fontWeight
+      background:      bg,
+      color:           text,
+      border:          border ? \`1px solid \${border}\` : "none",
+    }}>
+      {label}
+    </button>
+  );
+}
+\`\`\`
+
+The button sits on a page surface whose background maps to \`--background-normal-primary\`.
+
+---
+
 ## What to extract
 
 ### Button shape & text

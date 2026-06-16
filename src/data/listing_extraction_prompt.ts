@@ -4,18 +4,39 @@ Look at the screenshot or visit the URL provided. Find the section that most clo
 
 ---
 
-## What the listing card looks like
+## Component code being styled
 
+This is the exact SdkListingCard component you are theming. Every CSS variable maps directly to something it reads:
+
+\`\`\`tsx
+function SdkListingCard({ title, tags, discountPercent, imageUrl }) {
+  return (
+    <div class="flex flex-col gap-2">
+      {/* Brand image */}
+      <div style={{
+        "border-radius": "var(--sdk-listing-image-radius, 16px)", // ← image corner radius
+      }}>
+        <img src={imageUrl} alt={title} class="size-full object-cover" />
+      </div>
+
+      {/* Content */}
+      <div class="flex flex-col">
+        <p style={{ color: "var(--text-normal-primary)" }}>{title}</p>
+        <p style={{ color: "var(--text-normal-secondary)" }}>
+          {tags.join(" · ")}
+        </p>
+
+        {/* Discount badge — only shown when discountPercent > 0 */}
+        <div style={{ color: "var(--text-listing)" }}>
+          SAVE {discountPercent}%
+        </div>
+      </div>
+    </div>
+  );
+}
 \`\`\`
-┌─────────────┐
-│             │  ← brand image (rounded corners)
-│   [image]   │
-│             │
-└─────────────┘
-Brand Name          ← --text-normal-primary
-Category · Tag      ← --text-normal-secondary
-SAVE 5%             ← --text-listing  (the offer/discount color)
-\`\`\`
+
+The card sits on a page surface whose background maps to \`--background-normal-secondary\` (or \`--background-normal-primary\` for the outer screen).
 
 ---
 

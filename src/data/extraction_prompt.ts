@@ -1,6 +1,6 @@
-export const EXTRACTION_PROMPT = `**Prompt: Extract brand theme config from a category card screenshot**
+export const EXTRACTION_PROMPT = `**Prompt: Extract brand theme config from a category card screenshot or URL**
 ---
-You are extracting a brand theme config from a screenshot of a mobile app's category card section. The output is a single JSON object that will be saved as a brand theme file.
+You will be given either a screenshot/image, or a URL to visit. Locate a mobile app's category card section (a row/grid of tappable tiles, each with an icon and a category name, often with a discount subtitle). The output is a single JSON object that will be saved as a brand theme file.
 ---
 ## The category card component
 The card has **two independently styled layers**:
