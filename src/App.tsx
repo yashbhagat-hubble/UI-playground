@@ -2709,8 +2709,38 @@ type InputCustomBrand = {
 };
 
 const INPUT_CUSTOMS_KEY = "hcp-input-customs";
+const INPUT_INIT_KEY = "hcp-input-customs-init-v1";
+
+const DEFAULT_INPUT_BRANDS: InputCustomBrand[] = [
+  {
+    key: "input-uber",
+    label: "Uber",
+    telescopeCssVariables: {
+      "--sdk-input-bg":                "#F6F6F6",
+      "--background-normal-primary":   "#FFFFFF",
+      "--background-normal-tertiary":  "#E2E2E2",
+      "--background-normal-secondary": "#FFFFFF",
+      "--stroke-2":     "#F6F6F6",
+      "--stroke-3":     "#E2E2E2",
+      "--stroke-solid": "#000000",
+      "--error-base":   "#E11900",
+      "--text-normal-primary":   "#000000",
+      "--text-normal-secondary": "#5E5E5E",
+      "--text-normal-tertiary":  "#6B6B6B",
+    },
+    inputConfig: { height: "54px", borderRadius: "8px", strokeOn: false, inputBg: "#F6F6F6" },
+  },
+];
+
 function loadInputCustoms(): InputCustomBrand[] {
-  try { const s = localStorage.getItem(INPUT_CUSTOMS_KEY); return s ? JSON.parse(s) : []; }
+  try {
+    if (!localStorage.getItem(INPUT_INIT_KEY)) {
+      localStorage.setItem(INPUT_CUSTOMS_KEY, JSON.stringify(DEFAULT_INPUT_BRANDS));
+      localStorage.setItem(INPUT_INIT_KEY, "1");
+      return DEFAULT_INPUT_BRANDS;
+    }
+    const s = localStorage.getItem(INPUT_CUSTOMS_KEY); return s ? JSON.parse(s) : [];
+  }
   catch { return []; }
 }
 function saveInputCustoms(list: InputCustomBrand[]) {
