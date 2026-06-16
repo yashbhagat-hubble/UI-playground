@@ -1873,11 +1873,198 @@ function ColoursSection() {
   );
 }
 
-function BasicsPlayground() {
+// ─── Basics preview cards ─────────────────────────────────────────────────────
+
+function BasicsPreviewCards() {
   return (
-    <div class="grid grid-cols-2 gap-4 p-4 pb-20">
-      <ColoursSection />
-      <TypographySection />
+    <div class="flex flex-col gap-3 sm:flex-row">
+      {/* Card A — bg-primary + stroke-1 border */}
+      <div
+        class="flex-1 rounded-xl p-5"
+        style={{
+          background: "var(--background-normal-primary)",
+          "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+        }}
+      >
+        <div class="flex flex-col gap-2">
+          <p style={{ color: "var(--text-normal-primary)", "font-size": "15px", "font-weight": "600", "line-height": "20px" }}>
+            Gift Cards
+          </p>
+          <p style={{ color: "var(--text-normal-secondary)", "font-size": "13px", "font-weight": "400", "line-height": "18px" }}>
+            Save on your favourite brands
+          </p>
+          <p style={{ color: "var(--text-normal-tertiary)", "font-size": "11px", "font-weight": "400", "line-height": "16px" }}>
+            400+ brands · Instant delivery
+          </p>
+        </div>
+      </div>
+
+      {/* Card B — bg-secondary, no border */}
+      <div
+        class="flex-1 rounded-xl p-5"
+        style={{ background: "var(--background-normal-secondary)" }}
+      >
+        <div class="flex flex-col gap-2">
+          <p style={{ color: "var(--text-normal-primary)", "font-size": "15px", "font-weight": "600", "line-height": "20px" }}>
+            Popular right now
+          </p>
+          <p style={{ color: "var(--text-normal-secondary)", "font-size": "13px", "font-weight": "400", "line-height": "18px" }}>
+            Amazon, Flipkart, Zomato and more
+          </p>
+          <p style={{ color: "var(--text-normal-tertiary)", "font-size": "11px", "font-weight": "400", "line-height": "16px" }}>
+            Up to 10% off · Use points or cash
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Basics brands section ────────────────────────────────────────────────────
+
+function BasicsBrandsSection(props: { darkMode: () => boolean }) {
+  const [brands, setBrands] = createSignal<Brand[]>([]);
+  const [jsonInput, setJsonInput] = createSignal("");
+  const [nameInput, setNameInput] = createSignal("");
+  const [parseError, setParseError] = createSignal<string | null>(null);
+
+  onMount(() => {
+    const initialized = localStorage.getItem(BRANDS_INIT_KEY);
+    let list: Brand[];
+    if (!initialized) {
+      list = SEED_BRANDS;
+      saveBrands(list);
+      localStorage.setItem(BRANDS_INIT_KEY, "1");
+    } else {
+      list = loadBrands();
+      if (!list.find((b) => b.key === "default")) {
+        list = [DEFAULT_BRAND, ...list];
+        saveBrands(list);
+      }
+    }
+    setBrands(list);
+    list.forEach((b) => b.fontImportUrl && loadFont(b.fontImportUrl));
+  });
+
+  const addBrand = () => {
+    const name = nameInput().trim();
+    if (!name) { setParseError("Enter a brand name"); return; }
+    const raw = jsonInput().trim();
+    if (!raw) { setParseError("Paste a JSON config first"); return; }
+    try {
+      const p = JSON.parse(raw) as Record<string, unknown>;
+      if (typeof p !== "object" || p === null || Array.isArray(p)) {
+        setParseError("Invalid JSON: expected an object"); return;
+      }
+      const brand: Brand = {
+        key: `custom-${Date.now()}`,
+        label: name,
+        defaultIconStyle: p["defaultIconStyle"] as "icon" | "emoji" | undefined,
+        fontImportUrl: p["fontImportUrl"] as string | undefined,
+        telescopeCssVariables: p["telescopeCssVariables"] as Record<string, string> | undefined,
+        sdkCssVariables: p["sdkCssVariables"] as Record<string, string> | undefined,
+      };
+      if (brand.fontImportUrl) loadFont(brand.fontImportUrl);
+      const updated = [...brands(), brand];
+      setBrands(updated); saveBrands(updated);
+      setJsonInput(""); setNameInput(""); setParseError(null);
+    } catch (e) {
+      setParseError(`JSON parse error: ${(e as Error).message}`);
+    }
+  };
+
+  const deleteBrand = (key: string) => {
+    const updated = brands().filter((b) => b.key !== key);
+    setBrands(updated); saveBrands(updated);
+  };
+
+  return (
+    <>
+      <Section
+        title="Custom Brand"
+        subtitle="Copy prompt and use it with screenshots or a URL to generate a JSON response"
+        action={<CopyButton getText={() => EXTRACTION_PROMPT} label="Copy Prompt" />}
+      >
+        <div class="flex flex-col gap-2.5">
+          <textarea
+            class="h-24 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
+            placeholder={`Paste brand JSON here…\n{\n  "telescopeCssVariables": { "--background-normal-primary": "#..." },\n  "sdkCssVariables": { "--sdk-category-card-bg": "..." },\n  "defaultIconStyle": "icon"\n}`}
+            value={jsonInput()}
+            onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
+          />
+          <Show when={parseError()}>
+            <p class="text-[11px] text-red-400">{parseError()}</p>
+          </Show>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              class="min-w-0 flex-1 rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 text-label-regular text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
+              placeholder="Brand name…"
+              value={nameInput()}
+              onInput={(e) => setNameInput(e.currentTarget.value)}
+              onKeyDown={(e) => e.key === "Enter" && addBrand()}
+            />
+            <button
+              class="shrink-0 rounded-lg bg-feature-base px-4 py-2 text-label-semi-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+              disabled={!jsonInput().trim() || !nameInput().trim()}
+              onClick={addBrand}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </Section>
+
+      <Show when={brands().length > 0}>
+        <Section title="Brands">
+          <div class="flex flex-col gap-6">
+            <For each={brands()}>
+              {(brand) => (
+                <div class="flex flex-col gap-1.5">
+                  <div class="flex items-center justify-between">
+                    <p class="text-label-semi-bold text-text-normal-primary">{brand.label}</p>
+                    <Show when={brand.key !== "default"}>
+                      <button
+                        class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
+                        title="Delete"
+                        onClick={() => deleteBrand(brand.key)}
+                      >
+                        <PhosphorIcon name="trash" fontSize={14} />
+                      </button>
+                    </Show>
+                  </div>
+                  <div
+                    class="overflow-hidden rounded-xl p-4"
+                    style={{
+                      ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
+                      ...(brand.telescopeCssVariables as JSX.CSSProperties | undefined),
+                      background: "var(--background-normal-primary)",
+                      "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+                    }}
+                  >
+                    <BasicsPreviewCards />
+                  </div>
+                </div>
+              )}
+            </For>
+          </div>
+        </Section>
+      </Show>
+    </>
+  );
+}
+
+function BasicsPlayground(props: { darkMode: () => boolean }) {
+  return (
+    <div class="flex flex-col gap-8 p-4 pb-20">
+      <Section title="Preview">
+        <BasicsPreviewCards />
+      </Section>
+      <div class="grid grid-cols-2 gap-4">
+        <ColoursSection />
+        <TypographySection />
+      </div>
+      <BasicsBrandsSection darkMode={props.darkMode} />
     </div>
   );
 }
@@ -2413,19 +2600,24 @@ function InputField(props: {
   initialValue?: string;
   height: number;
   radius: number;
+  strokeOn?: boolean;
 }) {
   const [isFocused, setIsFocused] = createSignal(false);
   const [value, setValue] = createSignal(props.initialValue ?? "");
 
+  const strokeOn = () => props.strokeOn !== false;
+
   const borderColor = () => {
     if (props.state === "error")    return "var(--error-base, #ef4444)";
     if (props.state === "disabled") return "transparent";
+    if (!strokeOn())                return "transparent";
     if (isFocused())                return "var(--stroke-solid)";
     return "var(--stroke-2)";
   };
+  // --sdk-input-bg lets the builder override bg independently of --background-normal-primary
   const bg = () => props.state === "disabled"
     ? "var(--background-normal-tertiary)"
-    : "var(--background-normal-primary)";
+    : "var(--sdk-input-bg, var(--background-normal-primary))";
   const shadow = () => isFocused() && props.state === "default"
     ? "none"
     : props.state === "default"
@@ -2483,7 +2675,7 @@ type InputCustomBrand = {
   key: string;
   label: string;
   telescopeCssVariables?: Record<string, string>;
-  inputConfig: { height: string; borderRadius: string };
+  inputConfig: { height: string; borderRadius: string; strokeOn?: boolean; inputBg?: string };
 };
 
 const INPUT_CUSTOMS_KEY = "hcp-input-customs";
@@ -2499,8 +2691,10 @@ function InputPlayground() {
   // — Shape —
   const [height, setHeight] = createSignal(44);
   const [radius, setRadius] = createSignal(12);
+  const [strokeOn, setStrokeOn] = createSignal(true);
 
   // — Context colors —
+  const [ctxInputBg,     setCtxInputBg]     = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
   const [ctxBgPrimary,   setCtxBgPrimary]   = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
   const [ctxBgSecondary, setCtxBgSecondary] = createSignal(LIGHT_CTX_DEFAULTS.bgSecondary);
   const [ctxBgTertiary,  setCtxBgTertiary]  = createSignal("#f3f4f6");
@@ -2513,6 +2707,7 @@ function InputPlayground() {
   const [ctxTextTertiary,setCtxTextTertiary]= createSignal(LIGHT_CTX_DEFAULTS.textTertiary);
 
   const contextVars = createMemo((): JSX.CSSProperties => ({
+    "--sdk-input-bg":                ctxInputBg(),
     "--background-normal-primary":   ctxBgPrimary(),
     "--background-normal-secondary": ctxBgSecondary(),
     "--background-normal-tertiary":  ctxBgTertiary(),
@@ -2542,7 +2737,12 @@ function InputPlayground() {
     telescopeCssVariables: Object.fromEntries(
       Object.entries(contextVars()).map(([k, v]) => [k, String(v)])
     ),
-    inputConfig: { height: `${height()}px`, borderRadius: `${radius()}px` },
+    inputConfig: {
+      height: `${height()}px`,
+      borderRadius: `${radius()}px`,
+      strokeOn: strokeOn(),
+      inputBg: ctxInputBg(),
+    },
   }, null, 2);
 
   const configAction = (
@@ -2550,7 +2750,8 @@ function InputPlayground() {
       <button
         class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
         onClick={() => {
-          setHeight(44); setRadius(12);
+          setHeight(44); setRadius(12); setStrokeOn(true);
+          setCtxInputBg(LIGHT_CTX_DEFAULTS.bgPrimary);
           setCtxBgPrimary(LIGHT_CTX_DEFAULTS.bgPrimary); setCtxBgSecondary(LIGHT_CTX_DEFAULTS.bgSecondary);
           setCtxBgTertiary("#f3f4f6"); setCtxStroke2("#e5e7eb"); setCtxStroke3("#d1d5db");
           setCtxStrokeSolid("#6b7280"); setCtxErrorBase("#ef4444");
@@ -2588,14 +2789,16 @@ function InputPlayground() {
     try {
       const p = JSON.parse(raw) as Record<string, unknown>;
       if (typeof p !== "object" || p === null) { setParseError("Invalid JSON"); return; }
-      const cfg = (p["inputConfig"] ?? {}) as Record<string, string>;
+      const cfg = (p["inputConfig"] ?? {}) as Record<string, unknown>;
       const entry: InputCustomBrand = {
         key: `input-${Date.now()}`,
         label: name,
         telescopeCssVariables: p["telescopeCssVariables"] as Record<string, string> | undefined,
         inputConfig: {
-          height:       cfg["height"]       ?? "44px",
-          borderRadius: cfg["borderRadius"] ?? "12px",
+          height:       (cfg["height"] as string)       ?? "44px",
+          borderRadius: (cfg["borderRadius"] as string) ?? "12px",
+          strokeOn:     cfg["strokeOn"] !== false,
+          inputBg:      (cfg["inputBg"] as string | undefined),
         },
       };
       const updated = [...customs(), entry];
@@ -2665,6 +2868,7 @@ function InputPlayground() {
                   state={s.state}
                   height={height()}
                   radius={radius()}
+                  strokeOn={strokeOn()}
                 />
               )}
             </For>
@@ -2686,7 +2890,7 @@ function InputPlayground() {
 
               <CtrlGroup title="Background">
                 <CtrlRow label="Input">
-                  <ColorPickerCtrl value={ctxBgPrimary()} onChange={setCtxBgPrimary} />
+                  <ColorPickerCtrl value={ctxInputBg()} onChange={setCtxInputBg} />
                 </CtrlRow>
                 <CtrlRow label="Surface">
                   <ColorPickerCtrl value={ctxBgSecondary()} onChange={setCtxBgSecondary} />
@@ -2700,6 +2904,9 @@ function InputPlayground() {
             {/* Right: Colors */}
             <div class="flex flex-col gap-4">
               <CtrlGroup title="Border">
+                <CtrlRow label="Stroke">
+                  <ToggleSwitch value={strokeOn()} onChange={setStrokeOn} />
+                </CtrlRow>
                 <CtrlRow label="Default">
                   <ColorPickerCtrl value={ctxStroke2()} onChange={setCtxStroke2} />
                 </CtrlRow>
@@ -2819,12 +3026,13 @@ function InputPlayground() {
                       class="grid grid-cols-2 gap-5 rounded-xl p-6"
                       style={{
                         ...(entry.telescopeCssVariables as JSX.CSSProperties | undefined),
+                        ...(entry.inputConfig.inputBg ? { "--sdk-input-bg": entry.inputConfig.inputBg } as JSX.CSSProperties : {}),
                         background: entry.telescopeCssVariables?.["--background-normal-secondary"] ?? "var(--background-normal-secondary)",
                         "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
                       }}
                     >
                       <For each={INPUT_STATES}>
-                        {(s) => <InputField label={s.label} placeholder="Enter value…" initialValue={s.initialValue} helperText={s.helper} state={s.state} height={h()} radius={r()} />}
+                        {(s) => <InputField label={s.label} placeholder="Enter value…" initialValue={s.initialValue} helperText={s.helper} state={s.state} height={h()} radius={r()} strokeOn={entry.inputConfig.strokeOn !== false} />}
                       </For>
                     </div>
                   </div>
@@ -3637,7 +3845,7 @@ export default function App() {
           <InputPlayground />
         </Show>
         <Show when={tab() === "basics"}>
-          <BasicsPlayground />
+          <BasicsPlayground darkMode={darkMode} />
         </Show>
       </div>
     </div>
