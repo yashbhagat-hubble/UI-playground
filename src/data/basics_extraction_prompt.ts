@@ -76,6 +76,13 @@ This value forces the full telescope token set to use the correct light/dark bas
 | Input outline / card border (idle) | \`--stroke-2\` |
 | Primary brand accent — button fill, links, active states | \`--brand-tbd-base\` |
 
+### Guardrails — verify before outputting
+- **bg-secondary ≠ bg-primary**: Cards must be visibly distinct from the page. If they look the same, look harder — try slightly offset shades, a shadow, or a different surface. If truly identical, shift secondary slightly (e.g. ±5% lightness).
+- **bg-tertiary ≠ bg-secondary**: Input fills and tags must look distinct from cards. They are typically a step more muted/subtle.
+- **text-secondary lighter than text-primary**: If they appear the same, reduce opacity of secondary by ~30%.
+- **stroke-2 stronger than stroke-1**: stroke-2 (card border, input idle) must be more visible than stroke-1 (hairline). If identical, darken stroke-2.
+- **text-primary readable on bg-primary and bg-secondary**: Ensure sufficient contrast (≥4.5:1 preferred). If sampled colors fail, darken text or lighten bg until legible.
+
 ---
 
 ## Output

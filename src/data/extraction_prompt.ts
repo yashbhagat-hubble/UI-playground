@@ -53,6 +53,12 @@ The card has **two independently styled layers**:
 | Corner radius | Measure the container tile's rounding. Pill/circle → \`9999px\`. Square with rounding → e.g. \`12px\` | \`--sdk-category-card-icon-container-radius\` |
 | Border | Is there a visible stroke around the icon container? If yes → that color. If no → \`transparent\` | \`--sdk-category-card-icon-border\` |
 **Colors: always sample exact hex values from the screenshot.** Do not estimate or approximate.
+
+### Guardrails — verify before outputting
+- **Card bg vs page bg**: If \`--sdk-category-card-bg\` is non-transparent, it must be visibly distinct from the surrounding page background. If they appear identical, look for a subtle elevation (shadow, slight tint, border) — if truly indistinguishable, shift the card bg slightly (±5% lightness).
+- **Icon color readable on icon container**: If \`--sdk-category-card-icon-bg\` is filled, \`--sdk-category-card-icon-color\` must have sufficient contrast against it (≥3:1). Invert or darken/lighten accordingly.
+- **Icon container border only when needed**: Only set \`--sdk-category-card-icon-border\` if a visible stroke exists. Do not fabricate a border to create distinction.
+- **Title vs subtitle legibility**: If both text colors are sampled, \`--sdk-category-card-title-color\` should be noticeably bolder/darker than \`--sdk-category-card-subtitle-color\`. If they are the same, omit subtitle color and let it fall back to the default secondary.
 ---
 ## Output format
 Return **only** the JSON object below, fully populated. Do not include markdown fences, explanation, or any other text.

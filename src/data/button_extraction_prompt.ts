@@ -64,6 +64,14 @@ function Button({ label, bg, text, border }) {
 | Outline / stroke border | \`--sdk-btn-stroke\` |
 | Default text color | \`--sdk-btn-text\` |
 
+### Guardrails — verify before outputting
+- **brand-on must contrast brand**: \`--sdk-btn-brand-on\` (text on the primary button) must be clearly legible against \`--sdk-btn-brand\`. Minimum contrast ratio 4.5:1. If the sampled text appears low-contrast, use pure white (\`#ffffff\`) or pure black (\`#000000\`) instead.
+- **brand-dark must be darker than brand**: \`--sdk-btn-brand-dark\` should be a noticeably darker shade of the brand color (used on hover). If hover state isn't visible, darken \`--sdk-btn-brand\` by ~15–20%.
+- **feature-tint must be very light**: \`--sdk-btn-feature-tint\` is the tertiary button background — it must be a very faint tint, not the full feature color. If sampled value appears saturated, convert to \`rgba(<feature-rgb>, 0.10)\`.
+- **neutral-on must contrast neutral-bg**: Text on the neutral primary button must be legible (≥4.5:1 contrast). If \`--sdk-btn-neutral-bg\` is dark, \`--sdk-btn-neutral-on\` should be white or light, and vice versa.
+- **stroke must be visible**: \`--sdk-btn-stroke\` is used as a border for neutral secondary buttons. It must be visible against \`--sdk-btn-page-bg\`. If faint, sample a slightly stronger shade.
+- **page-bg is the outermost surface**: \`--sdk-btn-page-bg\` is the screen/page fill behind all buttons — not a card or sheet. Ensure you are sampling the correct layer.
+
 ---
 
 ## Output
