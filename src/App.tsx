@@ -839,25 +839,6 @@ function CardBuilderSection(props: { state: CardBuilderState; categories: MockCa
               </CtrlRow>
             </CtrlGroup>
 
-            {/* Left: Background & Text */}
-            <CtrlGroup title="Background & Text">
-              <CtrlRow label="Bg Primary">
-                <ColorPickerCtrl value={ctxBgPrimary()} onChange={setCtxBgPrimary} />
-              </CtrlRow>
-              <CtrlRow label="Bg Secondary">
-                <ColorPickerCtrl value={ctxBgSecondary()} onChange={setCtxBgSecondary} />
-              </CtrlRow>
-              <CtrlRow label="Text Primary">
-                <ColorPickerCtrl value={ctxTextPrimary()} onChange={setCtxTextPrimary} />
-              </CtrlRow>
-              <CtrlRow label="Text Sec">
-                <ColorPickerCtrl value={ctxTextSecondary()} onChange={setCtxTextSecondary} />
-              </CtrlRow>
-              <CtrlRow label="Text Ter">
-                <ColorPickerCtrl value={ctxTextTertiary()} onChange={setCtxTextTertiary} />
-              </CtrlRow>
-            </CtrlGroup>
-
             {/* Right: Icon Container */}
             <CtrlGroup title="Icon Container">
               <CtrlRow label="Show">
@@ -1404,13 +1385,6 @@ function ConfigModal(props: { data: ConfigModalData; onClose: () => void }) {
             </div>
           </div>
           <div class="flex flex-col gap-4 overflow-y-auto p-4">
-            <Show when={hasBgText()}>
-              <CfgSection title="Background & Text">
-                <For each={TELESCOPE_COLOR_KEYS.filter((k) => tele()[k] !== undefined)}>
-                  {(k) => <CfgKVRow label={k.replace(/^--/, "").replace(/-/g, " ")} value={tele()[k]} />}
-                </For>
-              </CfgSection>
-            </Show>
             <Show when={hasSdk()}>
               <CfgSection title="Card">
                 <Show when={sdk()["--sdk-category-card-bg"] !== undefined}>
