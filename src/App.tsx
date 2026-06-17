@@ -1457,6 +1457,7 @@ type Brand = {
   label: string;
   defaultIconStyle?: "icon" | "emoji";
   fontImportUrl?: string;
+  darkMode?: boolean;
   telescopeCssVariables?: Record<string, string>;
   sdkCssVariables?: Record<string, string>;
 };
@@ -2003,6 +2004,7 @@ function BasicsBrandsSection(props: { darkMode: () => boolean }) {
         label: name,
         defaultIconStyle: p["defaultIconStyle"] as "icon" | "emoji" | undefined,
         fontImportUrl: p["fontImportUrl"] as string | undefined,
+        darkMode: p["darkMode"] === true,
         telescopeCssVariables: p["telescopeCssVariables"] as Record<string, string> | undefined,
         sdkCssVariables: p["sdkCssVariables"] as Record<string, string> | undefined,
       };
@@ -2089,11 +2091,13 @@ function BasicsBrandsSection(props: { darkMode: () => boolean }) {
                 const fontFamily = () => brand.sdkCssVariables?.["--font-family"];
 
                 const cfgRows = () => [
+                  ["darkMode", String(brand.darkMode ?? false)],
                   ...Object.entries(basicsVars()),
                   ...(fontFamily() ? [["--font-family", fontFamily()!]] : []),
                 ].map(([k, v]) => ({ k, v }));
 
                 const getJson = () => JSON.stringify({
+                  darkMode: brand.darkMode ?? false,
                   telescopeCssVariables: basicsVars(),
                   ...(fontFamily() ? { sdkCssVariables: { "--font-family": fontFamily() } } : {}),
                 }, null, 2);
@@ -2151,7 +2155,7 @@ function BasicsBrandsSection(props: { darkMode: () => boolean }) {
                     <div
                       class="overflow-hidden rounded-xl p-4"
                       style={{
-                        ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
+                        ...(brand.darkMode ? DARK_TELESCOPE_VARS : {}),
                         ...(brand.telescopeCssVariables as JSX.CSSProperties | undefined),
                         background: "var(--background-normal-primary)",
                         "box-shadow": "inset 0 0 0 1px var(--stroke-1)",

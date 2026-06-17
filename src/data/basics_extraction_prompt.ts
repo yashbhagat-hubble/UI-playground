@@ -55,6 +55,13 @@ Look at headings, body text, and labels across the page.
   - Include \`fontImportUrl\` and set \`--font-family\` in \`sdkCssVariables\`
 - If it uses a **system font** → omit both \`fontImportUrl\` and \`sdkCssVariables\`
 
+### Theme mode
+Look at the overall page background and surfaces:
+- If the page is predominantly **dark** (dark backgrounds, light text) → `"darkMode": true`
+- If the page is predominantly **light** (white/light backgrounds, dark text) → `"darkMode": false`
+
+This value forces the full telescope token set to use the correct light/dark baseline before your sampled colors are applied on top.
+
 ### Colors — sample exact hex values from the screen
 
 | What to look at | CSS variable |
@@ -76,6 +83,7 @@ Look at headings, body text, and labels across the page.
 Return ONLY this JSON — no markdown fences, no explanation:
 
 {
+  "darkMode": false,
   "fontImportUrl": "<Google Fonts URL — omit if system font>",
   "telescopeCssVariables": {
     "--background-normal-primary":   "<hex>",
