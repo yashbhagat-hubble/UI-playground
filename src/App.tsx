@@ -420,6 +420,9 @@ function createCardBuilderState() {
   const [cardRadius, setCardRadius] = createSignal(12);
   const [cardBorderOn, setCardBorderOn] = createSignal(false);
   const [cardBorderColor, setCardBorderColor] = createSignal("var(--stroke-1)");
+  // — Card text —
+  const [titleColor, setTitleColor] = createSignal("var(--text-normal-primary)");
+  const [subtitleColor, setSubtitleColor] = createSignal("var(--text-normal-secondary)");
   // — Icon —
   const [iconStyle, setIconStyle] = createSignal<"icon" | "emoji">("icon");
   const [iconSizePx, setIconSizePx] = createSignal(24);
@@ -453,6 +456,8 @@ function createCardBuilderState() {
       "--sdk-roundness-card": `${cardRadius()}px`,
       "--sdk-category-card-bg": cardBg(),
       "--sdk-category-card-border": cardBorderOn() ? cardBorderColor() : "transparent",
+      "--sdk-category-card-title-color": titleColor(),
+      "--sdk-category-card-subtitle-color": subtitleColor(),
       "--sdk-category-card-icon-color": iconColor(),
       "--sdk-category-card-icon-bg": containerOn() ? containerFill() : "transparent",
       "--sdk-category-card-icon-border":
@@ -496,6 +501,8 @@ function createCardBuilderState() {
     if (border && border !== "transparent") { setCardBorderOn(true); setCardBorderColor(border); }
     else { setCardBorderOn(false); }
 
+    setTitleColor(sdk["--sdk-category-card-title-color"] || "var(--text-normal-primary)");
+    setSubtitleColor(sdk["--sdk-category-card-subtitle-color"] || "var(--text-normal-secondary)");
     setIconColor(sdk["--sdk-category-card-icon-color"] || "var(--text-normal-primary)");
     setIconStyle(override?.defaultIconStyle ?? "icon");
 
@@ -523,6 +530,8 @@ function createCardBuilderState() {
     setCardRadius(12);
     setCardBorderOn(false);
     setCardBorderColor("var(--stroke-1)");
+    setTitleColor("var(--text-normal-primary)");
+    setSubtitleColor("var(--text-normal-secondary)");
     setIconStyle("icon");
     setIconSizePx(24);
     setIconColor("var(--text-normal-primary)");
@@ -538,6 +547,7 @@ function createCardBuilderState() {
   return {
     cardBg, setCardBg, cardRadius, setCardRadius,
     cardBorderOn, setCardBorderOn, cardBorderColor, setCardBorderColor,
+    titleColor, setTitleColor, subtitleColor, setSubtitleColor,
     iconStyle, setIconStyle, iconSizePx, setIconSizePx, iconColor, setIconColor,
     containerOn, setContainerOn, containerSizePx, setContainerSizePx,
     containerRadiusPx, setContainerRadiusPx, containerBorderOn, setContainerBorderOn,
@@ -665,6 +675,7 @@ function CardBuilderSection(props: { state: CardBuilderState; categories: MockCa
   const {
     cardBg, setCardBg, cardRadius, setCardRadius,
     cardBorderOn, setCardBorderOn, cardBorderColor, setCardBorderColor,
+    titleColor, setTitleColor, subtitleColor, setSubtitleColor,
     iconStyle, setIconStyle, iconSizePx, setIconSizePx, iconColor, setIconColor,
     containerOn, setContainerOn, containerSizePx, setContainerSizePx,
     containerRadiusPx, setContainerRadiusPx, containerBorderOn, setContainerBorderOn,
@@ -803,6 +814,12 @@ function CardBuilderSection(props: { state: CardBuilderState; categories: MockCa
                 <Show when={cardBorderOn()}>
                   <SwatchRow value={cardBorderColor()} onChange={setCardBorderColor} options={BORDER_COLOR_OPTIONS} />
                 </Show>
+              </CtrlRow>
+              <CtrlRow label="Title">
+                <SwatchRow value={titleColor()} onChange={setTitleColor} options={ICON_COLOR_OPTIONS} />
+              </CtrlRow>
+              <CtrlRow label="Subtitle">
+                <SwatchRow value={subtitleColor()} onChange={setSubtitleColor} options={ICON_COLOR_OPTIONS} />
               </CtrlRow>
             </CtrlGroup>
 
