@@ -2822,6 +2822,9 @@ function InputPlayground() {
   const [radius, setRadius] = createSignal(12);
   const [strokeOn, setStrokeOn] = createSignal(true);
 
+  // — Preview-only (not in copy JSON) —
+  const [previewBg, setPreviewBg] = createSignal(LIGHT_CTX_DEFAULTS.bgSecondary);
+
   // — SDK input vars —
   const [inputBg,          setInputBg]          = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
   const [inputDisabledBg,  setInputDisabledBg]  = createSignal("#f3f4f6");
@@ -2871,6 +2874,7 @@ function InputPlayground() {
         class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
         onClick={() => {
           setHeight(44); setRadius(12); setStrokeOn(true);
+          setPreviewBg(LIGHT_CTX_DEFAULTS.bgSecondary);
           setInputBg(LIGHT_CTX_DEFAULTS.bgPrimary);
           setInputDisabledBg("#f3f4f6");
           setInputBorder("#e5e7eb");
@@ -2974,7 +2978,7 @@ function InputPlayground() {
             class="grid grid-cols-2 gap-5 rounded-xl p-6"
             style={{
               ...sdkVars(),
-              background: "var(--background-normal-secondary)",
+              background: previewBg(),
               "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
             }}
           >
@@ -3009,6 +3013,9 @@ function InputPlayground() {
               </CtrlGroup>
 
               <CtrlGroup title="Background">
+                <CtrlRow label="Preview bg*">
+                  <ColorPickerCtrl value={previewBg()} onChange={setPreviewBg} />
+                </CtrlRow>
                 <CtrlRow label="Input">
                   <ColorPickerCtrl value={inputBg()} onChange={setInputBg} />
                 </CtrlRow>
