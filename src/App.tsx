@@ -2753,15 +2753,14 @@ function InputField(props: {
   const strokeOn = () => props.strokeOn !== false;
 
   const borderColor = () => {
-    if (props.state === "error")    return "var(--error-base, #ef4444)";
+    if (props.state === "error")    return "var(--sdk-input-border-error, var(--error-base, #ef4444))";
     if (props.state === "disabled") return "transparent";
     if (!strokeOn())                return "transparent";
-    if (isFocused())                return "var(--stroke-solid)";
-    return "var(--stroke-2)";
+    if (isFocused())                return "var(--sdk-input-border-focus, var(--stroke-solid))";
+    return "var(--sdk-input-border, var(--stroke-2))";
   };
-  // --sdk-input-bg lets the builder override bg independently of --background-normal-primary
   const bg = () => props.state === "disabled"
-    ? "var(--background-normal-tertiary)"
+    ? "var(--sdk-input-disabled-bg, var(--background-normal-tertiary))"
     : "var(--sdk-input-bg, var(--background-normal-primary))";
   const shadow = () => isFocused() && props.state === "default"
     ? "none"
@@ -2772,7 +2771,7 @@ function InputField(props: {
   return (
     <div class="flex flex-col gap-1 w-full">
       <Show when={props.label}>
-        <label class="text-para-3-medium" style={{ color: "var(--text-normal-primary)" }}>
+        <label class="text-para-3-medium" style={{ color: "var(--sdk-input-text, var(--text-normal-primary))" }}>
           {props.label}
         </label>
       </Show>
@@ -2793,7 +2792,7 @@ function InputField(props: {
         <input
           class="text-para-2-regular w-full bg-transparent outline-none"
           style={{
-            color: "var(--text-normal-primary)",
+            color: "var(--sdk-input-text, var(--text-normal-primary))",
             cursor: props.state === "disabled" ? "not-allowed" : "text",
           }}
           placeholder={props.placeholder ?? "Enter value…"}
@@ -2807,7 +2806,7 @@ function InputField(props: {
       <Show when={props.helperText}>
         <span
           class="text-label-regular"
-          style={{ color: props.state === "error" ? "var(--error-base, #ef4444)" : "var(--text-normal-secondary)" }}
+          style={{ color: props.state === "error" ? "var(--sdk-input-border-error, var(--error-base, #ef4444))" : "var(--sdk-input-helper-text, var(--text-normal-secondary))" }}
         >
           {props.helperText}
         </span>
@@ -2819,31 +2818,27 @@ function InputField(props: {
 type InputCustomBrand = {
   key: string;
   label: string;
-  telescopeCssVariables?: Record<string, string>;
-  inputConfig: { height: string; borderRadius: string; strokeOn?: boolean; inputBg?: string };
+  sdkCssVariables?: Record<string, string>;
+  inputConfig: { height: string; borderRadius: string; strokeOn?: boolean };
 };
 
 const INPUT_CUSTOMS_KEY = "hcp-input-customs";
-const INPUT_INIT_KEY = "hcp-input-customs-init-v1";
+const INPUT_INIT_KEY = "hcp-input-customs-init-v2";
 
 const DEFAULT_INPUT_BRANDS: InputCustomBrand[] = [
   {
     key: "input-uber",
     label: "Uber",
-    telescopeCssVariables: {
-      "--sdk-input-bg":                "#F6F6F6",
-      "--background-normal-primary":   "#FFFFFF",
-      "--background-normal-tertiary":  "#E2E2E2",
-      "--background-normal-secondary": "#FFFFFF",
-      "--stroke-2":     "#F6F6F6",
-      "--stroke-3":     "#E2E2E2",
-      "--stroke-solid": "#000000",
-      "--error-base":   "#E11900",
-      "--text-normal-primary":   "#000000",
-      "--text-normal-secondary": "#5E5E5E",
-      "--text-normal-tertiary":  "#6B6B6B",
+    sdkCssVariables: {
+      "--sdk-input-bg":           "#F6F6F6",
+      "--sdk-input-disabled-bg":  "#E2E2E2",
+      "--sdk-input-border":       "#F6F6F6",
+      "--sdk-input-border-focus": "#000000",
+      "--sdk-input-border-error": "#E11900",
+      "--sdk-input-text":         "#000000",
+      "--sdk-input-helper-text":  "#5E5E5E",
     },
-    inputConfig: { height: "54px", borderRadius: "8px", strokeOn: false, inputBg: "#F6F6F6" },
+    inputConfig: { height: "54px", borderRadius: "8px", strokeOn: false },
   },
 ];
 
@@ -2868,31 +2863,23 @@ function InputPlayground() {
   const [radius, setRadius] = createSignal(12);
   const [strokeOn, setStrokeOn] = createSignal(true);
 
-  // — Context colors —
-  const [ctxInputBg,     setCtxInputBg]     = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
-  const [ctxBgPrimary,   setCtxBgPrimary]   = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
-  const [ctxBgSecondary, setCtxBgSecondary] = createSignal(LIGHT_CTX_DEFAULTS.bgSecondary);
-  const [ctxBgTertiary,  setCtxBgTertiary]  = createSignal("#f3f4f6");
-  const [ctxStroke2,     setCtxStroke2]     = createSignal("#e5e7eb");
-  const [ctxStroke3,     setCtxStroke3]     = createSignal("#d1d5db");
-  const [ctxStrokeSolid, setCtxStrokeSolid] = createSignal("#6b7280");
-  const [ctxErrorBase,   setCtxErrorBase]   = createSignal("#ef4444");
-  const [ctxTextPrimary, setCtxTextPrimary] = createSignal(LIGHT_CTX_DEFAULTS.textPrimary);
-  const [ctxTextSecondary,setCtxTextSecondary]=createSignal(LIGHT_CTX_DEFAULTS.textSecondary);
-  const [ctxTextTertiary,setCtxTextTertiary]= createSignal(LIGHT_CTX_DEFAULTS.textTertiary);
+  // — SDK input vars —
+  const [inputBg,          setInputBg]          = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
+  const [inputDisabledBg,  setInputDisabledBg]  = createSignal("#f3f4f6");
+  const [inputBorder,      setInputBorder]      = createSignal("#e5e7eb");
+  const [inputBorderFocus, setInputBorderFocus] = createSignal("#6b7280");
+  const [inputBorderError, setInputBorderError] = createSignal("#ef4444");
+  const [inputText,        setInputText]        = createSignal(LIGHT_CTX_DEFAULTS.textPrimary);
+  const [inputHelperText,  setInputHelperText]  = createSignal(LIGHT_CTX_DEFAULTS.textSecondary);
 
-  const contextVars = createMemo((): JSX.CSSProperties => ({
-    "--sdk-input-bg":                ctxInputBg(),
-    "--background-normal-primary":   ctxBgPrimary(),
-    "--background-normal-secondary": ctxBgSecondary(),
-    "--background-normal-tertiary":  ctxBgTertiary(),
-    "--stroke-2":     ctxStroke2(),
-    "--stroke-3":     ctxStroke3(),
-    "--stroke-solid": ctxStrokeSolid(),
-    "--error-base":   ctxErrorBase(),
-    "--text-normal-primary":   ctxTextPrimary(),
-    "--text-normal-secondary": ctxTextSecondary(),
-    "--text-normal-tertiary":  ctxTextTertiary(),
+  const sdkVars = createMemo((): JSX.CSSProperties => ({
+    "--sdk-input-bg":           inputBg(),
+    "--sdk-input-disabled-bg":  inputDisabledBg(),
+    "--sdk-input-border":       inputBorder(),
+    "--sdk-input-border-focus": inputBorderFocus(),
+    "--sdk-input-border-error": inputBorderError(),
+    "--sdk-input-text":         inputText(),
+    "--sdk-input-helper-text":  inputHelperText(),
   }));
 
   // Config popup
@@ -2909,14 +2896,13 @@ function InputPlayground() {
   };
 
   const getJson = () => JSON.stringify({
-    telescopeCssVariables: Object.fromEntries(
-      Object.entries(contextVars()).map(([k, v]) => [k, String(v)])
+    sdkCssVariables: Object.fromEntries(
+      Object.entries(sdkVars()).map(([k, v]) => [k, String(v)])
     ),
     inputConfig: {
       height: `${height()}px`,
       borderRadius: `${radius()}px`,
       strokeOn: strokeOn(),
-      inputBg: ctxInputBg(),
     },
   }, null, 2);
 
@@ -2926,12 +2912,13 @@ function InputPlayground() {
         class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
         onClick={() => {
           setHeight(44); setRadius(12); setStrokeOn(true);
-          setCtxInputBg(LIGHT_CTX_DEFAULTS.bgPrimary);
-          setCtxBgPrimary(LIGHT_CTX_DEFAULTS.bgPrimary); setCtxBgSecondary(LIGHT_CTX_DEFAULTS.bgSecondary);
-          setCtxBgTertiary("#f3f4f6"); setCtxStroke2("#e5e7eb"); setCtxStroke3("#d1d5db");
-          setCtxStrokeSolid("#6b7280"); setCtxErrorBase("#ef4444");
-          setCtxTextPrimary(LIGHT_CTX_DEFAULTS.textPrimary); setCtxTextSecondary(LIGHT_CTX_DEFAULTS.textSecondary);
-          setCtxTextTertiary(LIGHT_CTX_DEFAULTS.textTertiary);
+          setInputBg(LIGHT_CTX_DEFAULTS.bgPrimary);
+          setInputDisabledBg("#f3f4f6");
+          setInputBorder("#e5e7eb");
+          setInputBorderFocus("#6b7280");
+          setInputBorderError("#ef4444");
+          setInputText(LIGHT_CTX_DEFAULTS.textPrimary);
+          setInputHelperText(LIGHT_CTX_DEFAULTS.textSecondary);
         }}
       >
         <PhosphorIcon name="arrow-ccw" fontSize={13} />
@@ -2968,12 +2955,11 @@ function InputPlayground() {
       const entry: InputCustomBrand = {
         key: `input-${Date.now()}`,
         label: name,
-        telescopeCssVariables: p["telescopeCssVariables"] as Record<string, string> | undefined,
+        sdkCssVariables: p["sdkCssVariables"] as Record<string, string> | undefined,
         inputConfig: {
           height:       (cfg["height"] as string)       ?? "44px",
           borderRadius: (cfg["borderRadius"] as string) ?? "12px",
           strokeOn:     cfg["strokeOn"] !== false,
-          inputBg:      (cfg["inputBg"] as string | undefined),
         },
       };
       const updated = [...customs(), entry];
@@ -3008,7 +2994,7 @@ function InputPlayground() {
               <CopyButton getText={getJson} label="Copy JSON" />
             </div>
             <div class="p-3">
-              <For each={Object.entries({ ...contextVars(), height: `${height()}px`, borderRadius: `${radius()}px` })}>
+              <For each={Object.entries({ ...sdkVars(), height: `${height()}px`, borderRadius: `${radius()}px` })}>
                 {([k, v]) => (
                   <div class="flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
                     <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{k}</span>
@@ -3028,8 +3014,8 @@ function InputPlayground() {
           <div
             class="grid grid-cols-2 gap-5 rounded-xl p-6"
             style={{
-              ...contextVars(),
-              background: ctxBgSecondary(),
+              ...sdkVars(),
+              background: "var(--background-normal-secondary)",
               "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
             }}
           >
@@ -3052,7 +3038,7 @@ function InputPlayground() {
           {/* ── Controls ── */}
           <div class="grid grid-cols-2 gap-x-8 gap-y-4 border-t border-stroke-1 pt-4">
 
-            {/* Left: Shape */}
+            {/* Left: Shape + Background */}
             <div class="flex flex-col gap-4">
               <CtrlGroup title="Shape">
                 <CtrlRow label="Height">
@@ -3065,46 +3051,37 @@ function InputPlayground() {
 
               <CtrlGroup title="Background">
                 <CtrlRow label="Input">
-                  <ColorPickerCtrl value={ctxInputBg()} onChange={setCtxInputBg} />
-                </CtrlRow>
-                <CtrlRow label="Surface">
-                  <ColorPickerCtrl value={ctxBgSecondary()} onChange={setCtxBgSecondary} />
+                  <ColorPickerCtrl value={inputBg()} onChange={setInputBg} />
                 </CtrlRow>
                 <CtrlRow label="Disabled">
-                  <ColorPickerCtrl value={ctxBgTertiary()} onChange={setCtxBgTertiary} />
+                  <ColorPickerCtrl value={inputDisabledBg()} onChange={setInputDisabledBg} />
+                </CtrlRow>
+              </CtrlGroup>
+
+              <CtrlGroup title="Text">
+                <CtrlRow label="Label">
+                  <ColorPickerCtrl value={inputText()} onChange={setInputText} />
+                </CtrlRow>
+                <CtrlRow label="Helper">
+                  <ColorPickerCtrl value={inputHelperText()} onChange={setInputHelperText} />
                 </CtrlRow>
               </CtrlGroup>
             </div>
 
-            {/* Right: Colors */}
+            {/* Right: Border */}
             <div class="flex flex-col gap-4">
               <CtrlGroup title="Border">
                 <CtrlRow label="Stroke">
                   <ToggleSwitch value={strokeOn()} onChange={setStrokeOn} />
                 </CtrlRow>
                 <CtrlRow label="Default">
-                  <ColorPickerCtrl value={ctxStroke2()} onChange={setCtxStroke2} />
-                </CtrlRow>
-                <CtrlRow label="Hover">
-                  <ColorPickerCtrl value={ctxStroke3()} onChange={setCtxStroke3} />
+                  <ColorPickerCtrl value={inputBorder()} onChange={setInputBorder} />
                 </CtrlRow>
                 <CtrlRow label="Focus">
-                  <ColorPickerCtrl value={ctxStrokeSolid()} onChange={setCtxStrokeSolid} />
+                  <ColorPickerCtrl value={inputBorderFocus()} onChange={setInputBorderFocus} />
                 </CtrlRow>
                 <CtrlRow label="Error">
-                  <ColorPickerCtrl value={ctxErrorBase()} onChange={setCtxErrorBase} />
-                </CtrlRow>
-              </CtrlGroup>
-
-              <CtrlGroup title="Text">
-                <CtrlRow label="Primary">
-                  <ColorPickerCtrl value={ctxTextPrimary()} onChange={setCtxTextPrimary} />
-                </CtrlRow>
-                <CtrlRow label="Secondary">
-                  <ColorPickerCtrl value={ctxTextSecondary()} onChange={setCtxTextSecondary} />
-                </CtrlRow>
-                <CtrlRow label="Tertiary">
-                  <ColorPickerCtrl value={ctxTextTertiary()} onChange={setCtxTextTertiary} />
+                  <ColorPickerCtrl value={inputBorderError()} onChange={setInputBorderError} />
                 </CtrlRow>
               </CtrlGroup>
             </div>
@@ -3123,7 +3100,7 @@ function InputPlayground() {
           <div class="flex flex-col gap-2.5">
             <textarea
               class="h-24 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
-              placeholder={`{\n  "telescopeCssVariables": { "--background-normal-primary": "#...", "--stroke-2": "#..." },\n  "inputConfig": { "height": "44px", "borderRadius": "12px" }\n}`}
+              placeholder={`{\n  "sdkCssVariables": {\n    "--sdk-input-bg": "#...",\n    "--sdk-input-border": "#..."\n  },\n  "inputConfig": { "height": "44px", "borderRadius": "12px", "strokeOn": true }\n}`}
               value={jsonInput()}
               onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
             />
@@ -3171,10 +3148,10 @@ function InputPlayground() {
                         <div class="fixed z-[301] min-w-[300px] max-h-80 overflow-y-auto rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl" style={{ top: `${cfgPos().top}px`, right: `${cfgPos().right}px` }}>
                           <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
                             <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">{entry.label}</p>
-                            <CopyButton getText={() => JSON.stringify({ telescopeCssVariables: entry.telescopeCssVariables ?? {}, inputConfig: entry.inputConfig }, null, 2)} label="Copy JSON" />
+                            <CopyButton getText={() => JSON.stringify({ sdkCssVariables: entry.sdkCssVariables ?? {}, inputConfig: entry.inputConfig }, null, 2)} label="Copy JSON" />
                           </div>
                           <div class="p-3">
-                            <For each={[...Object.entries(entry.telescopeCssVariables ?? {}), ...Object.entries(entry.inputConfig)]}>
+                            <For each={[...Object.entries(entry.sdkCssVariables ?? {}), ...Object.entries(entry.inputConfig)]}>
                               {([k, v]) => (
                                 <div class="flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
                                   <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{k}</span>
@@ -3200,9 +3177,8 @@ function InputPlayground() {
                     <div
                       class="grid grid-cols-2 gap-5 rounded-xl p-6"
                       style={{
-                        ...(entry.telescopeCssVariables as JSX.CSSProperties | undefined),
-                        ...(entry.inputConfig.inputBg ? { "--sdk-input-bg": entry.inputConfig.inputBg } as JSX.CSSProperties : {}),
-                        background: entry.telescopeCssVariables?.["--background-normal-secondary"] ?? "var(--background-normal-secondary)",
+                        ...(entry.sdkCssVariables as JSX.CSSProperties | undefined),
+                        background: "var(--background-normal-secondary)",
                         "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
                       }}
                     >
