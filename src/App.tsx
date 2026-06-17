@@ -1888,7 +1888,7 @@ const BASICS_COLOR_TOKENS: { label: string; bg: string; border?: boolean }[] = [
   { label: "brand",    bg: "var(--brand-tbd-base)" },
 ];
 
-function BasicsPreviewCards() {
+function BasicsPreviewCards(props: { fontLabel?: string }) {
   return (
     <div class="flex flex-col gap-4">
       {/* Text cards */}
@@ -1933,22 +1933,30 @@ function BasicsPreviewCards() {
         </div>
       </div>
 
-      {/* Color swatches */}
-      <div class="grid grid-cols-3 gap-3 sm:grid-cols-9">
-        <For each={BASICS_COLOR_TOKENS}>
-          {(token) => (
-            <div class="flex flex-col items-center gap-1.5">
-              <div
-                class="size-10 rounded-lg"
-                style={{
-                  background: token.bg,
-                  "box-shadow": token.border ? "inset 0 0 0 1px var(--stroke-2)" : undefined,
-                }}
-              />
-              <p class="text-center font-mono text-[10px] leading-tight text-text-normal-tertiary">{token.label}</p>
-            </div>
-          )}
-        </For>
+      {/* Color swatches + typeface */}
+      <div class="flex items-end justify-between gap-4">
+        <div class="grid grid-cols-3 gap-3 sm:grid-cols-9">
+          <For each={BASICS_COLOR_TOKENS}>
+            {(token) => (
+              <div class="flex flex-col items-center gap-1.5">
+                <div
+                  class="size-10 rounded-lg"
+                  style={{
+                    background: token.bg,
+                    "box-shadow": token.border ? "inset 0 0 0 1px var(--stroke-2)" : undefined,
+                  }}
+                />
+                <p class="text-center font-mono text-[10px] leading-tight text-text-normal-tertiary">{token.label}</p>
+              </div>
+            )}
+          </For>
+        </div>
+        <Show when={props.fontLabel}>
+          <div class="flex shrink-0 flex-col items-end gap-1">
+            <p class="font-mono text-[10px] text-text-normal-tertiary">typeface</p>
+            <p class="text-[13px] font-medium text-text-normal-primary" style={{ "font-family": props.fontLabel }}>{props.fontLabel}</p>
+          </div>
+        </Show>
       </div>
     </div>
   );
@@ -2147,7 +2155,10 @@ function BasicsBrandsSection(props: { darkMode: () => boolean }) {
                         "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
                       }}
                     >
-                      <BasicsPreviewCards />
+                      <BasicsPreviewCards fontLabel={
+                        (brand.sdkCssVariables?.["--font-family"] ?? "")
+                          .replace(/^['"]/, "").split(/[,'"]/)[0].trim() || undefined
+                      } />
                     </div>
                   </div>
                 );
