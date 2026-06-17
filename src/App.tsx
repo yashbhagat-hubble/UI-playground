@@ -64,6 +64,8 @@ const defaultSdkCssVariables: Record<string, string> = {
   "--sdk-category-card-icon-container-size": "32px",
   "--sdk-category-card-icon-container-radius": "9999px",
   "--sdk-category-card-icon-color": "var(--text-normal-primary)",
+  "--sdk-category-card-title-color": "var(--text-normal-primary)",
+  "--sdk-category-card-subtitle-color": "var(--text-normal-secondary)",
 };
 
 // ─── Appbar title type scale ──────────────────────────────────────────────────
@@ -124,6 +126,8 @@ const SDK_CARD_CONFIG_KEYS = [
   "--sdk-category-card-icon-container-size",
   "--sdk-category-card-icon-container-radius",
   "--sdk-category-card-icon-color",
+  "--sdk-category-card-title-color",
+  "--sdk-category-card-subtitle-color",
 ];
 
 const SDK_LISTING_CONFIG_KEYS = [

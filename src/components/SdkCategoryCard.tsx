@@ -40,11 +40,11 @@ export function SdkCategoryCard(props: SdkCategoryCardProps) {
         </div>
       </Show>
       <div class="flex w-full flex-col items-center">
-        <span class="line-clamp-1 overflow-clip text-center text-title-6-semi-bold text-text-normal-primary">
+        <span class="line-clamp-1 overflow-clip text-center text-title-6-semi-bold" style={{ color: "var(--sdk-category-card-title-color, var(--text-normal-primary))" }}>
           {props.title}
         </span>
         <Show when={pct()}>
-          <div class="flex items-center gap-[2px] text-label-regular text-text-normal-secondary">
+          <div class="flex items-center gap-[2px] text-label-regular" style={{ color: "var(--sdk-category-card-subtitle-color, var(--text-normal-secondary))" }}>
             <span>Up to</span>
             <span class="text-label-semi-bold">{pct()}%</span>
           </div>
