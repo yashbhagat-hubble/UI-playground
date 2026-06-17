@@ -1890,21 +1890,66 @@ const BASICS_COLOR_TOKENS: { label: string; bg: string; border?: boolean }[] = [
 
 function BasicsPreviewCards() {
   return (
-    <div class="grid grid-cols-3 gap-3 sm:grid-cols-9">
-      <For each={BASICS_COLOR_TOKENS}>
-        {(token) => (
-          <div class="flex flex-col items-center gap-1.5">
-            <div
-              class="size-10 rounded-lg"
-              style={{
-                background: token.bg,
-                "box-shadow": token.border ? "inset 0 0 0 1px var(--stroke-2)" : undefined,
-              }}
-            />
-            <p class="text-center font-mono text-[10px] leading-tight text-text-normal-tertiary">{token.label}</p>
+    <div class="flex flex-col gap-4">
+      {/* Text cards */}
+      <div class="flex flex-col gap-3 sm:flex-row">
+        {/* Card A — bg-primary + stroke-1 */}
+        <div
+          class="flex-1 rounded-xl p-5"
+          style={{
+            background: "var(--background-normal-primary)",
+            "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+          }}
+        >
+          <div class="flex flex-col gap-2">
+            <p style={{ color: "var(--text-normal-primary)", "font-size": "15px", "font-weight": "600", "line-height": "20px" }}>
+              Gift Cards
+            </p>
+            <p style={{ color: "var(--text-normal-secondary)", "font-size": "13px", "font-weight": "400", "line-height": "18px" }}>
+              Save on your favourite brands
+            </p>
+            <p style={{ color: "var(--text-normal-tertiary)", "font-size": "11px", "font-weight": "400", "line-height": "16px" }}>
+              400+ brands · Instant delivery
+            </p>
           </div>
-        )}
-      </For>
+        </div>
+
+        {/* Card B — bg-secondary, no border */}
+        <div
+          class="flex-1 rounded-xl p-5"
+          style={{ background: "var(--background-normal-secondary)" }}
+        >
+          <div class="flex flex-col gap-2">
+            <p style={{ color: "var(--text-normal-primary)", "font-size": "15px", "font-weight": "600", "line-height": "20px" }}>
+              Popular right now
+            </p>
+            <p style={{ color: "var(--text-normal-secondary)", "font-size": "13px", "font-weight": "400", "line-height": "18px" }}>
+              Amazon, Flipkart, Zomato and more
+            </p>
+            <p style={{ color: "var(--text-normal-tertiary)", "font-size": "11px", "font-weight": "400", "line-height": "16px" }}>
+              Up to 10% off · Use points or cash
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Color swatches */}
+      <div class="grid grid-cols-3 gap-3 sm:grid-cols-9">
+        <For each={BASICS_COLOR_TOKENS}>
+          {(token) => (
+            <div class="flex flex-col items-center gap-1.5">
+              <div
+                class="size-10 rounded-lg"
+                style={{
+                  background: token.bg,
+                  "box-shadow": token.border ? "inset 0 0 0 1px var(--stroke-2)" : undefined,
+                }}
+              />
+              <p class="text-center font-mono text-[10px] leading-tight text-text-normal-tertiary">{token.label}</p>
+            </div>
+          )}
+        </For>
+      </div>
     </div>
   );
 }
