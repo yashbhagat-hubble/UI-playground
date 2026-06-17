@@ -1422,16 +1422,6 @@ function ConfigModal(props: { data: ConfigModalData; onClose: () => void }) {
                 </Show>
               </CfgSection>
             </Show>
-            <Show when={SDK_LISTING_CONFIG_KEYS.some((k) => sdk()[k] !== undefined)}>
-              <CfgSection title="Listing">
-                <Show when={sdk()["--text-listing"] !== undefined}>
-                  <CfgKVRow label="Discount color" value={sdk()["--text-listing"]!} />
-                </Show>
-                <Show when={sdk()["--sdk-listing-image-radius"] !== undefined}>
-                  <CfgKVRow label="Image radius" value={sdk()["--sdk-listing-image-radius"]!} />
-                </Show>
-              </CfgSection>
-            </Show>
           </div>
         </div>
       </div>
