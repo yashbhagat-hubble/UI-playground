@@ -22,8 +22,8 @@ The card has **two independently styled layers**:
   }}>
     {icon}   // SVG icon or emoji — its size is set by the element passed in
   </div>
-  <div>{title}</div>      // category name
-  <div>{discount}</div>   // "Up to X%" subtitle
+  <div style={{ color: "var(--sdk-category-card-title-color, var(--text-normal-primary))" }}>{title}</div>
+  <div style={{ color: "var(--sdk-category-card-subtitle-color, var(--text-normal-secondary))" }}>{discount}</div>
 </button>
 \`\`\`
 ---
@@ -34,6 +34,11 @@ The card has **two independently styled layers**:
 | Background | Does the whole card (including text area) have a fill? If yes → that color. If the card is transparent and only the icon area has a tile → \`transparent\` | \`--sdk-category-card-bg\` |
 | Corner radius | Measure/estimate the card's corner rounding | \`--sdk-roundness-card\` |
 | Border | Is there a visible stroke around the card? If yes → that color. If no → \`transparent\` | \`--sdk-category-card-border\` |
+### Card text
+| Property | How to decide | CSS variable |
+|---|---|---|
+| Title color | Color of the category name label. Default is `--text-normal-primary` — only include if sampled color differs | `--sdk-category-card-title-color` |
+| Subtitle color | Color of the discount/subtitle label. Default is `--text-normal-secondary` — only include if sampled color differs | `--sdk-category-card-subtitle-color` |
 ### Icon
 | Property | How to decide | Output field |
 |---|---|---|
@@ -60,6 +65,8 @@ Return **only** the JSON object below, fully populated. Do not include markdown 
     "--sdk-roundness-card":  "<card corner radius, e.g. 12px>",
     "--sdk-category-card-bg":                    "<card fill or transparent>",
     "--sdk-category-card-border":                "<card stroke or transparent>",
+    "--sdk-category-card-title-color":           "<title text color — omit if same as --text-normal-primary>",
+    "--sdk-category-card-subtitle-color":        "<subtitle text color — omit if same as --text-normal-secondary>",
     "--sdk-category-card-icon-color":            "<SVG icon color>",
     "--sdk-category-card-icon-bg":               "<icon container fill or transparent>",
     "--sdk-category-card-icon-border":           "<icon container stroke or transparent>",
