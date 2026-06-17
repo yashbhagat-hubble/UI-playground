@@ -131,8 +131,8 @@ const SDK_CARD_CONFIG_KEYS = [
 ];
 
 const SDK_LISTING_CONFIG_KEYS = [
-  "--text-listing",
   "--sdk-listing-image-radius",
+  "--sdk-listing-color",
 ];
 
 type ConfigModalData = {
@@ -3278,24 +3278,10 @@ const LISTING_COLOR_OPTIONS: ColorOption[] = [
 function createListingBuilderState() {
   const [imageRadius, setImageRadius] = createSignal(16);
   const [listingColor, setListingColor] = createSignal("var(--feature-base)");
-  // — Context —
-  const [ctxBgPrimary,     setCtxBgPrimary]     = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
-  const [ctxBgSecondary,   setCtxBgSecondary]   = createSignal(LIGHT_CTX_DEFAULTS.bgSecondary);
-  const [ctxTextPrimary,   setCtxTextPrimary]   = createSignal(LIGHT_CTX_DEFAULTS.textPrimary);
-  const [ctxTextSecondary, setCtxTextSecondary] = createSignal(LIGHT_CTX_DEFAULTS.textSecondary);
-  const [ctxTextTertiary,  setCtxTextTertiary]  = createSignal(LIGHT_CTX_DEFAULTS.textTertiary);
-
-  const contextVars = createMemo((): JSX.CSSProperties => ({
-    "--background-normal-primary":   ctxBgPrimary(),
-    "--background-normal-secondary": ctxBgSecondary(),
-    "--text-normal-primary":   ctxTextPrimary(),
-    "--text-normal-secondary": ctxTextSecondary(),
-    "--text-normal-tertiary":  ctxTextTertiary(),
-  }));
 
   const listingCssVars = createMemo((): JSX.CSSProperties => ({
     "--sdk-listing-image-radius": `${imageRadius()}px`,
-    "--text-listing": listingColor(),
+    "--sdk-listing-color": listingColor(),
   }));
 
   function resetListing() {
@@ -3303,19 +3289,9 @@ function createListingBuilderState() {
     setListingColor("var(--feature-base)");
   }
 
-  function resetCtxToMode(dark: boolean) {
-    const d = dark ? DARK_CTX_DEFAULTS : LIGHT_CTX_DEFAULTS;
-    setCtxBgPrimary(d.bgPrimary); setCtxBgSecondary(d.bgSecondary);
-    setCtxTextPrimary(d.textPrimary); setCtxTextSecondary(d.textSecondary);
-    setCtxTextTertiary(d.textTertiary);
-  }
-
   return {
     imageRadius, setImageRadius, listingColor, setListingColor,
-    ctxBgPrimary, setCtxBgPrimary, ctxBgSecondary, setCtxBgSecondary,
-    ctxTextPrimary, setCtxTextPrimary, ctxTextSecondary, setCtxTextSecondary,
-    ctxTextTertiary, setCtxTextTertiary,
-    contextVars, listingCssVars, resetListing, resetCtxToMode,
+    listingCssVars, resetListing,
   };
 }
 
@@ -3324,9 +3300,6 @@ function createListingBuilderState() {
 function ListingBuilderSection(props: { state: ReturnType<typeof createListingBuilderState> }) {
   const {
     imageRadius, setImageRadius, listingColor, setListingColor,
-    ctxBgPrimary, setCtxBgPrimary, ctxBgSecondary, setCtxBgSecondary,
-    ctxTextPrimary, setCtxTextPrimary, ctxTextSecondary, setCtxTextSecondary,
-    ctxTextTertiary, setCtxTextTertiary,
   } = props.state;
 
   const [configOpen, setConfigOpen] = createSignal(false);
@@ -3380,9 +3353,6 @@ function ListingBuilderSection(props: { state: ReturnType<typeof createListingBu
               <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">CSS Variable Output</p>
               <CopyButton
                 getText={() => JSON.stringify({
-                  telescopeCssVariables: Object.fromEntries(
-                    Object.entries(props.state.contextVars()).map(([k, v]) => [k, String(v)])
-                  ),
                   sdkCssVariables: Object.fromEntries(cssVarRows().map((r) => [r.name, r.value])),
                 }, null, 2)}
                 label="Copy JSON"
@@ -3408,11 +3378,7 @@ function ListingBuilderSection(props: { state: ReturnType<typeof createListingBu
           {/* ── Preview ── */}
           <div
             class="overflow-hidden rounded-2xl border border-stroke-1"
-            style={{
-              ...props.state.contextVars(),
-              ...props.state.listingCssVars(),
-              background: ctxBgPrimary(),
-            }}
+            style={{ ...props.state.listingCssVars() }}
           >
             <div class="grid gap-4 overflow-x-auto no-scrollbar" style={{ "grid-auto-flow": "column", "grid-template-rows": "1fr", padding: "12px" }}>
               <For each={LISTING_DATA.slice(0, 5)}>
@@ -3442,23 +3408,6 @@ function ListingBuilderSection(props: { state: ReturnType<typeof createListingBu
                 </CtrlRow>
               </CtrlGroup>
 
-              <CtrlGroup title="Background & Text">
-                <CtrlRow label="Bg Primary">
-                  <ColorPickerCtrl value={ctxBgPrimary()} onChange={setCtxBgPrimary} />
-                </CtrlRow>
-                <CtrlRow label="Bg Secondary">
-                  <ColorPickerCtrl value={ctxBgSecondary()} onChange={setCtxBgSecondary} />
-                </CtrlRow>
-                <CtrlRow label="Text Primary">
-                  <ColorPickerCtrl value={ctxTextPrimary()} onChange={setCtxTextPrimary} />
-                </CtrlRow>
-                <CtrlRow label="Text Sec">
-                  <ColorPickerCtrl value={ctxTextSecondary()} onChange={setCtxTextSecondary} />
-                </CtrlRow>
-                <CtrlRow label="Text Ter">
-                  <ColorPickerCtrl value={ctxTextTertiary()} onChange={setCtxTextTertiary} />
-                </CtrlRow>
-              </CtrlGroup>
             </div>
 
           </div>
@@ -3475,7 +3424,6 @@ function ListingBuilderSection(props: { state: ReturnType<typeof createListingBu
 type ListingCustomBrand = {
   key: string;
   label: string;
-  telescopeCssVariables?: Record<string, string>;
   sdkCssVariables?: Record<string, string>;
 };
 
@@ -3510,7 +3458,6 @@ function ListingCustomSection(props: { builderState: ReturnType<typeof createLis
       const brand: ListingCustomBrand = {
         key: `listing-${Date.now()}`,
         label: name,
-        telescopeCssVariables: p["telescopeCssVariables"] as Record<string, string> | undefined,
         sdkCssVariables: p["sdkCssVariables"] as Record<string, string> | undefined,
       };
       const updated = [...customs(), brand];
@@ -3536,7 +3483,7 @@ function ListingCustomSection(props: { builderState: ReturnType<typeof createLis
         <div class="flex flex-col gap-2.5">
           <textarea
             class="h-24 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
-            placeholder={`{\n  "telescopeCssVariables": { "--background-normal-primary": "#..." },\n  "sdkCssVariables": { "--sdk-listing-image-radius": "16px", "--text-listing": "#..." }\n}`}
+            placeholder={`{\n  "sdkCssVariables": {\n    "--sdk-listing-image-radius": "16px",\n    "--sdk-listing-color": "#..."\n  }\n}`}
             value={jsonInput()}
             onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
           />
@@ -3583,10 +3530,8 @@ function ListingCustomSection(props: { builderState: ReturnType<typeof createLis
                   setConfigOpen((v) => !v);
                 };
 
-                const allVarRows = () => [
-                  ...Object.entries(brand.telescopeCssVariables ?? {}),
-                  ...Object.entries(brand.sdkCssVariables ?? {}),
-                ].map(([name, value]) => ({ name, value }));
+                const allVarRows = () =>
+                  Object.entries(brand.sdkCssVariables ?? {}).map(([name, value]) => ({ name, value }));
 
                 return (
                   <div class="flex flex-col gap-1.5">
@@ -3601,7 +3546,6 @@ function ListingCustomSection(props: { builderState: ReturnType<typeof createLis
                             <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">{brand.label}</p>
                             <CopyButton
                               getText={() => JSON.stringify({
-                                telescopeCssVariables: brand.telescopeCssVariables ?? {},
                                 sdkCssVariables: brand.sdkCssVariables ?? {},
                               }, null, 2)}
                               label="Copy JSON"
@@ -3648,7 +3592,6 @@ function ListingCustomSection(props: { builderState: ReturnType<typeof createLis
                     <div
                       class="overflow-hidden rounded-xl"
                       style={{
-                        ...(brand.telescopeCssVariables as JSX.CSSProperties | undefined),
                         ...(brand.sdkCssVariables as JSX.CSSProperties | undefined),
                         background: "var(--background-normal-primary)",
                         "box-shadow": "inset 0 0 0 1px var(--stroke-1)",

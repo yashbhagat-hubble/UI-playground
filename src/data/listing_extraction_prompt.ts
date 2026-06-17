@@ -6,7 +6,7 @@ Look at the screenshot or visit the URL provided. Find the section that most clo
 
 ## Component code being styled
 
-This is the exact SdkListingCard component you are theming. Every CSS variable maps directly to something it reads:
+This is the exact SdkListingCard component you are theming:
 
 \`\`\`tsx
 function SdkListingCard({ title, tags, discountPercent, imageUrl }) {
@@ -22,12 +22,10 @@ function SdkListingCard({ title, tags, discountPercent, imageUrl }) {
       {/* Content */}
       <div class="flex flex-col">
         <p style={{ color: "var(--text-normal-primary)" }}>{title}</p>
-        <p style={{ color: "var(--text-normal-secondary)" }}>
-          {tags.join(" · ")}
-        </p>
+        <p style={{ color: "var(--text-normal-secondary)" }}>{tags.join(" · ")}</p>
 
         {/* Discount badge — only shown when discountPercent > 0 */}
-        <div style={{ color: "var(--text-listing)" }}>
+        <div style={{ color: "var(--sdk-listing-color, var(--text-listing, var(--feature-base)))" }}>
           SAVE {discountPercent}%
         </div>
       </div>
@@ -36,52 +34,31 @@ function SdkListingCard({ title, tags, discountPercent, imageUrl }) {
 }
 \`\`\`
 
-The card sits on a page surface whose background maps to \`--background-normal-secondary\` (or \`--background-normal-primary\` for the outer screen).
-
 ---
 
 ## What to extract
 
-Go through each property below, sample it from the screenshot, and output the exact hex value.
+Only two SDK variables are needed:
 
-### From the listing card itself
 | What | How to find it | Variable |
 |---|---|---|
 | Image corner radius | Measure/estimate the rounding on the brand image. Pill → \`9999px\`. Moderate → \`12px\`–\`20px\`. Square → \`0px\` | \`--sdk-listing-image-radius\` |
-| Offer / discount color | The color of the "SAVE X%" or "X% off" label. Often green, brand accent, or a highlight color | \`--text-listing\` |
+| Offer / discount color | The color of the "SAVE X%" or "X% off" label. Often green, brand accent, or a highlight color | \`--sdk-listing-color\` |
 
-### From the page background and text
-Sample these from the overall screen, not just the card:
-
-| What | Variable |
-|---|---|
-| Page / screen background | \`--background-normal-primary\` |
-| Card or surface background | \`--background-normal-secondary\` |
-| Primary text (headings, brand name) | \`--text-normal-primary\` |
-| Secondary text (tags, subtitles) | \`--text-normal-secondary\` |
-| Tertiary text (hints, labels) | \`--text-normal-tertiary\` |
-| Brand accent / primary action color | \`--brand-tbd-base\` |
-| Feature / interactive highlight color | \`--feature-base\` |
+### Guardrails — verify before outputting
+- **Discount color must be visible**: \`--sdk-listing-color\` is displayed on a white/light card surface. Ensure it has sufficient contrast (≥3:1) against the card background. If the sampled color is too light, darken it slightly.
+- **Image radius must match the card**: If the brand image has no visible rounding, use \`0px\` or \`4px\` — do not invent rounding that isn't there.
 
 ---
 
 ## Output
 
-Return ONLY this JSON — no markdown, no explanation, no extra keys:
+Return ONLY this JSON — no markdown, no explanation:
 
 {
-  "telescopeCssVariables": {
-    "--background-normal-primary": "<hex>",
-    "--background-normal-secondary": "<hex>",
-    "--text-normal-primary": "<hex>",
-    "--text-normal-secondary": "<hex>",
-    "--text-normal-tertiary": "<hex>",
-    "--brand-tbd-base": "<hex>",
-    "--feature-base": "<hex>"
-  },
   "sdkCssVariables": {
     "--sdk-listing-image-radius": "<e.g. 16px>",
-    "--text-listing": "<hex>"
+    "--sdk-listing-color": "<hex>"
   }
 }
 

@@ -86,7 +86,7 @@ export function SdkListingCard(props: SdkListingCardProps) {
         <Show when={pct() > 0}>
           <div
             class="flex items-baseline gap-0.5"
-            style={{ color: "var(--text-listing)" }}
+            style={{ color: "var(--sdk-listing-color, var(--text-listing, var(--feature-base)))" }}
           >
             <span class="pb-0.5 text-label-semi-bold">SAVE</span>
             <span class="text-title-4-semi-bold">{pct()}</span>
