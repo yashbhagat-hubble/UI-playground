@@ -1883,9 +1883,9 @@ const BASICS_COLOR_TOKENS: { label: string; bg: string; border?: boolean }[] = [
   { label: "text-primary",   bg: "var(--text-normal-primary)" },
   { label: "text-secondary", bg: "var(--text-normal-secondary)" },
   { label: "text-tertiary",  bg: "var(--text-normal-tertiary)" },
-  { label: "stroke-1",     bg: "var(--stroke-1)",     border: true },
-  { label: "stroke-2",     bg: "var(--stroke-2)",     border: true },
-  { label: "stroke-solid", bg: "var(--stroke-solid)" },
+  { label: "stroke-1", bg: "var(--stroke-1)", border: true },
+  { label: "stroke-2", bg: "var(--stroke-2)", border: true },
+  { label: "brand",    bg: "var(--brand-tbd-base)" },
 ];
 
 function BasicsPreviewCards() {
@@ -2069,7 +2069,7 @@ function BasicsBrandsSection(props: { darkMode: () => boolean }) {
                 const BASICS_KEYS = [
                   "--background-normal-primary", "--background-normal-secondary", "--background-normal-tertiary",
                   "--text-normal-primary", "--text-normal-secondary", "--text-normal-tertiary",
-                  "--stroke-1", "--stroke-2", "--stroke-solid",
+                  "--stroke-1", "--stroke-2", "--brand-tbd-base",
                 ];
                 const basicsVars = () => Object.fromEntries(
                   BASICS_KEYS.flatMap((k) => {

@@ -1,6 +1,6 @@
 export const BASICS_EXTRACTION_PROMPT = `**Task: Extract brand color palette and typeface from a screenshot or URL**
 
-You will be given either a screenshot/image, or a URL to visit. Identify the brand's core visual identity — their background colors, text colors, stroke colors, and primary typeface.
+You will be given either a screenshot/image, or a URL to visit. Identify the brand's core visual identity — their background colors, text colors, stroke colors, primary brand color, and typeface.
 
 ---
 
@@ -35,7 +35,11 @@ If the brand uses a system font (San Francisco, Roboto, Inter, etc.) → omit \`
 |---|---|---|
 | Subtle divider | The faintest visible line (hairline dividers, row separators) | \`--stroke-1\` |
 | Medium border | Input outlines, card borders (idle state) | \`--stroke-2\` |
-| Solid stroke | Fully opaque, high-contrast border or outline | \`--stroke-solid\` |
+
+#### Brand
+| What | How to identify | Variable |
+|---|---|---|
+| Primary brand color | The dominant accent — button fills, active states, links, highlights | \`--brand-tbd-base\` |
 
 ---
 
@@ -54,9 +58,9 @@ Return ONLY this JSON — no markdown fences, no explanation:
     "--text-normal-primary":   "<hex>",
     "--text-normal-secondary": "<hex>",
     "--text-normal-tertiary":  "<hex>",
-    "--stroke-1":     "<hex or rgba>",
-    "--stroke-2":     "<hex or rgba>",
-    "--stroke-solid": "<hex>"
+    "--stroke-1":       "<hex or rgba>",
+    "--stroke-2":       "<hex or rgba>",
+    "--brand-tbd-base": "<hex>"
   }
 }
 
