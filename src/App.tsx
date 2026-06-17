@@ -1356,12 +1356,8 @@ function ConfigModal(props: { data: ConfigModalData; onClose: () => void }) {
             <div class="flex items-center gap-1">
               <CopyButton
                 getText={() => {
-                  const obj: Record<string, unknown> = {
-                    key: props.data.key ?? "custom",
-                    label: props.data.label,
-                  };
+                  const obj: Record<string, unknown> = {};
                   if (props.data.defaultIconStyle) obj.defaultIconStyle = props.data.defaultIconStyle;
-                  if (props.data.fontImportUrl) obj.fontImportUrl = props.data.fontImportUrl;
                   if (props.data.telescopeCssVariables && Object.keys(props.data.telescopeCssVariables).length)
                     obj.telescopeCssVariables = props.data.telescopeCssVariables;
                   if (props.data.sdkCssVariables && Object.keys(props.data.sdkCssVariables).length)
