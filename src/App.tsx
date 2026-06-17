@@ -3836,7 +3836,7 @@ export default function App() {
         {/* Title row */}
         <div class="mx-auto flex max-w-[900px] items-center justify-between px-4 py-3">
           <div class="flex flex-col gap-0.5">
-            <p class="text-title-5-semi-bold text-text-normal-primary">UI Playground</p>
+            <p class="text-title-5-semi-bold text-text-normal-primary">UI Config</p>
             <p class="text-label-regular text-text-normal-tertiary">
               CSS variable explorer
             </p>
