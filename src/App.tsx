@@ -1735,26 +1735,26 @@ function TypographySection() {
 type BtnSpec = { label: string; bg: string; text: string; border?: string; opacity?: boolean; hover?: string };
 
 const BRAND_BUTTONS: BtnSpec[] = [
-  { label: "Primary",   bg: "var(--brand-tbd-base)",  text: "var(--text-inverted-primary)",  hover: "hover:bg-brand-tbd-dark active:bg-brand-tbd-dark" },
-  { label: "Secondary", bg: "transparent",             text: "var(--brand-tbd-base)",         border: "1px solid var(--brand-tbd-base)", hover: "hover:bg-feature-lighter active:bg-feature-lighter" },
-  { label: "Tertiary",  bg: "var(--feature-lighter)", text: "var(--feature-base)",    hover: "hover:opacity-80 active:opacity-60" },
-  { label: "Ghost",     bg: "transparent",             text: "var(--feature-base)",    hover: "hover:bg-background-normal-secondary active:bg-background-normal-tertiary" },
-  { label: "Disabled",  bg: "var(--brand-tbd-base)",  text: "#fff", opacity: true },
+  { label: "Primary",   bg: "var(--sdk-btn-brand, var(--brand-tbd-base))",         text: "var(--sdk-btn-brand-on, var(--text-inverted-primary))",  hover: "hover:opacity-90 active:opacity-80" },
+  { label: "Secondary", bg: "transparent",                                           text: "var(--sdk-btn-brand, var(--brand-tbd-base))",            border: "1px solid var(--sdk-btn-brand, var(--brand-tbd-base))", hover: "hover:opacity-80 active:opacity-60" },
+  { label: "Tertiary",  bg: "var(--sdk-btn-feature-tint, var(--feature-lighter))", text: "var(--sdk-btn-feature, var(--feature-base))",    hover: "hover:opacity-80 active:opacity-60" },
+  { label: "Ghost",     bg: "transparent",                                           text: "var(--sdk-btn-feature, var(--feature-base))",    hover: "hover:bg-background-normal-secondary active:bg-background-normal-tertiary" },
+  { label: "Disabled",  bg: "var(--sdk-btn-brand, var(--brand-tbd-base))",         text: "var(--sdk-btn-brand-on, var(--text-inverted-primary))", opacity: true },
 ];
 
 const NEUTRAL_BUTTONS: BtnSpec[] = [
-  { label: "Primary",   bg: "var(--background-inverted-primary)", text: "var(--text-inverted-primary)", hover: "hover:opacity-80 active:opacity-60" },
-  { label: "Secondary", bg: "transparent",                         text: "var(--text-normal-primary)",   border: "1px solid var(--stroke-solid)", hover: "hover:bg-background-normal-secondary active:bg-background-normal-secondary" },
-  { label: "Error",     bg: "var(--error-base, #ef4444)",         text: "#fff",                         hover: "hover:opacity-80 active:opacity-60" },
-  { label: "Disabled",  bg: "var(--background-normal-secondary)", text: "var(--text-normal-tertiary)", opacity: true },
+  { label: "Primary",   bg: "var(--sdk-btn-neutral-bg, var(--background-inverted-primary))", text: "var(--sdk-btn-neutral-on, var(--text-inverted-primary))", hover: "hover:opacity-80 active:opacity-60" },
+  { label: "Secondary", bg: "transparent",                                                     text: "var(--sdk-btn-text, var(--text-normal-primary))",          border: "1px solid var(--sdk-btn-stroke, var(--stroke-solid))", hover: "hover:bg-background-normal-secondary active:bg-background-normal-secondary" },
+  { label: "Error",     bg: "var(--error-base, #ef4444)",                                     text: "#fff",                                                      hover: "hover:opacity-80 active:opacity-60" },
+  { label: "Disabled",  bg: "var(--background-normal-secondary)",                              text: "var(--text-normal-tertiary)", opacity: true },
 ];
 
 type IconBtnSpec = { bg: string; text: string; border?: string; hover?: string };
 const ICON_BUTTONS: IconBtnSpec[] = [
-  { bg: "var(--brand-tbd-base)",               text: "#fff",                         hover: "hover:bg-brand-tbd-dark active:bg-brand-tbd-dark" },
-  { bg: "transparent",                          text: "var(--feature-base)",          border: "1px solid var(--feature-base)", hover: "hover:bg-feature-lighter active:bg-feature-lighter" },
-  { bg: "var(--feature-lighter)",              text: "var(--feature-base)",          hover: "hover:opacity-80 active:opacity-60" },
-  { bg: "var(--background-inverted-primary)", text: "var(--text-inverted-primary)", hover: "hover:opacity-80 active:opacity-60" },
+  { bg: "var(--sdk-btn-brand, var(--brand-tbd-base))",               text: "var(--sdk-btn-brand-on, var(--text-inverted-primary))", hover: "hover:opacity-90 active:opacity-80" },
+  { bg: "transparent",                                                 text: "var(--sdk-btn-feature, var(--feature-base))",           border: "1px solid var(--sdk-btn-feature, var(--feature-base))", hover: "hover:opacity-80 active:opacity-60" },
+  { bg: "var(--sdk-btn-feature-tint, var(--feature-lighter))",       text: "var(--sdk-btn-feature, var(--feature-base))",           hover: "hover:opacity-80 active:opacity-60" },
+  { bg: "var(--sdk-btn-neutral-bg, var(--background-inverted-primary))", text: "var(--sdk-btn-neutral-on, var(--text-inverted-primary))", hover: "hover:opacity-80 active:opacity-60" },
   { bg: "var(--error-base, #ef4444)",          text: "#fff",                         hover: "hover:opacity-80 active:opacity-60" },
   { bg: "var(--background-normal-secondary)", text: "var(--text-normal-tertiary)",  hover: "hover:bg-background-normal-tertiary active:bg-background-normal-tertiary" },
 ];
@@ -2211,18 +2211,21 @@ function ButtonPlayground() {
   const [ctxStrokeSolid,  setCtxStrokeSolid]  = createSignal("#6b7280");
 
   const contextVars = createMemo((): JSX.CSSProperties => ({
+    "--sdk-btn-page-bg":      ctxBgPrimary(),
+    "--sdk-btn-brand":        ctxBrandBase(),
+    "--sdk-btn-brand-dark":   ctxBrandDark(),
+    "--sdk-btn-brand-on":     ctxTextInverted(),
+    "--sdk-btn-feature":      ctxFeatureBase(),
+    "--sdk-btn-feature-tint": ctxFeatureLighter(),
+    "--sdk-btn-neutral-bg":   ctxBgInverted(),
+    "--sdk-btn-neutral-on":   ctxTextInverted(),
+    "--sdk-btn-stroke":       ctxStrokeSolid(),
+    "--sdk-btn-text":         ctxTextPrimary(),
+    // context vars for ghost/disabled which aren't button-specific
     "--background-normal-primary":   ctxBgPrimary(),
     "--background-normal-secondary": ctxBgSecondary(),
-    "--background-inverted-primary": ctxBgInverted(),
-    "--text-normal-primary":    ctxTextPrimary(),
-    "--text-normal-secondary":  ctxTextSecondary(),
-    "--text-normal-tertiary":   ctxTextTertiary(),
-    "--text-inverted-primary":  ctxTextInverted(),
-    "--brand-tbd-base":   ctxBrandBase(),
-    "--brand-tbd-dark":   ctxBrandDark(),
-    "--feature-base":     ctxFeatureBase(),
-    "--feature-lighter":  ctxFeatureLighter(),
-    "--stroke-solid":     ctxStrokeSolid(),
+    "--text-normal-primary":  ctxTextPrimary(),
+    "--text-normal-tertiary": ctxTextTertiary(),
   }));
 
   const fontSize = () => TITLE_SIZES[textSizeKey()].size;
@@ -2272,19 +2275,17 @@ function ButtonPlayground() {
   };
 
   const getJson = () => JSON.stringify({
-    telescopeCssVariables: {
-      "--background-normal-primary":   ctxBgPrimary(),
-      "--background-normal-secondary": ctxBgSecondary(),
-      "--background-inverted-primary": ctxBgInverted(),
-      "--text-normal-primary":   ctxTextPrimary(),
-      "--text-normal-secondary": ctxTextSecondary(),
-      "--text-normal-tertiary":  ctxTextTertiary(),
-      "--text-inverted-primary": ctxTextInverted(),
-      "--brand-tbd-base":   ctxBrandBase(),
-      "--brand-tbd-dark":   ctxBrandDark(),
-      "--feature-base":     ctxFeatureBase(),
-      "--feature-lighter":  ctxFeatureLighter(),
-      "--stroke-solid":     ctxStrokeSolid(),
+    sdkCssVariables: {
+      "--sdk-btn-page-bg":      ctxBgPrimary(),
+      "--sdk-btn-brand":        ctxBrandBase(),
+      "--sdk-btn-brand-dark":   ctxBrandDark(),
+      "--sdk-btn-brand-on":     ctxTextInverted(),
+      "--sdk-btn-feature":      ctxFeatureBase(),
+      "--sdk-btn-feature-tint": ctxFeatureLighter(),
+      "--sdk-btn-neutral-bg":   ctxBgInverted(),
+      "--sdk-btn-neutral-on":   ctxTextInverted(),
+      "--sdk-btn-stroke":       ctxStrokeSolid(),
+      "--sdk-btn-text":         ctxTextPrimary(),
     },
     buttonConfig: {
       height: `${height()}px`,
@@ -2343,7 +2344,7 @@ function ButtonPlayground() {
               <CopyButton getText={getJson} label="Copy JSON" />
             </div>
             <div class="max-h-80 overflow-y-auto p-3">
-              <For each={Object.entries({ ...contextVars(), ...shapeVars() })}>
+              <For each={Object.entries({ ...Object.fromEntries(Object.entries(contextVars()).filter(([k]) => k.startsWith("--sdk-btn-"))), ...shapeVars() })}>
                 {([k, v]) => (
                   <div class="flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
                     <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{k}</span>
@@ -2365,7 +2366,7 @@ function ButtonPlayground() {
             style={{
               ...contextVars(),
               ...shapeVars(),
-              background: ctxBgPrimary(),
+              background: "var(--sdk-btn-page-bg)",
               "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
             }}
           >
@@ -2466,7 +2467,7 @@ function ButtonPlayground() {
 type CustomButton = {
   key: string;
   label: string;
-  telescopeCssVariables?: Record<string, string>;
+  sdkCssVariables?: Record<string, string>;
   buttonConfig: {
     height: string;
     borderRadius: string;
@@ -2476,25 +2477,23 @@ type CustomButton = {
 };
 
 const BTN_CUSTOMS_KEY = "hcp-btn-customs";
-const BTN_INIT_KEY = "hcp-btn-customs-init-v1";
+const BTN_INIT_KEY = "hcp-btn-customs-init-v2";
 
 const DEFAULT_BTN_BRANDS: CustomButton[] = [
   {
     key: "btn-linkedin",
     label: "LinkedIn",
-    telescopeCssVariables: {
-      "--background-normal-primary":   "#ffffff",
-      "--background-normal-secondary": "#f4f2ee",
-      "--background-inverted-primary": "#1d2226",
-      "--text-normal-primary":   "#000000",
-      "--text-normal-secondary": "#ffffff",
-      "--text-normal-tertiary":  "#666666",
-      "--text-inverted-primary": "#ffffff",
-      "--brand-tbd-base": "#0a66c2",
-      "--brand-tbd-dark": "#004182",
-      "--feature-base":   "#0a66c2",
-      "--feature-lighter":"rgba(10, 102, 194, 0.1)",
-      "--stroke-solid":   "#c9c9c9",
+    sdkCssVariables: {
+      "--sdk-btn-page-bg":      "#ffffff",
+      "--sdk-btn-brand":        "#0a66c2",
+      "--sdk-btn-brand-dark":   "#004182",
+      "--sdk-btn-brand-on":     "#ffffff",
+      "--sdk-btn-feature":      "#0a66c2",
+      "--sdk-btn-feature-tint": "rgba(10, 102, 194, 0.1)",
+      "--sdk-btn-neutral-bg":   "#1d2226",
+      "--sdk-btn-neutral-on":   "#ffffff",
+      "--sdk-btn-stroke":       "#c9c9c9",
+      "--sdk-btn-text":         "#000000",
     },
     buttonConfig: { height: "48px", borderRadius: "9999px", fontSize: "16px", fontWeight: "600" },
   },
@@ -2537,7 +2536,7 @@ function ButtonCustomSection() {
       const btn: CustomButton = {
         key: `btn-${Date.now()}`,
         label: name,
-        telescopeCssVariables: p["telescopeCssVariables"] as Record<string, string> | undefined,
+        sdkCssVariables: p["sdkCssVariables"] as Record<string, string> | undefined,
         buttonConfig: {
           height:       cfg["height"]       ?? "44px",
           borderRadius: cfg["borderRadius"] ?? "12px",
@@ -2575,7 +2574,7 @@ function ButtonCustomSection() {
         <div class="flex flex-col gap-2.5">
           <textarea
             class="h-24 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
-            placeholder={`{\n  "telescopeCssVariables": { "--background-normal-primary": "#...", "--brand-tbd-base": "#..." },\n  "buttonConfig": { "height": "44px", "borderRadius": "12px", "fontSize": "14px", "fontWeight": "600" }\n}`}
+            placeholder={`{\n  "sdkCssVariables": { "--sdk-btn-page-bg": "#...", "--sdk-btn-brand": "#..." },\n  "buttonConfig": { "height": "44px", "borderRadius": "12px", "fontSize": "14px", "fontWeight": "600" }\n}`}
             value={jsonInput()}
             onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
           />
@@ -2619,7 +2618,7 @@ function ButtonCustomSection() {
               };
 
               const cfgRows = () => [
-                ...Object.entries(btn.telescopeCssVariables ?? {}),
+                ...Object.entries(btn.sdkCssVariables ?? {}),
                 ...Object.entries(btn.buttonConfig),
               ].map(([k, v]) => ({ k, v }));
 
@@ -2635,7 +2634,7 @@ function ButtonCustomSection() {
                         <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
                           <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">{btn.label}</p>
                           <CopyButton
-                            getText={() => JSON.stringify({ telescopeCssVariables: btn.telescopeCssVariables ?? {}, buttonConfig: btn.buttonConfig }, null, 2)}
+                            getText={() => JSON.stringify({ sdkCssVariables: btn.sdkCssVariables ?? {}, buttonConfig: btn.buttonConfig }, null, 2)}
                             label="Copy JSON"
                           />
                         </div>
@@ -2680,9 +2679,9 @@ function ButtonCustomSection() {
                   <div
                     class="overflow-hidden rounded-xl"
                     style={{
-                      ...(btn.telescopeCssVariables as JSX.CSSProperties | undefined),
+                      ...(btn.sdkCssVariables as JSX.CSSProperties | undefined),
                       ...shapeVars(btn),
-                      background: btn.telescopeCssVariables?.["--background-normal-primary"] ?? "var(--background-normal-primary)",
+                      background: btn.sdkCssVariables?.["--sdk-btn-page-bg"] ?? "var(--background-normal-primary)",
                       "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
                     }}
                   >

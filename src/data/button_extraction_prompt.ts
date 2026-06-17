@@ -6,19 +6,19 @@ Look at the screenshot or visit the URL provided. Find the primary action button
 
 ## Component code being styled
 
-This is the exact button variant set you are theming. Every CSS variable maps directly to something a variant reads — find the one that matches the CTA in the screenshot (almost always "Brand Primary") and sample its colors:
+This is the exact button variant set you are theming. Every CSS variable maps directly to something a variant reads:
 
 \`\`\`tsx
 const BRAND_BUTTONS = [
-  { label: "Primary",   bg: "var(--brand-tbd-base)",   text: "var(--text-inverted-primary)" },
-  { label: "Secondary", bg: "transparent",              text: "var(--brand-tbd-base)", border: "var(--brand-tbd-base)" },
-  { label: "Tertiary",  bg: "var(--feature-lighter)",   text: "var(--feature-base)" },
-  { label: "Ghost",     bg: "transparent",              text: "var(--feature-base)" },
+  { label: "Primary",   bg: "var(--sdk-btn-brand)",        text: "var(--sdk-btn-brand-on)" },
+  { label: "Secondary", bg: "transparent",                  text: "var(--sdk-btn-brand)",    border: "var(--sdk-btn-brand)" },
+  { label: "Tertiary",  bg: "var(--sdk-btn-feature-tint)", text: "var(--sdk-btn-feature)" },
+  { label: "Ghost",     bg: "transparent",                  text: "var(--sdk-btn-feature)" },
 ];
 
 const NEUTRAL_BUTTONS = [
-  { label: "Primary",   bg: "var(--background-inverted-primary)", text: "var(--text-inverted-primary)" },
-  { label: "Secondary", bg: "transparent",                         text: "var(--text-normal-primary)", border: "var(--stroke-solid)" },
+  { label: "Primary",   bg: "var(--sdk-btn-neutral-bg)", text: "var(--sdk-btn-neutral-on)" },
+  { label: "Secondary", bg: "transparent",                text: "var(--sdk-btn-text)",      border: "var(--sdk-btn-stroke)" },
 ];
 
 function Button({ label, bg, text, border }) {
@@ -38,8 +38,6 @@ function Button({ label, bg, text, border }) {
 }
 \`\`\`
 
-The button sits on a page surface whose background maps to \`--background-normal-primary\`.
-
 ---
 
 ## What to extract
@@ -52,25 +50,19 @@ The button sits on a page surface whose background maps to \`--background-normal
 | Font size | Estimate label size. Common: 13px, 14px, 15px, 16px | \`fontSize\` |
 | Font weight | Regular (400) · Medium (500) · Semibold (600) · Bold (700) | \`fontWeight\` |
 
-### Brand colors (sample exact hex values from the screen)
-| What | Key |
+### Colors — sample exact hex values from the screen
+| What | SDK variable |
 |---|---|
-| Primary brand / button fill | \`--brand-tbd-base\` |
-| Darker brand shade (hover state) | \`--brand-tbd-dark\` |
-| Interactive / feature highlight | \`--feature-base\` |
-| Very light brand tint (button tertiary bg) | \`--feature-lighter\` |
-| Outline / stroke color | \`--stroke-solid\` |
-
-### Background & text colors
-| What | Key |
-|---|---|
-| Page / screen background | \`--background-normal-primary\` |
-| Card / surface background | \`--background-normal-secondary\` |
-| Inverted surface (neutral button fill) | \`--background-inverted-primary\` |
-| Primary text color | \`--text-normal-primary\` |
-| Secondary text | \`--text-normal-secondary\` |
-| Tertiary / hint text | \`--text-normal-tertiary\` |
-| Text on inverted / brand surfaces | \`--text-inverted-primary\` |
+| Page / screen background | \`--sdk-btn-page-bg\` |
+| Primary brand / button fill | \`--sdk-btn-brand\` |
+| Darker brand shade (hover) | \`--sdk-btn-brand-dark\` |
+| Text on brand-filled buttons | \`--sdk-btn-brand-on\` |
+| Interactive / feature highlight | \`--sdk-btn-feature\` |
+| Very light brand tint (tertiary bg) | \`--sdk-btn-feature-tint\` |
+| Neutral button background (dark/inverted fill) | \`--sdk-btn-neutral-bg\` |
+| Text on neutral button | \`--sdk-btn-neutral-on\` |
+| Outline / stroke border | \`--sdk-btn-stroke\` |
+| Default text color | \`--sdk-btn-text\` |
 
 ---
 
@@ -79,19 +71,17 @@ The button sits on a page surface whose background maps to \`--background-normal
 Return ONLY this JSON — no markdown, no explanation:
 
 {
-  "telescopeCssVariables": {
-    "--background-normal-primary":   "<hex>",
-    "--background-normal-secondary": "<hex>",
-    "--background-inverted-primary": "<hex>",
-    "--text-normal-primary":   "<hex>",
-    "--text-normal-secondary": "<hex>",
-    "--text-normal-tertiary":  "<hex>",
-    "--text-inverted-primary": "<hex>",
-    "--brand-tbd-base": "<hex>",
-    "--brand-tbd-dark": "<hex>",
-    "--feature-base":   "<hex>",
-    "--feature-lighter":"<rgba or hex>",
-    "--stroke-solid":   "<hex>"
+  "sdkCssVariables": {
+    "--sdk-btn-page-bg":      "<hex>",
+    "--sdk-btn-brand":        "<hex>",
+    "--sdk-btn-brand-dark":   "<hex>",
+    "--sdk-btn-brand-on":     "<hex>",
+    "--sdk-btn-feature":      "<hex>",
+    "--sdk-btn-feature-tint": "<rgba or hex>",
+    "--sdk-btn-neutral-bg":   "<hex>",
+    "--sdk-btn-neutral-on":   "<hex>",
+    "--sdk-btn-stroke":       "<hex>",
+    "--sdk-btn-text":         "<hex>"
   },
   "buttonConfig": {
     "height":       "<e.g. 44px>",
