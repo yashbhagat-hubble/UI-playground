@@ -2164,7 +2164,15 @@ function BasicsPlayground(props: { darkMode: () => boolean }) {
   return (
     <div class="flex flex-col gap-8 p-4 pb-20">
       <Section title="Preview">
-        <BasicsPreviewCards />
+        <div
+          class="overflow-hidden rounded-xl p-4"
+          style={{
+            background: "var(--background-normal-primary)",
+            "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+          }}
+        >
+          <BasicsPreviewCards />
+        </div>
       </Section>
       <BasicsBrandsSection darkMode={props.darkMode} />
     </div>
