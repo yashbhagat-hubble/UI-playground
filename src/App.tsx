@@ -2035,16 +2035,12 @@ function BasicsBrandsSection(props: { darkMode: () => boolean }) {
 
                 const cfgRows = () => [
                   ...Object.entries(brand.telescopeCssVariables ?? {}),
-                  ...Object.entries(brand.sdkCssVariables ?? {}),
                   ...(brand.fontImportUrl ? [["fontImportUrl", brand.fontImportUrl]] : []),
                 ].map(([k, v]) => ({ k, v }));
 
                 const getJson = () => JSON.stringify({
                   ...(brand.fontImportUrl ? { fontImportUrl: brand.fontImportUrl } : {}),
                   telescopeCssVariables: brand.telescopeCssVariables ?? {},
-                  ...(brand.sdkCssVariables && Object.keys(brand.sdkCssVariables).length
-                    ? { sdkCssVariables: brand.sdkCssVariables }
-                    : {}),
                 }, null, 2);
 
                 return (
