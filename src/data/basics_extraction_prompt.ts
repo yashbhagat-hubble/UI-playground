@@ -57,8 +57,8 @@ Look at headings, body text, and labels across the page.
 
 ### Theme mode
 Look at the overall page background and surfaces:
-- If the page is predominantly **dark** (dark backgrounds, light text) → `"darkMode": true`
-- If the page is predominantly **light** (white/light backgrounds, dark text) → `"darkMode": false`
+- If the page is predominantly **dark** (dark backgrounds, light text) → \`"darkMode": true\`
+- If the page is predominantly **light** (white/light backgrounds, dark text) → \`"darkMode": false\`
 
 This value forces the full telescope token set to use the correct light/dark baseline before your sampled colors are applied on top.
 
