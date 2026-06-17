@@ -53,8 +53,6 @@ The card has **two independently styled layers**:
 Return **only** the JSON object below, fully populated. Do not include markdown fences, explanation, or any other text.
 \`\`\`json
 {
-  "key": "<lowercase-slug>",
-  "label": "<Brand Name>",
   "defaultIconStyle": "icon",
   "fontImportUrl": "<Google Fonts URL if a custom font is visible, otherwise omit>",
   "telescopeCssVariables": {

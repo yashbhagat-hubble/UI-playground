@@ -76,8 +76,6 @@ Look at headings, body text, and labels across the page.
 Return ONLY this JSON — no markdown fences, no explanation:
 
 {
-  "key": "<lowercase-slug>",
-  "label": "<Brand Name>",
   "fontImportUrl": "<Google Fonts URL — omit if system font>",
   "telescopeCssVariables": {
     "--background-normal-primary":   "<hex>",
