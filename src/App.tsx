@@ -1879,7 +1879,7 @@ function ColoursSection() {
 function BasicsPreviewCards() {
   return (
     <div class="flex flex-col gap-3 sm:flex-row">
-      {/* Card A — bg-primary + stroke-1 border */}
+      {/* Card A — bg-primary + stroke-1 */}
       <div
         class="flex-1 rounded-xl p-5"
         style={{
@@ -1900,10 +1900,13 @@ function BasicsPreviewCards() {
         </div>
       </div>
 
-      {/* Card B — bg-secondary, no border */}
+      {/* Card B — bg-secondary + stroke-2, with a bg-tertiary tag and stroke-solid divider */}
       <div
         class="flex-1 rounded-xl p-5"
-        style={{ background: "var(--background-normal-secondary)" }}
+        style={{
+          background: "var(--background-normal-secondary)",
+          "box-shadow": "inset 0 0 0 1px var(--stroke-2)",
+        }}
       >
         <div class="flex flex-col gap-2">
           <p style={{ color: "var(--text-normal-primary)", "font-size": "15px", "font-weight": "600", "line-height": "20px" }}>
@@ -1912,9 +1915,21 @@ function BasicsPreviewCards() {
           <p style={{ color: "var(--text-normal-secondary)", "font-size": "13px", "font-weight": "400", "line-height": "18px" }}>
             Amazon, Flipkart, Zomato and more
           </p>
-          <p style={{ color: "var(--text-normal-tertiary)", "font-size": "11px", "font-weight": "400", "line-height": "16px" }}>
-            Up to 10% off · Use points or cash
-          </p>
+          {/* bg-tertiary tag + stroke-solid divider */}
+          <div style={{ "border-top": "1px solid var(--stroke-solid)", "padding-top": "8px", "margin-top": "2px" }}>
+            <span
+              style={{
+                background: "var(--background-normal-tertiary)",
+                color: "var(--text-normal-tertiary)",
+                "font-size": "11px",
+                "font-weight": "500",
+                padding: "2px 8px",
+                "border-radius": "9999px",
+              }}
+            >
+              Up to 10% off
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -2033,14 +2048,26 @@ function BasicsBrandsSection(props: { darkMode: () => boolean }) {
                   setCfgOpen((v) => !v);
                 };
 
+                const BASICS_KEYS = [
+                  "--background-normal-primary", "--background-normal-secondary", "--background-normal-tertiary",
+                  "--text-normal-primary", "--text-normal-secondary", "--text-normal-tertiary",
+                  "--stroke-1", "--stroke-2", "--stroke-solid",
+                ];
+                const basicsVars = () => Object.fromEntries(
+                  BASICS_KEYS.flatMap((k) => {
+                    const v = (brand.telescopeCssVariables ?? {})[k];
+                    return v !== undefined ? [[k, v]] : [];
+                  })
+                );
+
                 const cfgRows = () => [
-                  ...Object.entries(brand.telescopeCssVariables ?? {}),
+                  ...Object.entries(basicsVars()),
                   ...(brand.fontImportUrl ? [["fontImportUrl", brand.fontImportUrl]] : []),
                 ].map(([k, v]) => ({ k, v }));
 
                 const getJson = () => JSON.stringify({
                   ...(brand.fontImportUrl ? { fontImportUrl: brand.fontImportUrl } : {}),
-                  telescopeCssVariables: brand.telescopeCssVariables ?? {},
+                  telescopeCssVariables: basicsVars(),
                 }, null, 2);
 
                 return (
