@@ -60,8 +60,6 @@ Return **only** the JSON object below, fully populated. Do not include markdown 
 {
   "defaultIconStyle": "icon",
   "sdkCssVariables": {
-    "--font-family": "'FontName', system-ui, sans-serif",
-    "--sdk-roundness-alpha": "<button corner radius, e.g. 8px>",
     "--sdk-roundness-card":  "<card corner radius, e.g. 12px>",
     "--sdk-category-card-bg":                    "<card fill or transparent>",
     "--sdk-category-card-border":                "<card stroke or transparent>",
@@ -71,10 +69,7 @@ Return **only** the JSON object below, fully populated. Do not include markdown 
     "--sdk-category-card-icon-bg":               "<icon container fill or transparent>",
     "--sdk-category-card-icon-border":           "<icon container stroke or transparent>",
     "--sdk-category-card-icon-container-size":   "<container size if visible; icon size if no fill and no border>",
-    "--sdk-category-card-icon-container-radius": "<e.g. 12px or 9999px>",
-    "--text-listing":      "<brand accent for price/offer labels>",
-    "--text-listing-dark": "<darker shade for price labels>",
-    "--search-bg":         "<search bar background>"
+    "--sdk-category-card-icon-container-radius": "<e.g. 12px or 9999px>"
   }
 }
 \`\`\`
