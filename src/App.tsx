@@ -2086,14 +2086,16 @@ function BasicsBrandsSection(props: { darkMode: () => boolean }) {
                   })
                 );
 
+                const fontFamily = () => brand.sdkCssVariables?.["--font-family"];
+
                 const cfgRows = () => [
                   ...Object.entries(basicsVars()),
-                  ...(brand.fontImportUrl ? [["fontImportUrl", brand.fontImportUrl]] : []),
+                  ...(fontFamily() ? [["--font-family", fontFamily()!]] : []),
                 ].map(([k, v]) => ({ k, v }));
 
                 const getJson = () => JSON.stringify({
-                  ...(brand.fontImportUrl ? { fontImportUrl: brand.fontImportUrl } : {}),
                   telescopeCssVariables: basicsVars(),
+                  ...(fontFamily() ? { sdkCssVariables: { "--font-family": fontFamily() } } : {}),
                 }, null, 2);
 
                 return (
