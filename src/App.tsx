@@ -2166,10 +2166,6 @@ function BasicsPlayground(props: { darkMode: () => boolean }) {
       <Section title="Preview">
         <BasicsPreviewCards />
       </Section>
-      <div class="grid grid-cols-2 gap-4">
-        <ColoursSection />
-        <TypographySection />
-      </div>
       <BasicsBrandsSection darkMode={props.darkMode} />
     </div>
   );
