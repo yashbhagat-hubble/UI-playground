@@ -585,20 +585,9 @@ function createAppbarBuilderState() {
   const [iconContainerBorderColor, setIconContainerBorderColor] = createSignal("var(--stroke-2)");
   const [iconContainerSize, setIconContainerSize] = createSignal(32);
   const [iconContainerRadius, setIconContainerRadius] = createSignal(50);
-  // — Context (background + text) —
-  const [ctxBgPrimary,     setCtxBgPrimary]     = createSignal(LIGHT_CTX_DEFAULTS.bgPrimary);
-  const [ctxBgSecondary,   setCtxBgSecondary]   = createSignal(LIGHT_CTX_DEFAULTS.bgSecondary);
-  const [ctxTextPrimary,   setCtxTextPrimary]   = createSignal(LIGHT_CTX_DEFAULTS.textPrimary);
-  const [ctxTextSecondary, setCtxTextSecondary] = createSignal(LIGHT_CTX_DEFAULTS.textSecondary);
-  const [ctxTextTertiary,  setCtxTextTertiary]  = createSignal(LIGHT_CTX_DEFAULTS.textTertiary);
-
-  const contextVars = createMemo((): JSX.CSSProperties => ({
-    "--background-normal-primary":   ctxBgPrimary(),
-    "--background-normal-secondary": ctxBgSecondary(),
-    "--text-normal-primary":   ctxTextPrimary(),
-    "--text-normal-secondary": ctxTextSecondary(),
-    "--text-normal-tertiary":  ctxTextTertiary(),
-  }));
+  // — Colors —
+  const [titleColor, setTitleColor] = createSignal("var(--text-normal-primary)");
+  const [iconColor, setIconColor]   = createSignal("var(--text-normal-primary)");
 
   const appbarCssVars = createMemo((): JSX.CSSProperties => {
     const hasVisibleContainer =
@@ -607,10 +596,12 @@ function createAppbarBuilderState() {
       "--sdk-appbar-bg": appbarBg(),
       "--sdk-appbar-bottom-border": appbarBorderOn() ? appbarBorderColor() : "transparent",
       "--sdk-appbar-height": `${appbarHeight()}px`,
+      "--sdk-appbar-title-color": titleColor(),
       "--sdk-appbar-title-size": `${TITLE_SIZES[titleSizeKey()].size}px`,
       "--sdk-appbar-title-line-height": `${TITLE_SIZES[titleSizeKey()].lineHeight}px`,
       "--sdk-appbar-title-weight": `${TITLE_WEIGHTS[titleWeightKey()].weight}`,
       "--sdk-appbar-title-tracking": `${TITLE_SIZES[titleSizeKey()].tracking}px`,
+      "--sdk-appbar-icon-color": iconColor(),
       "--sdk-appbar-icon-gap": `${iconGap()}px`,
       "--sdk-appbar-icon-inner-size": `${iconSizePx()}px`,
       "--sdk-appbar-icon-bg": iconContainerOn() ? iconContainerBg() : "transparent",
@@ -629,6 +620,8 @@ function createAppbarBuilderState() {
     setTitleSizeKey("t6");
     setTitleWeightKey("medium");
     setTitleAlign("left");
+    setTitleColor("var(--text-normal-primary)");
+    setIconColor("var(--text-normal-primary)");
     setIconGap(12);
     setBackIconKey("arrow");
     setIconSizePx(20);
@@ -640,30 +633,19 @@ function createAppbarBuilderState() {
     setIconContainerRadius(50);
   }
 
-  function resetCtxToMode(dark: boolean) {
-    const d = dark ? DARK_CTX_DEFAULTS : LIGHT_CTX_DEFAULTS;
-    setCtxBgPrimary(d.bgPrimary);
-    setCtxBgSecondary(d.bgSecondary);
-    setCtxTextPrimary(d.textPrimary);
-    setCtxTextSecondary(d.textSecondary);
-    setCtxTextTertiary(d.textTertiary);
-  }
-
   return {
     appbarBg, setAppbarBg, appbarBorderOn, setAppbarBorderOn,
     appbarBorderColor, setAppbarBorderColor,
     appbarHeight, setAppbarHeight,
     titleSizeKey, setTitleSizeKey, titleWeightKey, setTitleWeightKey, titleAlign, setTitleAlign,
+    titleColor, setTitleColor, iconColor, setIconColor,
     iconGap, setIconGap, backIconKey, setBackIconKey, backIconName,
     iconSizePx, setIconSizePx, iconContainerOn, setIconContainerOn,
     iconContainerBg, setIconContainerBg, iconContainerBorderOn, setIconContainerBorderOn,
     iconContainerBorderColor, setIconContainerBorderColor,
     iconContainerSize, setIconContainerSize, iconContainerRadius, setIconContainerRadius,
-    ctxBgPrimary, setCtxBgPrimary, ctxBgSecondary, setCtxBgSecondary,
-    ctxTextPrimary, setCtxTextPrimary, ctxTextSecondary, setCtxTextSecondary,
-    ctxTextTertiary, setCtxTextTertiary,
-    contextVars, appbarCssVars,
-    resetAppbar, resetCtxToMode,
+    appbarCssVars,
+    resetAppbar,
   };
 }
 
@@ -932,14 +914,12 @@ function AppbarBuilderSection(props: { state: AppbarBuilderState }) {
     appbarBorderColor, setAppbarBorderColor,
     appbarHeight, setAppbarHeight,
     titleSizeKey, setTitleSizeKey, titleWeightKey, setTitleWeightKey, titleAlign, setTitleAlign,
+    titleColor, setTitleColor, iconColor, setIconColor,
     iconGap, setIconGap, backIconKey, setBackIconKey, backIconName,
     iconSizePx, setIconSizePx, iconContainerOn, setIconContainerOn,
     iconContainerBg, setIconContainerBg, iconContainerBorderOn, setIconContainerBorderOn,
     iconContainerBorderColor, setIconContainerBorderColor,
     iconContainerSize, setIconContainerSize, iconContainerRadius, setIconContainerRadius,
-    ctxBgPrimary, setCtxBgPrimary, ctxBgSecondary, setCtxBgSecondary,
-    ctxTextPrimary, setCtxTextPrimary, ctxTextSecondary, setCtxTextSecondary,
-    ctxTextTertiary, setCtxTextTertiary,
   } = props.state;
 
   const TITLE_SIZE_OPTIONS = (Object.keys(TITLE_SIZES) as TitleSizeKey[]).map((k) => ({
@@ -968,11 +948,8 @@ function AppbarBuilderSection(props: { state: AppbarBuilderState }) {
   );
 
   const getAppbarJson = () => JSON.stringify({
-    appbarCssVariables: Object.fromEntries(
-      [
-        ...Object.entries(props.state.contextVars()),
-        ...Object.entries(props.state.appbarCssVars()),
-      ].map(([k, v]) => [k, String(v)])
+    sdkCssVariables: Object.fromEntries(
+      Object.entries(props.state.appbarCssVars()).map(([k, v]) => [k, String(v)])
     ),
     appbarConfig: {
       backIcon: backIconKey(),
@@ -1037,10 +1014,7 @@ function AppbarBuilderSection(props: { state: AppbarBuilderState }) {
           {/* ── Phone preview ── */}
           <div
             class="flex justify-center"
-            style={{
-              ...props.state.contextVars(),
-              ...props.state.appbarCssVars(),
-            }}
+            style={{ ...props.state.appbarCssVars() }}
           >
             <PhonePreview>
               <SdkAppbar title="Gift Cards" backIcon={backIconName()} titleAlign={titleAlign()} />
@@ -1067,23 +1041,11 @@ function AppbarBuilderSection(props: { state: AppbarBuilderState }) {
                   <SwatchRow value={appbarBorderColor()} onChange={setAppbarBorderColor} options={BORDER_COLOR_OPTIONS} />
                 </Show>
               </CtrlRow>
-            </CtrlGroup>
-
-            <CtrlGroup title="Background & Text">
-              <CtrlRow label="Bg Primary">
-                <ColorPickerCtrl value={ctxBgPrimary()} onChange={setCtxBgPrimary} />
+              <CtrlRow label="Title color">
+                <ColorPickerCtrl value={titleColor()} onChange={setTitleColor} />
               </CtrlRow>
-              <CtrlRow label="Bg Secondary">
-                <ColorPickerCtrl value={ctxBgSecondary()} onChange={setCtxBgSecondary} />
-              </CtrlRow>
-              <CtrlRow label="Text Primary">
-                <ColorPickerCtrl value={ctxTextPrimary()} onChange={setCtxTextPrimary} />
-              </CtrlRow>
-              <CtrlRow label="Text Sec">
-                <ColorPickerCtrl value={ctxTextSecondary()} onChange={setCtxTextSecondary} />
-              </CtrlRow>
-              <CtrlRow label="Text Ter">
-                <ColorPickerCtrl value={ctxTextTertiary()} onChange={setCtxTextTertiary} />
+              <CtrlRow label="Icon color">
+                <ColorPickerCtrl value={iconColor()} onChange={setIconColor} />
               </CtrlRow>
             </CtrlGroup>
 
@@ -1175,10 +1137,10 @@ function AppbarBrandCard(props: {
   };
 
   const cssVarRows = () =>
-    Object.entries(props.theme.appbarCssVariables ?? {}).map(([name, value]) => ({ name, value }));
+    Object.entries(props.theme.sdkCssVariables ?? {}).map(([name, value]) => ({ name, value }));
 
   const getJson = () => JSON.stringify({
-    appbarCssVariables: props.theme.appbarCssVariables ?? {},
+    sdkCssVariables: props.theme.sdkCssVariables ?? {},
     appbarConfig: props.theme.appbarConfig ?? {},
   }, null, 2);
 
@@ -1240,10 +1202,7 @@ function AppbarBrandCard(props: {
 
       <div
         class="flex justify-center"
-        style={{
-          ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
-          ...(props.theme.appbarCssVariables as JSX.CSSProperties | undefined),
-        }}
+        style={{ ...(props.theme.sdkCssVariables as JSX.CSSProperties | undefined) }}
       >
         <PhonePreview>
           <SdkAppbar
@@ -3618,7 +3577,7 @@ function ListingPlayground() {
 type AppbarCustomBrand = {
   key: string;
   label: string;
-  appbarCssVariables: Record<string, string>;
+  sdkCssVariables: Record<string, string>;
   appbarConfig: { backIcon: "arrow" | "caret"; titleAlign: "left" | "center" };
 };
 
@@ -3633,14 +3592,14 @@ function saveAppbarCustoms(list: AppbarCustomBrand[]) {
 }
 
 const APPBAR_JSON_PLACEHOLDER = `{
-  "appbarCssVariables": {
-    "--sdk-appbar-bg": "var(--background-normal-primary)",
-    "--sdk-appbar-bottom-border": "var(--stroke-1)",
+  "sdkCssVariables": {
+    "--sdk-appbar-bg": "#ffffff",
+    "--sdk-appbar-bottom-border": "#ebebeb",
     "--sdk-appbar-height": "44px",
-    "--sdk-appbar-title-color": "var(--text-normal-primary)",
+    "--sdk-appbar-title-color": "#111827",
     "--sdk-appbar-title-size": "14px",
     "--sdk-appbar-title-weight": "500",
-    "--sdk-appbar-icon-color": "var(--text-normal-primary)",
+    "--sdk-appbar-icon-color": "#111827",
     "--sdk-appbar-icon-inner-size": "20px"
   },
   "appbarConfig": {
@@ -3667,7 +3626,7 @@ function AppbarCustomSection(props: { darkMode: () => boolean }) {
       const entry: AppbarCustomBrand = {
         key: `appbar-${Date.now()}`,
         label: name,
-        appbarCssVariables: (p["appbarCssVariables"] as Record<string, string>) ?? {},
+        sdkCssVariables: ((p["sdkCssVariables"] ?? p["appbarCssVariables"]) as Record<string, string>) ?? {},
         appbarConfig: {
           backIcon: ((p["appbarConfig"] as Record<string, string>)?.["backIcon"] as "arrow" | "caret") ?? "arrow",
           titleAlign: ((p["appbarConfig"] as Record<string, string>)?.["titleAlign"] as "left" | "center") ?? "left",
@@ -3737,11 +3696,11 @@ function AppbarCustomSection(props: { darkMode: () => boolean }) {
                 };
 
                 const getJson = () => JSON.stringify(
-                  { appbarCssVariables: c.appbarCssVariables, appbarConfig: c.appbarConfig },
+                  { sdkCssVariables: c.sdkCssVariables, appbarConfig: c.appbarConfig },
                   null, 2
                 );
 
-                const cssVarRows = () => Object.entries(c.appbarCssVariables ?? {}).map(([name, value]) => ({ name, value }));
+                const cssVarRows = () => Object.entries(c.sdkCssVariables ?? {}).map(([name, value]) => ({ name, value }));
 
                 return (
                   <div class="flex flex-col gap-1.5">
@@ -3804,10 +3763,7 @@ function AppbarCustomSection(props: { darkMode: () => boolean }) {
 
                     <div
                       class="flex justify-center"
-                      style={{
-                        ...(c.appbarCssVariables as JSX.CSSProperties),
-                        ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
-                      }}
+                      style={{ ...(c.sdkCssVariables as JSX.CSSProperties) }}
                     >
                       <PhonePreview>
                         <SdkAppbar

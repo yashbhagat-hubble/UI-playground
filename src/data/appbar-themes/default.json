@@ -1,14 +1,16 @@
 {
   "key": "default",
   "label": "Default",
-  "appbarCssVariables": {
+  "sdkCssVariables": {
     "--sdk-appbar-bg": "var(--background-normal-primary)",
     "--sdk-appbar-bottom-border": "var(--stroke-1)",
     "--sdk-appbar-height": "44px",
+    "--sdk-appbar-title-color": "var(--text-normal-primary)",
     "--sdk-appbar-title-size": "14px",
     "--sdk-appbar-title-line-height": "20px",
     "--sdk-appbar-title-weight": "500",
     "--sdk-appbar-title-tracking": "-0.14px",
+    "--sdk-appbar-icon-color": "var(--text-normal-primary)",
     "--sdk-appbar-icon-gap": "12px",
     "--sdk-appbar-icon-inner-size": "20px",
     "--sdk-appbar-icon-bg": "transparent",

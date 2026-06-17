@@ -1,19 +1,16 @@
 {
   "key": "instagram",
   "label": "Instagram",
-  "appbarCssVariables": {
-    "--background-normal-primary": "#0b141a",
-    "--background-normal-secondary": "#1f2c34",
-    "--text-normal-primary": "#f1f1f1",
-    "--text-normal-secondary": "#8696a0",
-    "--text-normal-tertiary": "#667781",
+  "sdkCssVariables": {
     "--sdk-appbar-bg": "#0b141a",
     "--sdk-appbar-bottom-border": "transparent",
     "--sdk-appbar-height": "44px",
+    "--sdk-appbar-title-color": "#f1f1f1",
     "--sdk-appbar-title-size": "16px",
     "--sdk-appbar-title-line-height": "22px",
     "--sdk-appbar-title-weight": "600",
     "--sdk-appbar-title-tracking": "-0.16px",
+    "--sdk-appbar-icon-color": "#f1f1f1",
     "--sdk-appbar-icon-gap": "12px",
     "--sdk-appbar-icon-inner-size": "24px",
     "--sdk-appbar-icon-bg": "transparent",

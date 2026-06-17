@@ -1,7 +1,7 @@
 export type AppbarTheme = {
   key: string;
   label: string;
-  appbarCssVariables?: Record<string, string>;
+  sdkCssVariables?: Record<string, string>;
   appbarConfig?: {
     backIcon?: "arrow" | "caret";
     titleAlign?: "left" | "center";
