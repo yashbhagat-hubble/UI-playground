@@ -1358,8 +1358,18 @@ function ConfigModal(props: { data: ConfigModalData; onClose: () => void }) {
                 getText={() => {
                   const obj: Record<string, unknown> = {};
                   if (props.data.defaultIconStyle) obj.defaultIconStyle = props.data.defaultIconStyle;
-                  if (props.data.sdkCssVariables && Object.keys(props.data.sdkCssVariables).length)
-                    obj.sdkCssVariables = props.data.sdkCssVariables;
+                  const CARD_SDK_KEYS = [
+                    "--sdk-roundness-card",
+                    "--sdk-category-card-bg", "--sdk-category-card-border",
+                    "--sdk-category-card-title-color", "--sdk-category-card-subtitle-color",
+                    "--sdk-category-card-icon-color", "--sdk-category-card-icon-bg",
+                    "--sdk-category-card-icon-border", "--sdk-category-card-icon-container-size",
+                    "--sdk-category-card-icon-container-radius",
+                  ];
+                  const filteredSdk = Object.fromEntries(
+                    Object.entries(props.data.sdkCssVariables ?? {}).filter(([k]) => CARD_SDK_KEYS.includes(k))
+                  );
+                  if (Object.keys(filteredSdk).length) obj.sdkCssVariables = filteredSdk;
                   return JSON.stringify(obj, null, 2);
                 }}
                 label="Copy JSON"
