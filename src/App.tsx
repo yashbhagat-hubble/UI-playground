@@ -15,6 +15,7 @@ import { APPBAR_EXTRACTION_PROMPT } from "./data/appbar_extraction_prompt";
 import { LISTING_EXTRACTION_PROMPT } from "./data/listing_extraction_prompt";
 import { BUTTON_EXTRACTION_PROMPT } from "./data/button_extraction_prompt";
 import { INPUT_EXTRACTION_PROMPT } from "./data/input_extraction_prompt";
+import { BASICS_EXTRACTION_PROMPT } from "./data/basics_extraction_prompt";
 import { MOCK_CATEGORIES, categoryIconMap, categoryEmoji, type MockCategory } from "./utils/categories";
 import { formatDiscountPercent } from "./utils/number";
 import listingDataRaw from "./data/listing-data.json";
@@ -1983,12 +1984,12 @@ function BasicsBrandsSection(props: { darkMode: () => boolean }) {
       <Section
         title="Custom Brand"
         subtitle="Copy prompt and use it with screenshots or a URL to generate a JSON response"
-        action={<CopyButton getText={() => EXTRACTION_PROMPT} label="Copy Prompt" />}
+        action={<CopyButton getText={() => BASICS_EXTRACTION_PROMPT} label="Copy Prompt" />}
       >
         <div class="flex flex-col gap-2.5">
           <textarea
             class="h-24 w-full resize-none rounded-lg border border-stroke-1 bg-background-normal-secondary px-3 py-2 font-mono text-[11px] leading-relaxed text-text-normal-primary placeholder:text-text-normal-tertiary focus:border-stroke-2 focus:outline-none"
-            placeholder={`Paste brand JSON here…\n{\n  "telescopeCssVariables": { "--background-normal-primary": "#..." },\n  "sdkCssVariables": { "--sdk-category-card-bg": "..." },\n  "defaultIconStyle": "icon"\n}`}
+            placeholder={`Paste brand JSON here…\n{\n  "telescopeCssVariables": { "--background-normal-primary": "#..." },\n  "fontImportUrl": "https://fonts.googleapis.com/…"\n}`}
             value={jsonInput()}
             onInput={(e) => { setJsonInput(e.currentTarget.value); setParseError(null); }}
           />
@@ -2035,9 +2036,11 @@ function BasicsBrandsSection(props: { darkMode: () => boolean }) {
                 const cfgRows = () => [
                   ...Object.entries(brand.telescopeCssVariables ?? {}),
                   ...Object.entries(brand.sdkCssVariables ?? {}),
+                  ...(brand.fontImportUrl ? [["fontImportUrl", brand.fontImportUrl]] : []),
                 ].map(([k, v]) => ({ k, v }));
 
                 const getJson = () => JSON.stringify({
+                  ...(brand.fontImportUrl ? { fontImportUrl: brand.fontImportUrl } : {}),
                   telescopeCssVariables: brand.telescopeCssVariables ?? {},
                   ...(brand.sdkCssVariables && Object.keys(brand.sdkCssVariables).length
                     ? { sdkCssVariables: brand.sdkCssVariables }
