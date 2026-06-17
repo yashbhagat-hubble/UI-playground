@@ -40,5 +40,6 @@
     "--text-listing-dark": "#E0B800",
     "--search-bg": "var(--background-normal-secondary)",
     "--sdk-search-radius": "9999px"
-  }
+  },
+  "darkMode": true
 }

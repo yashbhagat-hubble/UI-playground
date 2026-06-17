@@ -21,5 +21,6 @@
     "--sdk-category-card-icon-border": "transparent",
     "--sdk-category-card-icon-container-size": "76px",
     "--sdk-category-card-icon-container-radius": "9999px"
-  }
+  },
+  "darkMode": true
 }

@@ -39,5 +39,6 @@
     "--text-listing-dark": "#000000",
     "--search-bg": "#F7F7F7",
     "--sdk-search-radius": "9999px"
-  }
+  },
+  "darkMode": false
 }

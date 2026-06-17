@@ -3,6 +3,7 @@ export type BrandTheme = {
   label: string;
   defaultIconStyle?: "icon" | "emoji";
   fontImportUrl?: string;
+  darkMode?: boolean;
   telescopeCssVariables?: Record<string, string>;
   sdkCssVariables?: Record<string, string>;
 };

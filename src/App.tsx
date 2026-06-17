@@ -1450,7 +1450,7 @@ function collapseInvisibleContainer(sdkVars: Record<string, string> | undefined)
 // appear in the same list as custom-added brands and can be deleted like any other.
 
 const BRANDS_KEY = "hcp-brands";
-const BRANDS_INIT_KEY = "hcp-brands-init";
+const BRANDS_INIT_KEY = "hcp-brands-init-v2";
 
 type Brand = {
   key: string;
