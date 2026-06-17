@@ -2019,33 +2019,95 @@ function BasicsBrandsSection(props: { darkMode: () => boolean }) {
         <Section title="Brands">
           <div class="flex flex-col gap-6">
             <For each={brands()}>
-              {(brand) => (
-                <div class="flex flex-col gap-1.5">
-                  <div class="flex items-center justify-between">
-                    <p class="text-label-semi-bold text-text-normal-primary">{brand.label}</p>
-                    <Show when={brand.key !== "default"}>
-                      <button
-                        class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
-                        title="Delete"
-                        onClick={() => deleteBrand(brand.key)}
-                      >
-                        <PhosphorIcon name="trash" fontSize={14} />
-                      </button>
+              {(brand) => {
+                const [cfgOpen, setCfgOpen] = createSignal(false);
+                const [cfgPos, setCfgPos] = createSignal({ top: 0, right: 0 });
+                let cfgBtnRef: HTMLButtonElement | undefined;
+
+                const openCfg = () => {
+                  if (cfgBtnRef) {
+                    const r = cfgBtnRef.getBoundingClientRect();
+                    setCfgPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
+                  }
+                  setCfgOpen((v) => !v);
+                };
+
+                const cfgRows = () => [
+                  ...Object.entries(brand.telescopeCssVariables ?? {}),
+                  ...Object.entries(brand.sdkCssVariables ?? {}),
+                ].map(([k, v]) => ({ k, v }));
+
+                const getJson = () => JSON.stringify({
+                  telescopeCssVariables: brand.telescopeCssVariables ?? {},
+                  ...(brand.sdkCssVariables && Object.keys(brand.sdkCssVariables).length
+                    ? { sdkCssVariables: brand.sdkCssVariables }
+                    : {}),
+                }, null, 2);
+
+                return (
+                  <div class="flex flex-col gap-1.5">
+                    <Show when={cfgOpen()}>
+                      <Portal>
+                        <div class="fixed inset-0 z-[300]" onClick={() => setCfgOpen(false)} />
+                        <div
+                          class="fixed z-[301] min-w-[300px] max-h-80 overflow-y-auto overflow-hidden rounded-xl border border-stroke-1 bg-background-normal-primary shadow-xl"
+                          style={{ top: `${cfgPos().top}px`, right: `${cfgPos().right}px` }}
+                        >
+                          <div class="flex items-center justify-between border-b border-stroke-1 px-3 py-2">
+                            <p class="text-[10px] font-semibold uppercase tracking-widest text-text-normal-tertiary">{brand.label}</p>
+                            <CopyButton getText={getJson} label="Copy JSON" />
+                          </div>
+                          <div class="p-3">
+                            <For each={cfgRows()}>
+                              {(row) => (
+                                <div class="flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 hover:bg-background-normal-secondary">
+                                  <span class="shrink-0 font-mono text-[11px] text-text-normal-tertiary">{row.k}</span>
+                                  <span class="font-mono text-[11px] text-text-normal-primary">{row.v}</span>
+                                </div>
+                              )}
+                            </For>
+                          </div>
+                        </div>
+                      </Portal>
                     </Show>
+
+                    <div class="flex items-center justify-between">
+                      <p class="text-label-semi-bold text-text-normal-primary">{brand.label}</p>
+                      <div class="flex items-center gap-1">
+                        <button
+                          ref={(el) => (cfgBtnRef = el)}
+                          class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-normal-tertiary transition-colors hover:bg-background-normal-secondary hover:text-text-normal-primary"
+                          classList={{ "bg-background-normal-secondary text-text-normal-primary": cfgOpen() }}
+                          onClick={openCfg}
+                        >
+                          <PhosphorIcon name="code" fontSize={13} />
+                          <span>Config</span>
+                        </button>
+                        <Show when={brand.key !== "default"}>
+                          <button
+                            class="flex size-6 items-center justify-center rounded-md text-text-normal-tertiary transition-colors hover:bg-red-500/10 hover:text-red-400"
+                            title="Delete"
+                            onClick={() => deleteBrand(brand.key)}
+                          >
+                            <PhosphorIcon name="trash" fontSize={14} />
+                          </button>
+                        </Show>
+                      </div>
+                    </div>
+                    <div
+                      class="overflow-hidden rounded-xl p-4"
+                      style={{
+                        ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
+                        ...(brand.telescopeCssVariables as JSX.CSSProperties | undefined),
+                        background: "var(--background-normal-primary)",
+                        "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
+                      }}
+                    >
+                      <BasicsPreviewCards />
+                    </div>
                   </div>
-                  <div
-                    class="overflow-hidden rounded-xl p-4"
-                    style={{
-                      ...(props.darkMode() ? DARK_TELESCOPE_VARS : {}),
-                      ...(brand.telescopeCssVariables as JSX.CSSProperties | undefined),
-                      background: "var(--background-normal-primary)",
-                      "box-shadow": "inset 0 0 0 1px var(--stroke-1)",
-                    }}
-                  >
-                    <BasicsPreviewCards />
-                  </div>
-                </div>
-              )}
+                );
+              }}
             </For>
           </div>
         </Section>
