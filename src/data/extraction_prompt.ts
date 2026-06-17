@@ -54,30 +54,6 @@ Return **only** the JSON object below, fully populated. Do not include markdown 
 \`\`\`json
 {
   "defaultIconStyle": "icon",
-  "fontImportUrl": "<Google Fonts URL if a custom font is visible, otherwise omit>",
-  "telescopeCssVariables": {
-    "--brand-tbd-base":       "<primary brand accent color>",
-    "--brand-tbd-dark":       "<darker shade of brand accent>",
-    "--brand-tbd-light":      "<brand accent at ~30% opacity, as rgba()>",
-    "--brand-tbd-lighter":    "<brand accent at ~10% opacity or a very subtle tinted bg>",
-    "--feature-base":         "<interactive/highlight color, often same as brand>",
-    "--feature-light":        "<feature at ~35% opacity>",
-    "--feature-lighter":      "<feature darkest bg tint>",
-    "--brand-button-primary-text": "<text on brand-colored buttons>",
-    "--text-normal-primary":  "<primary body text color>",
-    "--text-normal-secondary":"<secondary/dimmer text>",
-    "--text-normal-tertiary": "<tertiary/hint text>",
-    "--text-inverted-primary":"<text on brand-colored surfaces>",
-    "--background-normal-primary":   "<page background>",
-    "--background-normal-secondary": "<card/surface background>",
-    "--background-normal-tertiary":  "<elevated surface>",
-    "--background-inverted-primary": "<inverted surface bg>",
-    "--background-mapping-elevation-1": "<elevation-1 surface>",
-    "--stroke-1": "<subtle border/divider>",
-    "--stroke-2": "<medium border>",
-    "--stroke-3": "<strong border>",
-    "--stroke-solid": "<solid opaque stroke>"
-  },
   "sdkCssVariables": {
     "--font-family": "'FontName', system-ui, sans-serif",
     "--sdk-roundness-alpha": "<button corner radius, e.g. 8px>",

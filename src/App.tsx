@@ -1358,8 +1358,6 @@ function ConfigModal(props: { data: ConfigModalData; onClose: () => void }) {
                 getText={() => {
                   const obj: Record<string, unknown> = {};
                   if (props.data.defaultIconStyle) obj.defaultIconStyle = props.data.defaultIconStyle;
-                  if (props.data.telescopeCssVariables && Object.keys(props.data.telescopeCssVariables).length)
-                    obj.telescopeCssVariables = props.data.telescopeCssVariables;
                   if (props.data.sdkCssVariables && Object.keys(props.data.sdkCssVariables).length)
                     obj.sdkCssVariables = props.data.sdkCssVariables;
                   return JSON.stringify(obj, null, 2);
