@@ -37,8 +37,8 @@ The card has **two independently styled layers**:
 ### Card text
 | Property | How to decide | CSS variable |
 |---|---|---|
-| Title color | Color of the category name label. Default is `--text-normal-primary` — only include if sampled color differs | `--sdk-category-card-title-color` |
-| Subtitle color | Color of the discount/subtitle label. Default is `--text-normal-secondary` — only include if sampled color differs | `--sdk-category-card-subtitle-color` |
+| Title color | Color of the category name label. Default is \`--text-normal-primary\` — only include if sampled color differs | \`--sdk-category-card-title-color\` |
+| Subtitle color | Color of the discount/subtitle label. Default is \`--text-normal-secondary\` — only include if sampled color differs | \`--sdk-category-card-subtitle-color\` |
 ### Icon
 | Property | How to decide | Output field |
 |---|---|---|
